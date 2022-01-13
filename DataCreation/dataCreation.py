@@ -19,13 +19,13 @@ MVTNorm oä Pakete für synthetische Datensätze
 """
 
 
-def add_gaussian_noise(data: pd.Series, sd: int):
+def add_gaussian_noise(data: pd.Series, sd: float) -> pd.Series:
     length = len(data)
     noise = np.random.normal(0, sd, length)
     return data + noise
 
 
-def add_random_dims(data: pd.DataFrame, dim_names: List[str]):
+def add_random_dims(data: pd.DataFrame, dim_names: List[str]) -> None:
     length = len(data)
     for name in dim_names:
         range_ = np.random.uniform(-1, 1, 2)*1000
@@ -165,13 +165,217 @@ class GeometricUniformData(Data):
         self.data = pd.concat(class_list)
 
 
+#todo: maybe rework the system, using one (or 2) "ground truth" dims with no noise, to calculate from; dim1 and 2 are then noisy version of ground truth
+class SimpleCorrelationData(Data):
+    def __init__(self, members: List[int], squared_classes=False):
+        np.random.seed(42)
+        self.members = members
+        self.create_data(squared_classes)
+        add_random_dims(self.data, ["rand_00", "rand_01", "rand_02"])
+       
+    @staticmethod    
+    def fill_square(x_list: List[int],
+                    y_list: List[int],
+                    x_start: int,
+                    x_end: int,
+                    y_start: int,
+                    y_end: int,
+                    number_of_points: int):
+        x_list = np.append(x_list, np.random.uniform(x_start, x_end, number_of_points))
+        y_list = np.append(y_list, np.random.uniform(y_start, y_end, number_of_points))
+        return x_list, y_list
+
+    #if corner is false: number is calculated for edge
+    @staticmethod
+    def get_members(number_of_points: int, ratio: float, corner: bool):
+        if corner:
+            return int(number_of_points / 4 * ratio) + np.random.randint(0, 2)
+        return int(number_of_points / 4 * (1 - ratio)) + np.random.randint(0, 2)
+
+    @staticmethod
+    def plot_progress(dim_00, dim_01):
+        df = pd.DataFrame()
+        df["1"] = dim_01
+        df["0"] = dim_00
+        print("progress:\n", df.describe())
+        visualization.visualize_2d(df, ("0", "1"))
+
+    #area is the area of the outer square
+    def fill_square_shell(self, number_of_points: int, area: int, dim_00, dim_01):
+        if area == 1:
+            dim_00 = np.append(dim_00, np.random.uniform(-.5, .5, number_of_points))
+            dim_01 = np.append(dim_01, np.random.uniform(-.5, .5, number_of_points))
+        else:
+            outer_bound = np.sqrt(area) / 2
+            inner_bound = np.sqrt(area - 1) / 2
+            diff = outer_bound - inner_bound
+            #ratio of corner compared to corner + side
+            ratio = diff / (2 * outer_bound)
+            #fill corners
+            corner_points = number_of_points * ratio
+            points_in_corner_1 = self.get_members(number_of_points, ratio, True)
+            points_in_corner_2 = self.get_members(number_of_points, ratio, True)
+            points_in_corner_3 = self.get_members(number_of_points, ratio, True)
+            points_in_corner_4 = int(corner_points - points_in_corner_1 - points_in_corner_2 - points_in_corner_3)
+            dim_00, dim_01 = self.fill_square(dim_00, dim_01, inner_bound, outer_bound, inner_bound, outer_bound, points_in_corner_1)
+            dim_00, dim_01 = self.fill_square(dim_00, dim_01, inner_bound, outer_bound, -1 * outer_bound, -1 * inner_bound, points_in_corner_2)
+            dim_00, dim_01 = self.fill_square(dim_00, dim_01, -1 * outer_bound, -1 * inner_bound, inner_bound, outer_bound, points_in_corner_3)
+            dim_00, dim_01 = self.fill_square(dim_00, dim_01, -1 * outer_bound, -1 * inner_bound, -1 * outer_bound, -1 * inner_bound, points_in_corner_4)
+
+            #fill edges
+            points_in_edge_1 = self.get_members(number_of_points, ratio, False)
+            points_in_edge_2 = self.get_members(number_of_points, ratio, False)
+            points_in_edge_3 = self.get_members(number_of_points, ratio, False)
+            points_in_edge_4 = int(number_of_points - points_in_corner_1 - points_in_corner_2 - points_in_corner_3 -
+                                   points_in_corner_4 - points_in_edge_1 - points_in_edge_2 - points_in_edge_3)
+            dim_00, dim_01 = self.fill_square(dim_00, dim_01, -1 * inner_bound, inner_bound, inner_bound, outer_bound, points_in_edge_1)
+            dim_00, dim_01 = self.fill_square(dim_00, dim_01, -1 * inner_bound, inner_bound, -1 * outer_bound, -1 * inner_bound, points_in_edge_2)
+            dim_00, dim_01 = self.fill_square(dim_00, dim_01, -1 * outer_bound, -1 * inner_bound, -1 * inner_bound, inner_bound, points_in_edge_3)
+            dim_00, dim_01 = self.fill_square(dim_00, dim_01, inner_bound, outer_bound, -1 * inner_bound, inner_bound, points_in_edge_4)
+
+        return dim_00, dim_01
+
+    #todo: check if polar coordinates make distributions seem more similar for dim_00 and dim_01
+    @staticmethod
+    def fill_circle_shell(number_of_points: int, area: int, dim_00, dim_01):
+        outer_radius = np.sqrt(area / np.pi)
+        inner_radius = np.sqrt((area - 1) / np.pi)
+        for _ in range(number_of_points):
+            x = np.random.uniform(-1 * outer_radius, outer_radius)
+            y_high = np.sqrt((outer_radius**2) - (x**2))
+            if np.abs(x) >= inner_radius:
+                y_low = 0
+            else:
+                y_low = np.sqrt((inner_radius**2) - (x**2))
+            #up_down determines if y will be positive or negative
+            up_down = np.random.randint(0, 2)
+            if up_down:
+                y = np.random.uniform(y_low, y_high)
+            else:
+                y = np.random.uniform(-1 * y_high, -1 * y_low)
+            dim_00 = np.append(dim_00, x)
+            dim_01 = np.append(dim_01, y)
+
+        return dim_00, dim_01
+
+    def create_dim_0_1(self, squared_classes: bool):
+        data = self.data
+        dim_00 = []
+        dim_01 = []
+        classes = []
+        for i, value in enumerate(self.members):
+            if squared_classes:
+                dim_00, dim_01 = self.fill_square_shell(value, i + 1, dim_00, dim_01)
+            else:
+                dim_00, dim_01 = self.fill_circle_shell(value, i + 1, dim_00, dim_01)
+            #classes are square shells of area 1 in dim00/dim01
+            classes.extend([i for _ in range(value)])
+        data["dim_00"] = add_gaussian_noise(dim_00, .03)
+        data["dim_01"] = add_gaussian_noise(dim_01, .03)
+        data["classes"] = classes
+        self.data = data
+
+    def create_dim_2_3_4(self):
+        data = self.data
+        fuzzy_00 = add_gaussian_noise(data["dim_00"], 0.1)
+        fuzzy_01 = add_gaussian_noise(data["dim_01"], 0.1)
+        data["dim_02"] = fuzzy_01 * fuzzy_01 + fuzzy_00 * fuzzy_00
+        fuzzy_00 = add_gaussian_noise(data["dim_00"], 0.1)
+        fuzzy_01 = add_gaussian_noise(data["dim_01"], 0.1)
+        data["dim_03"] = fuzzy_01 * fuzzy_00
+        fuzzy_00 = add_gaussian_noise(data["dim_00"], 0.1)
+        fuzzy_01 = add_gaussian_noise(data["dim_01"], 0.1)
+        data["dim_04"] = fuzzy_01 + fuzzy_00
+
+
+    def create_dim_3(self):
+        pass
+
+    def create_data(self, squared_classes: bool) -> None:
+        data = pd.DataFrame()
+        self.data = data
+        self.create_dim_0_1(squared_classes)
+        self.create_dim_2_3_4()
+
+
+class MaybeActualDataSet(Data):
+    def __init__(self, members: List[int]):
+        np.random.seed(42)
+        self.members = members
+        self.create_data()
+        add_random_dims(self.data, ["rand_00", "rand_01", "rand_02"])
+
+
+
+    def create_class(self, class_number: int,  members: int, distributions: List[Tuple[float, float]]):
+        new_df = pd.DataFrame()
+        new_df["classes"] = [class_number for _ in range(members)]
+
+        for i, dist in enumerate(distributions):
+            center, standard_deviation = dist
+            dim = np.random.normal(center, standard_deviation, (members,))
+            new_df[f"dim_0{i}"] = dim
+        return new_df
+
+    def add_dim_05(self, number_of_classes: int, distributions: List[Tuple[float, float, float]]):
+        dim = []
+        for i, dist in enumerate(distributions):
+            low, middle, high = dist
+            try:
+                dim.extend(np.random.triangular(low, middle, high, (self.members[i], )))
+            except IndexError:
+                pass
+        self.data["dim_04"] = dim
+
+    def create_data(self):
+        number_of_classes = min(len(self.members), 5)
+        data = pd.DataFrame()
+        try:
+            class_0_members = self.members[0]
+            data = self.create_class(0, class_0_members, [(0, 0.8), (0, 0.8), (0, 0.8), (0, 0.8)])
+        except IndexError:
+            pass
+        try:
+            class_1_members = self.members[1]
+            data = data.append(self.create_class(1, class_1_members, [(1.5, 0.8), (1.5, 0.8), (0, 0.8), (0, 0.8)]))
+        except IndexError:
+            pass
+        try:
+            class_2_members = self.members[2]
+            data = data.append(self.create_class(2, class_2_members, [(1.5, 0.8), (1.5, 0.8), (0, 0.8), (0, 0.8)]))
+        except IndexError:
+            pass
+        try:
+            class_3_members = self.members[3]
+            data = data.append(self.create_class(3, class_3_members, [(0, 0.8), (0, 0.8), (1.5, 0.8), (1.5, 0.8)]))
+        except IndexError:
+            pass
+        try:
+            class_4_members = self.members[4]
+            data = data.append(self.create_class(4, class_4_members, [(0, 0.8), (0, 0.8), (1.5, 0.8), (1.5, 0.8)]))
+        except IndexError:
+            pass
+        self.data = data
+        self.add_dim_05(number_of_classes, distributions=[(0, 1, 2), (1, 2, 3), (5, 6, 7), (6, 7, 8), (7, 8, 9)])
+
+
+
+
+
 if __name__ == "__main__":
-    members = [200 for _ in range(5)]
-    df = GeometricUniformData(members).data
-    visualization.visualize_2d(df, ("dim_00", "dim_01"), class_column="classes")
-    visualization.visualize_2d(df, ("dim_01", "dim_02"), class_column="classes")
-    visualization.visualize_2d(df, ("dim_02", "dim_00"), class_column="classes")
-    #visualization.visualize_3d(df, ("dim_00", "dim_01", "rand3"), class_column="classes")
-    #visualization.create_3d_gif(df=df, dims=("dim_00", "dim_01", "dim_02"), name="cubes_6_classes", class_column="classes", steps=72, duration=50)
+    members_ = [200 for _ in range(5)]
+    df = MaybeActualDataSet(members_).data
+    #visualization.visualize_2d(df, ("dim_00", "dim_01"), class_column="classes")
+    #visualization.visualize_2d(df, ("dim_00", "dim_02"), class_column="classes")
+    #visualization.visualize_2d(df, ("dim_01", "dim_03"), class_column="classes")
+    #visualization.visualize_2d(df, ("dim_01", "dim_04"), class_column="classes")
+    #visualization.create_cumulative_plot(df["dim_00"].values)
+    #visualization.create_cumulative_plot(df["dim_04"].values)
+    #visualization.create_hist(df["dim_00"])
+    #visualization.create_hist(df["dim_04"])
+    #visualization.visualize_2d(df, ("dim_00", "dim_01"), class_column="classes")
+    #visualization.visualize_2d(df, ("dim_00", "dim_04"), class_column="classes")
+    #visualization.visualize_3d(df, ("dim_00", "dim_01", "dim_02"), class_column="classes")
+    visualization.create_3d_gif(df=df, dims=("dim_01", "dim_03", "dim_04"), name="maybe_actual_data", class_column="classes", steps=120, duration=33)
 
 
