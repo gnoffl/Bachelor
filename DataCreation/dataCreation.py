@@ -376,6 +376,6 @@ if __name__ == "__main__":
     #visualization.visualize_2d(df, ("dim_00", "dim_01"), class_column="classes")
     #visualization.visualize_2d(df, ("dim_00", "dim_04"), class_column="classes")
     #visualization.visualize_3d(df, ("dim_00", "dim_01", "dim_02"), class_column="classes")
-    visualization.create_3d_gif(df=df, dims=("dim_01", "dim_03", "dim_04"), name="maybe_actual_data", class_column="classes", steps=120, duration=33)
+    #visualization.create_3d_gif(df=df, dims=("dim_01", "dim_03", "dim_04"), name="maybe_actual_data", class_column="classes", steps=120, duration=33)
 
 
