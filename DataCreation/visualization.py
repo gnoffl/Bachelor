@@ -23,10 +23,11 @@ colors = [(1, 0, 0, 0.9),
           ]
 
 
+#todo: scheint nicht zu funktionieren mit mehreren klassen?
 # first entry of dims will be x-axis, second will be y-axis
-def visualize_2d(df: pd.DataFrame, dims: Tuple[str, str], class_column: str or None = None):
+def visualize_2d(df: pd.DataFrame, dims: Tuple[str, str], class_column: str or None = None, title: str = None):
     x_name, y_name = dims
-    plt.figure(0, figsize=(5.5, 4))
+    plt.figure(0, figsize=(6, 4))
     plt.clf()
 
     x_min, x_max = df[x_name].min(), df[x_name].max()
@@ -45,6 +46,9 @@ def visualize_2d(df: pd.DataFrame, dims: Tuple[str, str], class_column: str or N
     plt.xlabel(x_name)
     plt.ylabel(y_name)
 
+    if title:
+        plt.title(title)
+
     if class_column:
         classes = set(df[class_column].values)
         for i, clas in enumerate(classes):
@@ -53,9 +57,9 @@ def visualize_2d(df: pd.DataFrame, dims: Tuple[str, str], class_column: str or N
                         c=colors[i],
                         edgecolor="k",
                         label=clas)
+        plt.legend(bbox_to_anchor=(1, 1.05))
     else:
         plt.scatter(df[x_name], df[y_name], cmap=plt.cm.Set1, edgecolor="k")
-    plt.legend(bbox_to_anchor=(1.05, 1))
     plt.show()
 
 
@@ -123,7 +127,9 @@ def clear_temp():
 
 
 def create_3d_gif(df: pd.DataFrame, dims: Tuple[str, str, str], name: str, class_column: str or None = None,
-                  steps: int = 36, duration: int = 100):
+                  steps: int = 36, duration=None):
+    if not duration:
+        duration = 36 * 100 / steps
     x_name, y_name, z_name = dims
     temp = "Plots/temp/"
     if os.path.isdir(temp):
@@ -155,6 +161,45 @@ def create_3d_gif(df: pd.DataFrame, dims: Tuple[str, str, str], name: str, class
 
     clear_temp()
     os.rmdir(temp)
+
+
+def create_hist(series: pd.Series) -> None:
+    plt.clf()
+    n, _, _ = plt.hist(series, bins=20)
+    plt.grid(axis='y', alpha=0.75)
+    plt.xlabel('Value')
+    plt.ylabel('Frequency')
+    maxfreq = n.max() * 1.1
+    plt.ylim(ymax=maxfreq)
+    plt.show()
+
+
+def get_cumulative_values(array: List[int]) -> Tuple[List[int], List[int]]:
+    array.sort()
+    last_val = array[0]
+    values = []
+    cum_frequencies = []
+    for i, value in enumerate(array):
+        if value != last_val:
+            values.append(last_val)
+            cum_frequencies.append(i)
+            last_val = value
+    values.append(array[-1])
+    length = len(array)
+    cum_frequencies.append(length)
+    cum_frequencies = [cf / length for cf in cum_frequencies]
+    return values, cum_frequencies
+
+
+def create_cumulative_plot(array: List[int], path_name: None or str = None) -> None:
+    new_array = array.copy()
+    values, cum_frequencies = get_cumulative_values(new_array)
+    plt.clf()
+    plt.plot(values, cum_frequencies)
+    if path_name:
+        plt.savefig(path_name)
+    else:
+        plt.show()
 
 
 def main():
