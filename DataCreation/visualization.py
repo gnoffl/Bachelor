@@ -119,21 +119,28 @@ def visualize_3d(df: pd.DataFrame, dims: Tuple[str, str, str], azim: int or None
         create_3d_plot(df, dims, azim - 90, elev, class_column, save, path)
 
 
-def clear_temp():
-    temp = "Plots/temp/"
-    files = [temp + file for file in os.listdir(temp) if os.path.isfile(temp + file)]
+def clear_temp(path_to_temp):
+    files = [os.path.join(path_to_temp, file) for file in os.listdir(path_to_temp) if os.path.isfile(os.path.join(path_to_temp, file))]
     for file in files:
         os.remove(file)
 
 
+def find_correct_path_to_():
+    pass
+
+
+#todo: maybe keep images in memory instead of saving them to disc.
+#todo: maybe save as .mp4 or smth other than .gif
 def create_3d_gif(df: pd.DataFrame, dims: Tuple[str, str, str], name: str, class_column: str or None = None,
                   steps: int = 36, duration=None):
     if not duration:
         duration = 36 * 100 / steps
     x_name, y_name, z_name = dims
-    temp = "Plots/temp/"
+    plots_folder = os.path.join(os.path.dirname(__file__), "Plots")
+
+    temp = os.path.join(plots_folder, "temp")
     if os.path.isdir(temp):
-        clear_temp()
+        clear_temp(temp)
     else:
         os.mkdir(temp)
 
@@ -142,24 +149,26 @@ def create_3d_gif(df: pd.DataFrame, dims: Tuple[str, str, str], name: str, class
     for i in range(steps):
         filename = f"{i:03d}"
         create_3d_plot(df, dims, class_column=class_column, azim=stepsize * i, elev=-164, save=True,
-                       path=f"{temp}{filename}.png")
+                       path=os.path.join(temp, f"{filename}.png"))
     for i in range(steps):
         filename = f"{i + steps:03d}"
         create_3d_plot(df, dims, class_column=class_column, azim=(steps - 1) * stepsize, elev=stepsize * i - 164,
                        save=True,
-                       path=f"{temp}{filename}.png")
+                       path=os.path.join(temp, f"{filename}.png"))
 
-    files = [(temp + file) for file in os.listdir(temp) if os.path.isfile(temp + file)]
+    files = [os.path.join(temp, file) for file in os.listdir(temp) if os.path.isfile(os.path.join(temp, file))]
     files = sorted(files)
     img = Image.open(files[0])
     imgs = [Image.open(f) for f in files]
-    filename = f"Plots/{name}-{x_name}-{y_name}-{z_name}.gif"
+    filename = os.path.join(plots_folder, f"{name}-{x_name}-{y_name}-{z_name}.gif")
     if os.path.isfile(filename):
         os.remove(filename)
     img.save(fp=filename, format='GIF', append_images=imgs,
              save_all=True, duration=duration, loop=0)
-
-    clear_temp()
+    #danke stefan, hierfür kommst du in meine danksagung :)
+    for img in imgs:
+        img.close()
+    clear_temp(temp)
     os.rmdir(temp)
 
 
