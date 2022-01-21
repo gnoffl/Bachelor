@@ -1,5 +1,5 @@
 from typing import List, Tuple
-import visualization
+import DataCreation.visualization as visualization
 
 import pandas as pd
 import matplotlib.pyplot as plt
