@@ -4,6 +4,13 @@
 
 ### Important Todos
 * [x] Code Kommentieren
+* [x] 1d Verteilung in dim_04 sollte kein Loch enthalten --> eine Klasse "neben" das Loch
+zwischen Klasse 1 und 2 legen
+* [ ] Gap zwischen 1 und 2 verringern
+* [ ] 2, 3, 4 besser unterscheidbar machen ohne dim_04, dafür in dim_04 vielleicht näher aneinander
+rücken
+* [ ] 5 auf "andere Seite" (--> niedrige Werte) rücken
+* [ ] Typing überall einhalten
 
 ### Optional Todos
 * [ ] Code für sekundäre Klassen kommentieren
@@ -45,4 +52,13 @@ Dimensionen 00-03 jeweils den niedrigen Wert.\
 Alle Klassen unterscheiden sich in ihren Verteilungen in der letzten Dimension
 (04). Die Mittelwerte steigen mit der Klassennummer. Es besteht immer eine Überschneidung
 zwischen den Bereichen aufeinander folgender Klassen, wobei die einzige Ausnahme ein Spalt
-zwischen Klasse 01 (1-3) und klasse 02 (5-7) besteht.
+zwischen Klasse 01 (1-3) und klasse 02 (5-7) besteht.\
+Durch die beisher beschriebenen Klassen entsteht in ein Loch zwischen Klasse 1 und 2, das 
+am besten in Dimension 4 gesehen werden kann. In diesen Bereich sollen keine Daten geschoben
+werden, wenn improved QSM angewendet wird. Damit beim regulären QSM Daten in diesen Bereich
+geschoben werden, darf das Loch in der 1d Verteilung auf der dim_04-Achse nicht sichtbar sein.
+Dazu wird eine weitere Klasse (class_05) in den Datensatz eingeführt, die in den Dimensionen
+0 - 3 immer den Wert 5 hat, was deutlich über den Werten der anderen Klassen liegt (max. 1,5).
+In Dimension 4 liegt sie genau auf Höhe des Lochs zwischen Klasse 01 und 02. 05 hat keine
+wirkliche Nachbarschaft mit den anderen Klassen, sollte aber eine herausforderung für QSM
+darstellen.
