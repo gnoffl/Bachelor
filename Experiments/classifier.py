@@ -52,36 +52,11 @@ def load_df(path) -> pd.DataFrame:
     return pd.read_csv(path, index_col=0)
 
 
-def get_number_of_changed_points(data: pd.DataFrame, fraction: bool = False) -> Tuple[int, int]:
-    count = data.loc[data["classes"] != data["predicted_classes"]].count()["classes"]
-    length = len(data)
-    return count, length
-
-
-def get_change_matrix(data) -> pd.DataFrame:
-    present_classes = set(data["classes"].values)
-    present_classes.union(set(data["predicted_classes"]))
-    data_dict = {}
-    index = []
-    res_matrix = pd.DataFrame
-    for class_ in present_classes:
-        data_dict[class_] = []
-    for org_class in present_classes:
-        index.append(org_class)
-        original_class_data = data.loc[data["classes"] == org_class]
-        for new_class in present_classes:
-            count = original_class_data.loc[original_class_data["predicted_classes"] == new_class].count()["classes"]
-            data_dict[new_class].append(count)
-        res_matrix = pd.DataFrame(data_dict, index=index)
-    return res_matrix
-
-
-
 def run():
     #data, trained_tree = save_predicted_data(members=[1000 for _ in range(5)])
     data = load_df("1000members_5depth_5min_samples.csv")
     #visualize(data, trained_tree)
-    matrix = get_change_matrix(data)
+    matrix = vs.get_change_matrix(data)
     print(matrix)
 
 
