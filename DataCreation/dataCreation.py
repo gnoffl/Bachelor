@@ -1,4 +1,4 @@
-from typing import List, Tuple
+from typing import List, Tuple, Dict
 import DataCreation.visualization as visualization
 
 import pandas as pd
@@ -7,16 +7,6 @@ from mpl_toolkits.mplot3d import Axes3D
 import matplotlib as mpl
 from abc import ABC, abstractmethod
 import numpy as np
-
-
-"""
-3 – 5 Classes
-5 – 20 Variables with Information
-~5 random Variables
-Create Dependencies that require Binning
-1.000 – 10.000 Datenpunkte
-MVTNorm oä Pakete für synthetische Datensätze
-"""
 
 
 def add_gaussian_noise(data: pd.Series, sd: float) -> pd.Series:
@@ -299,28 +289,41 @@ class SimpleCorrelationData(Data):
 
 
 class MaybeActualDataSet(Data):
+    class_00_param: Dict = {"dim_00": (0, 0.8),   "dim_01": (0, 0.8),   "dim_02": (0, 0.8),   "dim_03": (0, 0.8),   "dim_04": (0, 1, 2)}
+    class_01_param: Dict = {"dim_00": (1.5, 0.8), "dim_01": (1.5, 0.8), "dim_02": (0, 0.8),   "dim_03": (0, 0.8),   "dim_04": (1, 2, 3)}
+    class_02_param: Dict = {"dim_00": (1.5, 0.8), "dim_01": (1.5, 0.8), "dim_02": (0, 0.8),   "dim_03": (0, 0.8),   "dim_04": (5, 6, 7)}
+    class_03_param: Dict = {"dim_00": (0, 0.8),   "dim_01": (0, 0.8),   "dim_02": (1.5, 0.8), "dim_03": (1.5, 0.8), "dim_04": (5.5, 6.5, 7.5)}
+    class_04_param: Dict = {"dim_00": (0, 0.8),   "dim_01": (0, 0.8),   "dim_02": (1.5, 0.8), "dim_03": (1.5, 0.8), "dim_04": (6.5, 7.5, 8.5)}
+
+    parameters: Dict
+
     def __init__(self, members: List[int]):
         np.random.seed(42)
+        self.parameters = {"class_00": self.class_00_param,
+                           "class_01": self.class_01_param,
+                           "class_02": self.class_02_param,
+                           "class_03": self.class_03_param,
+                           "class_04": self.class_04_param}
         self.members = members
         self.create_data()
         add_random_dims(self.data, ["rand_00", "rand_01", "rand_02"])
 
 
-
-    def create_class(self, class_number: int,  members: int, distributions: List[Tuple[float, float]]):
+    @staticmethod
+    def create_class(class_number: int, members: int, class_parameters: Dict):
         new_df = pd.DataFrame()
         new_df["classes"] = [class_number for _ in range(members)]
 
-        for i, dist in enumerate(distributions):
-            center, standard_deviation = dist
+        for i in range(4):
+            center, standard_deviation = class_parameters[f"dim_{str(i).zfill(2)}"]
             dim = np.random.normal(center, standard_deviation, (members,))
-            new_df[f"dim_0{i}"] = dim
+            new_df[f"dim_{str(i).zfill(2)}"] = dim
         return new_df
 
-    def add_dim_05(self, number_of_classes: int, distributions: List[Tuple[float, float, float]]):
+    def add_dim_04(self):
         dim = []
-        for i, dist in enumerate(distributions):
-            low, middle, high = dist
+        for i in range(5):
+            low, middle, high = self.parameters[f"class_{str(i).zfill(2)}"]["dim_04"]
             try:
                 dim.extend(np.random.triangular(low, middle, high, (self.members[i], )))
             except IndexError:
@@ -328,35 +331,16 @@ class MaybeActualDataSet(Data):
         self.data["dim_04"] = dim
 
     def create_data(self):
-        number_of_classes = min(len(self.members), 5)
         data = pd.DataFrame()
-        try:
-            class_0_members = self.members[0]
-            data = self.create_class(0, class_0_members, [(0, 0.8), (0, 0.8), (0, 0.8), (0, 0.8)])
-        except IndexError:
-            pass
-        try:
-            class_1_members = self.members[1]
-            data = data.append(self.create_class(1, class_1_members, [(1.5, 0.8), (1.5, 0.8), (0, 0.8), (0, 0.8)]))
-        except IndexError:
-            pass
-        try:
-            class_2_members = self.members[2]
-            data = data.append(self.create_class(2, class_2_members, [(1.5, 0.8), (1.5, 0.8), (0, 0.8), (0, 0.8)]))
-        except IndexError:
-            pass
-        try:
-            class_3_members = self.members[3]
-            data = data.append(self.create_class(3, class_3_members, [(0, 0.8), (0, 0.8), (1.5, 0.8), (1.5, 0.8)]))
-        except IndexError:
-            pass
-        try:
-            class_4_members = self.members[4]
-            data = data.append(self.create_class(4, class_4_members, [(0, 0.8), (0, 0.8), (1.5, 0.8), (1.5, 0.8)]))
-        except IndexError:
-            pass
+        for i in range(5):
+            try:
+                class_members = self.members[i]
+                class_parameters = self.parameters[f"class_{str(i).zfill(2)}"]
+                data = data.append(self.create_class(i, class_members, class_parameters))
+            except IndexError:
+                pass
         self.data = data
-        self.add_dim_05(number_of_classes, distributions=[(0, 1, 2), (1, 2, 3), (5, 6, 7), (6, 7, 8), (7, 8, 9)])
+        self.add_dim_04()
 
 
 
@@ -367,8 +351,8 @@ if __name__ == "__main__":
     df = MaybeActualDataSet(members_).data
     #visualization.visualize_2d(df, ("dim_00", "dim_01"), class_column="classes")
     #visualization.visualize_2d(df, ("dim_00", "dim_02"), class_column="classes")
-    #visualization.visualize_2d(df, ("dim_01", "dim_03"), class_column="classes")
-    #visualization.visualize_2d(df, ("dim_01", "dim_04"), class_column="classes")
+    #visualization.visualize_2d(df, ("dim_00", "dim_03"), class_column="classes")
+    #visualization.visualize_2d(df, ("dim_00", "dim_04"), class_column="classes")
     #visualization.create_cumulative_plot(df["dim_00"].values)
     #visualization.create_cumulative_plot(df["dim_04"].values)
     #visualization.create_hist(df["dim_00"])
