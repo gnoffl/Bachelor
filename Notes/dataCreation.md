@@ -3,19 +3,19 @@
 ## Todos
 
 ### Important Todos
-* [ ] __Code Kommentieren__
+* [x] Code Kommentieren
 
 ### Optional Todos
-####GeometricUniformData
-* [ ] Dichte in Überschneidungsbereichen ist nicht konstant
-####SimpleCorrelationData
-* [ ] nicht die unverrauschten Originaldaten als Dimension benutzen,
+* [ ] Code für sekundäre Klassen kommentieren
+* [ ] **GeometricUniformData:** Dichte in Überschneidungsbereichen ist nicht konstant
+* [ ] **SimpleCorrelationData:** nicht die unverrauschten Originaldaten als Dimension benutzen,
     sondern mit Originaldaten rechnen, aber nur verrauschte Dimensionen in Datensatz verwenden
-* [ ] überlegen, ob die Dimensionen so gleichverteilt sind, oder ob auf polarkoordinaten
+* [ ] **SimpleCorrelationData:** überlegen, ob die Dimensionen so gleichverteilt sind, oder ob auf polarkoordinaten
 gewechselt werden sollte (bei der Kreisvariante)
 
 
 ## Notizen
+
 ### Ziel für Klasse
 * 3 – 5 Classes
 * 5 – 20 Variables with Information

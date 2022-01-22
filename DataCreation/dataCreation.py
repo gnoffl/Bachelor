@@ -10,12 +10,23 @@ import numpy as np
 
 
 def add_gaussian_noise(data: pd.Series, sd: float) -> pd.Series:
+    """
+    Add gaussian noise to data
+    :param data: pd.Series to add noise to
+    :param sd: standard deviation for the noise
+    :return: a new pd.Series object, with the original data blurred by the noise
+    """
     length = len(data)
     noise = np.random.normal(0, sd, length)
     return data + noise
 
 
 def add_random_dims(data: pd.DataFrame, dim_names: List[str]) -> None:
+    """
+    Adds new columns to the data containing uniformly distributed random values in a random range between -1000 and 1000.
+    :param data: The dataframe the new columns will be appended to
+    :param dim_names: The names of the columns to be generated. Length of dim_names determines how many new columns will be created
+    """
     length = len(data)
     for name in dim_names:
         range_ = np.random.uniform(-1, 1, 2)*1000
@@ -28,10 +39,10 @@ class Data(ABC):
 
 
 class NaturalData(Data):
-    def __init__(self, members: List[int]):
+    def __init__(self, members: List[int]) -> None:
         np.random.seed(42)
-        if len(members) != 5:
-            raise Exception("members needs to be initialized with a List of length 5!")
+        if len(members) < 5:
+            raise Exception("members needs to be initialized with a List of min length 5!")
         self.members = members
         class_0 = self.create_class_0()
         class_1 = self.create_class_1()
@@ -289,6 +300,12 @@ class SimpleCorrelationData(Data):
 
 
 class MaybeActualDataSet(Data):
+
+    """
+    Parameters for the distribution of the classes in the different dimensions. for "dim_00" to "dim_03" the first
+    value is the mean und the second value is the stadard deviation of a random Gauss distribution.
+    For "dim_04" the values represent the low, middle and high values for the triangular random distribution
+    """
     class_00_param: Dict = {"dim_00": (0, 0.8),   "dim_01": (0, 0.8),   "dim_02": (0, 0.8),   "dim_03": (0, 0.8),   "dim_04": (0, 1, 2)}
     class_01_param: Dict = {"dim_00": (1.5, 0.8), "dim_01": (1.5, 0.8), "dim_02": (0, 0.8),   "dim_03": (0, 0.8),   "dim_04": (1, 2, 3)}
     class_02_param: Dict = {"dim_00": (1.5, 0.8), "dim_01": (1.5, 0.8), "dim_02": (0, 0.8),   "dim_03": (0, 0.8),   "dim_04": (5, 6, 7)}
@@ -298,6 +315,10 @@ class MaybeActualDataSet(Data):
     parameters: Dict
 
     def __init__(self, members: List[int]):
+        """
+        initializes the data class
+        :param members: entries determine the number of data points per class
+        """
         np.random.seed(42)
         self.parameters = {"class_00": self.class_00_param,
                            "class_01": self.class_01_param,
@@ -310,27 +331,42 @@ class MaybeActualDataSet(Data):
 
 
     @staticmethod
-    def create_class(class_number: int, members: int, class_parameters: Dict):
+    def create_class(class_number: int, members: int, class_parameters: Dict) -> pd.DataFrame:
+        """
+        creates dimensions 0 - 3 for a class, fills Dimensions with gauss distributed random data
+        :param class_number: identifying number for the class
+        :param members: the number of data points the class is supposed to contain
+        :param class_parameters: Dictionary, that contains the mean as well as standard deviation for dimensions 0 - 3
+        :return: A Dataframe containing the data of the class with columns ("classes" and "dim_00" to "dim_03")
+        """
         new_df = pd.DataFrame()
         new_df["classes"] = [class_number for _ in range(members)]
 
         for i in range(4):
-            center, standard_deviation = class_parameters[f"dim_{str(i).zfill(2)}"]
+            center, standard_deviation = class_parameters[f"dim_{str(i).zfill(2)}"]     # zfill pads string with zeros
             dim = np.random.normal(center, standard_deviation, (members,))
             new_df[f"dim_{str(i).zfill(2)}"] = dim
         return new_df
 
-    def add_dim_04(self):
+    def add_dim_04(self) -> None:
+        """
+        Adds the fifth dimension to the data attribute. Each class contains triangular distributed random data
+        """
         dim = []
         for i in range(5):
-            low, middle, high = self.parameters[f"class_{str(i).zfill(2)}"]["dim_04"]
             try:
+                # will fail, if members isnt long enough
+                # parameters for triangle distribution
+                low, middle, high = self.parameters[f"class_{str(i).zfill(2)}"]["dim_04"]
                 dim.extend(np.random.triangular(low, middle, high, (self.members[i], )))
             except IndexError:
                 pass
         self.data["dim_04"] = dim
 
-    def create_data(self):
+    def create_data(self) -> None:
+        """
+        creates and fills Dataframe for the data attribute.
+        """
         data = pd.DataFrame()
         for i in range(5):
             try:

@@ -3,7 +3,7 @@
 ## General todos
 
 * [x] make todos meaningful
-* [ ] comment Code
+* [ ] __comment code__
 * [ ] make __proper notes__ of things that were already done
   * [ ] visualization
   * [x] dataCreation
