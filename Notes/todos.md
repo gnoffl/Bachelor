@@ -18,7 +18,8 @@
 
 ## Logical progress
 * [x] Correct Data creation (--> todos in dataCreation.md)
-* [ ] validate results from decision tree (how close classes actually are)
-* [ ] make __HiCS implementation__ work
+* [x] validate results from decision tree (how close classes actually are)
 * [ ] find implementation for __Binning__
-* [ ] make __QSM__ implemetation work
+* [ ] make __QSM__ implementation work
+* [ ] make __HiCS implementation__ work
+* [ ] make implementation for __Binning__ work

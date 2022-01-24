@@ -167,7 +167,8 @@ class GeometricUniformData(Data):
         self.data = pd.concat(class_list)
 
 
-#todo: maybe rework the system, using one (or 2) "ground truth" dims with no noise, to calculate from; dim1 and 2 are then noisy version of ground truth
+#todo: maybe rework the system, using one (or 2) "ground truth" dims with no noise, to calculate from; dim1 and 2 are
+# then noisy version of ground truth
 class SimpleCorrelationData(Data):
     def __init__(self, members: List[int], squared_classes=False):
         np.random.seed(42)
@@ -381,8 +382,7 @@ class MaybeActualDataSet(Data):
 
 
 if __name__ == "__main__":
-    members_ = [1000 for _ in range(5)]
-    members_.append(1000)
+    members_ = [1000 for _ in range(6)]
     df = MaybeActualDataSet(members_).data
     #visualization.visualize_2d(df, ("dim_00", "dim_01"), class_column="classes")
     #visualization.visualize_2d(df, ("dim_00", "dim_02"), class_column="classes")

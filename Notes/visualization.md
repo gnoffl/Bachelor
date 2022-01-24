@@ -5,6 +5,7 @@
 ### Important Todos
 * [ ] **Todos hier Füllen!**
 * [ ] **Notizen erstellen**
+* [ ] **Änderungsbereich einfügen**
 
 ### Optional Todos
 * [ ] statt .gif ein richtiges Film format benutzen
