@@ -1,4 +1,4 @@
-from typing import List, Tuple
+from typing import List, Tuple, Dict
 
 import pandas as pd
 import matplotlib.pyplot as plt
@@ -200,13 +200,45 @@ def get_cumulative_values(array: List[int]) -> Tuple[List[int], List[int]]:
     return values, cum_frequencies
 
 
-def create_cumulative_plot(array: List[int], path_name: None or str = None) -> None:
-    new_array = array.copy()
-    values, cum_frequencies = get_cumulative_values(new_array)
+def create_cumulative_plot(df: pd.DataFrame,
+                           dim: str,
+                           constraints: Dict[str, List[Tuple[bool, float]]] = None,
+                           path_name: None or str = None,
+                           x_axis_label: str = "",
+                           title: str = "") -> None:
+    """
+    plots 1d cumulative plot of data from df in direction of dim under the given constraints
+    :param df: Data to be plotted
+    :param dim: Dimension, along which the plot will be created
+    :param constraints: possible constraints for the data. The keys are columns of df, for which the constraints are to be applied.
+    For each key, a list of Tuples can be supplied. Within the Tuple, the bool value determines, if the int-value will be interpreted
+    as a maximum or a minimum value (True --> max, False --> min)
+    :param path_name: if given, the plot will be saved at this location (starting from Bachelor/DataCreation/). Plot will only be saved, not shown.
+    :param x_axis_label: Optional label for the x_axis. If omitted, label will be dim
+    :param title: Title for the plot
+    """
+    new_df = df.copy()
+    if constraints:
+        for dimension, constraint_list in constraints.items():
+            for constraint in constraint_list:
+                max_, value = constraint
+                if max_:
+                    new_df = new_df.loc[new_df[dimension] <= value]
+                else:
+                    new_df = new_df.loc[new_df[dimension] >= value]
+
+    values, cum_frequencies = get_cumulative_values(new_df[dim].values)
     plt.clf()
+    plt.title(title)
+    if x_axis_label:
+        plt.xlabel(x_axis_label)
+    else:
+        plt.xlabel(dim)
+    plt.ylabel("Cumulative Frequency")
     plt.plot(values, cum_frequencies)
     if path_name:
-        plt.savefig(path_name)
+        path_here = os.path.dirname(__file__)
+        plt.savefig(os.path.join(path_here, path_name))
     else:
         plt.show()
 
