@@ -7,6 +7,7 @@ from mpl_toolkits.mplot3d import Axes3D
 import matplotlib as mpl
 from abc import ABC, abstractmethod
 import numpy as np
+import os
 
 
 def add_gaussian_noise(data: pd.Series, sd: float) -> pd.Series:
@@ -306,11 +307,14 @@ class MaybeActualDataSet(Data):
     value is the mean und the second value is the stadard deviation of a random Gauss distribution.
     For "dim_04" the values represent the low, middle and high values for the triangular random distribution
     """
-    class_00_param: Dict = {"dim_00": (0, 0.8),   "dim_01": (0, 0.8),   "dim_02": (0, 0.8),   "dim_03": (0, 0.8),   "dim_04": (0, 1, 2)}
-    class_01_param: Dict = {"dim_00": (1.5, 0.8), "dim_01": (1.5, 0.8), "dim_02": (0, 0.8),   "dim_03": (0, 0.8),   "dim_04": (1, 2, 3)}
-    class_02_param: Dict = {"dim_00": (1.5, 0.8), "dim_01": (1.5, 0.8), "dim_02": (0, 0.8),   "dim_03": (0, 0.8),   "dim_04": (5, 6, 7)}
-    class_03_param: Dict = {"dim_00": (0, 0.8),   "dim_01": (0, 0.8),   "dim_02": (1.5, 0.8), "dim_03": (1.5, 0.8), "dim_04": (5.5, 6.5, 7.5)}
-    class_04_param: Dict = {"dim_00": (0, 0.8),   "dim_01": (0, 0.8),   "dim_02": (1.5, 0.8), "dim_03": (1.5, 0.8), "dim_04": (6.5, 7.5, 8.5)}
+    class_params = [
+        {"dim_00": (0,    0.8), "dim_01": (0,    0.8), "dim_02": (0,    0.8), "dim_03": (0,    0.8), "dim_04": (0,   1,   2)},
+        {"dim_00": (1.5,  0.8), "dim_01": (1.5,  0.8), "dim_02": (0,    0.8), "dim_03": (0,    0.8), "dim_04": (1,   2,   3)},
+        {"dim_00": (1.5,  0.8), "dim_01": (1.5,  0.8), "dim_02": (0,    0.8), "dim_03": (0,    0.8), "dim_04": (4,   5,   6)},
+        {"dim_00": (.5,   0.8), "dim_01": (0,    0.8), "dim_02": (2,    0.8), "dim_03": (0,    0.8), "dim_04": (4,   5,   6)},
+        {"dim_00": (-.5,  0.8), "dim_01": (1.5,  0.8), "dim_02": (1,    0.8), "dim_03": (1.5,  0.8), "dim_04": (4,   5,   6)},
+        {"dim_00": (-2, 0.8), "dim_01": (-2, 0.8), "dim_02": (-2, 0.8), "dim_03": (-2, 0.8), "dim_04": (2.5, 3.5, 4.5)}
+    ]
 
     parameters: Dict
 
@@ -320,11 +324,9 @@ class MaybeActualDataSet(Data):
         :param members: entries determine the number of data points per class
         """
         np.random.seed(42)
-        self.parameters = {"class_00": self.class_00_param,
-                           "class_01": self.class_01_param,
-                           "class_02": self.class_02_param,
-                           "class_03": self.class_03_param,
-                           "class_04": self.class_04_param}
+        self.parameters = {}
+        for i, class_param in enumerate(self.class_params):
+            self.parameters[f"class_{str(i).zfill(2)}"] = class_param
         self.members = members
         self.create_data()
         add_random_dims(self.data, ["rand_00", "rand_01", "rand_02"])
@@ -353,12 +355,12 @@ class MaybeActualDataSet(Data):
         Adds the fifth dimension to the data attribute. Each class contains triangular distributed random data
         """
         dim = []
-        for i in range(5):
+        for i, members in enumerate(self.members):
             try:
                 # will fail, if members isnt long enough
                 # parameters for triangle distribution
                 low, middle, high = self.parameters[f"class_{str(i).zfill(2)}"]["dim_04"]
-                dim.extend(np.random.triangular(low, middle, high, (self.members[i], )))
+                dim.extend(np.random.triangular(low, middle, high, (members, )))
             except IndexError:
                 pass
         self.data["dim_04"] = dim
@@ -368,9 +370,8 @@ class MaybeActualDataSet(Data):
         creates and fills Dataframe for the data attribute.
         """
         data = pd.DataFrame()
-        for i in range(5):
+        for i, class_members in enumerate(self.members):
             try:
-                class_members = self.members[i]
                 class_parameters = self.parameters[f"class_{str(i).zfill(2)}"]
                 data = data.append(self.create_class(i, class_members, class_parameters))
             except IndexError:
@@ -379,23 +380,24 @@ class MaybeActualDataSet(Data):
         self.add_dim_04()
 
 
-
-
-
 if __name__ == "__main__":
-    members_ = [200 for _ in range(5)]
+    members_ = [1000 for _ in range(5)]
+    members_.append(1000)
     df = MaybeActualDataSet(members_).data
     #visualization.visualize_2d(df, ("dim_00", "dim_01"), class_column="classes")
     #visualization.visualize_2d(df, ("dim_00", "dim_02"), class_column="classes")
     #visualization.visualize_2d(df, ("dim_00", "dim_03"), class_column="classes")
     #visualization.visualize_2d(df, ("dim_00", "dim_04"), class_column="classes")
+    #visualization.visualize_2d(df, ("dim_01", "dim_04"), class_column="classes")
     #visualization.create_cumulative_plot(df["dim_00"].values)
-    #visualization.create_cumulative_plot(df["dim_04"].values)
+    #visualization.create_cumulative_plot(df, dim="dim_04", title="no constraints")
+    #visualization.create_cumulative_plot(df, dim="dim_04",
+    #                                     constraints={"dim_00": [(False, -.5), (True, 3.5)], "dim_01": [(False, -.5), (True, 3.5)], "dim_02": [(False, -2), (True, 2)], "dim_03": [(False, -2), (True, 2)]},
+    #                                     title="with constraints")
     #visualization.create_hist(df["dim_00"])
     #visualization.create_hist(df["dim_04"])
     #visualization.visualize_2d(df, ("dim_00", "dim_01"), class_column="classes")
     #visualization.visualize_2d(df, ("dim_00", "dim_04"), class_column="classes")
     #visualization.visualize_3d(df, ("dim_00", "dim_01", "dim_02"), class_column="classes")
-    #visualization.create_3d_gif(df=df, dims=("dim_01", "dim_03", "dim_04"), name="maybe_actual_data", class_column="classes", steps=120, duration=33)
-
+    visualization.create_3d_gif(df=df, dims=("dim_00", "dim_01", "dim_04"), name="maybe_actual_data_updated", class_column="classes", steps=120, duration=33)
 
