@@ -10,6 +10,8 @@ zwischen Klasse 1 und 2 legen
 * [x] 2, 3, 4 besser unterscheidbar machen ohne dim_04, dafür in dim_04 vielleicht näher aneinander
 rücken
 * [x] 5 auf "andere Seite" (--> niedrige Werte) rücken
+* [ ] Speichern von Objekt
+* [ ] Laden von Objekt
 * [ ] Typing überall einhalten
 
 ### Optional Todos
