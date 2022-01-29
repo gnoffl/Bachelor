@@ -37,9 +37,17 @@ Script besteht aus allgemein nützlichen Funktionen (add_gaussian_noise und add_
 sowie mehreren Datenklassen. Datenklassen erben alle von "Data", die vorgibt, dass
 Datenklassen Daten in Form eines Dataframe besitzen, sowie eine Liste von ints
 ("members"), in der angegeben wird, wie viele Punkte in den jeweiligen Klassen
-der erbenden Datensätze enthalten sein sollen.\
+der erbenden Datensätze enthalten sein sollen. Weiterhin werden einige Methoden definiert,
+die für alle Datenklassen praktisch sind.\
 Von den Datenklassen selbst ist "MaybeActualDataSet" die wichtigste, da sie
 tatsächlich erstmal den Datensatz darstellt, mit dem Experimente durchgeführt werden.
+
+### Data
+Wichtige Methoden aus Data, die allen Klassen zur Verfügung gestellt werden sind
+folgende:
+* create_class_info
+* save_data_for_hics
+* run_hics
 
 ### MaybeActualDataSet
 Der Datensatz hat zur Zeit 8 Dimensionen, von denen 3 ("rand_00", "rand_01", "rand_02")
@@ -70,3 +78,11 @@ in das Loch zu schieben, darf die 1d-Dichte im Bereich des Lochs nicht 0 sein. D
 wurde eine weitere Klasse (class_05) eingeführt, die zwar in dim_00 bis dim_03 deutlich
 neben dem Loch liegt, aber in dim_04 genau die Höhe des Lochs hat, und somit die 1d-
 Dichte in dim_04 korrigiert.
+
+### Update für abstrakte Klasse Data (29.01.22)
+Neue Methoden:
+* create_class_info
+* save_data_for_hics
+* run_hics
+
+Funktionalität um HiCS durchführen zu können.
