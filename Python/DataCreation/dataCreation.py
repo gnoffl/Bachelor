@@ -231,6 +231,7 @@ class GeometricUniformData(Data):
 # then noisy version of ground truth
 class SimpleCorrelationData(Data):
     def __init__(self, members: List[int], squared_classes=False):
+        super().__init__()
         np.random.seed(42)
         self.members = members
         self.create_data(squared_classes)
