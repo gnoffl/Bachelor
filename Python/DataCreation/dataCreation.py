@@ -50,7 +50,12 @@ class Data(ABC):
         path = os.path.join(os.path.dirname(__file__), "..", "Experiments", "Data", f"{now_string}_{class_name}")
         self.path = path
 
-    def create_class_info(self, notes: str = ""):
+    def create_class_info(self, notes: str = "") -> None:
+        """
+        creates a folder with a "description.txt" file, which contains the attributes of the object and possibly notes.
+        Also the creation date is saved.
+        :param notes: notes to be saved
+        """
         path = self.path
         if not os.path.isdir(path):
             os.mkdir(path)
@@ -65,15 +70,31 @@ class Data(ABC):
                 f.write(f"\nNOTES: {notes}")
 
     def save_data_for_hics(self, path: str = "") -> str:
+        """
+        Saves the "data" attribute without the "classes" column as a csv file in the folder for the description of the
+        object or at a given path.
+        :param path: Path to a location where the csv is supposed to be saved, if not in the folder describing the object
+        :return: the path to the file
+        """
         if not path:
             self.create_class_info(self.notes)
             path = self.path
-        data_for_hics = self.data.drop(columns=["classes"])
-        file_path = os.path.join(path, "HiCS_Data.csv")
-        data_for_hics.to_csv(file_path, sep=";", index=False)
-        return file_path
+        #no reason to overwrite old data for HiCS
+        if "HiCS_Data.csv" not in os.listdir(path):
+            data_for_hics = self.data.drop(columns=["classes"])
+            file_path = os.path.join(path, "HiCS_Data.csv")
+            #HiCS program expects a csv file with ";" as delimiter. index column is not useful
+            data_for_hics.to_csv(file_path, sep=";", index=False)
+            return file_path
+        return os.path.join(path, "HiCS_Data.csv")
 
-    def run_hics(self, csv_out: str = "", further_params: List[str] = None):
+    def run_hics(self, csv_out: str = "", further_params: List[str] = None) -> None:
+        """
+        runs HiCS for the Data object. First creates Info for the object using "create_class_info" and saves the input
+        for HiCS into that folder. Output of Hics is also written into that folder, unless specified otherwise.
+        :param csv_out: location and file name for output
+        :param further_params: parameters for HiCS
+        """
         csv_in = self.save_data_for_hics()
         hics.run_HiCS(csv_in, csv_out, further_params)
 
