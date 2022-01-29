@@ -13,7 +13,7 @@
   * [ ] Experiments
 * [ ] make __typing__ in code consistent
   * [ ] visualization
-  * [x] dataCreation
+  * [ ] dataCreation
   * [ ] Experiments
 
 ## Logical progress
