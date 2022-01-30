@@ -7,17 +7,14 @@
   * [ ] visualization
   * [x] dataCreation
   * [ ] Experiments
-  * [ ] Classifier
 * [ ] make __proper notes__ of things that were already done
   * [ ] visualization
   * [x] dataCreation
   * [ ] Experiments
-  * [ ] Classifier
 * [ ] make __typing__ in code consistent
   * [ ] visualization
   * [ ] dataCreation
   * [ ] Experiments
-  * [ ] Classifier
 
 ## Logical progress
 * [x] Correct Data creation (--> todos in dataCreation.md)
