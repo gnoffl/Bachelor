@@ -23,7 +23,6 @@ colors = [(1, 0, 0, 0.9),
           ]
 
 
-#todo: scheint nicht zu funktionieren mit mehreren klassen?
 #first entry of dims will be x-axis, second will be y-axis
 def visualize_2d(df: pd.DataFrame, dims: Tuple[str, str], class_column: str or None = None, title: str = None, path: str = None) -> None:
     """
