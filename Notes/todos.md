@@ -4,11 +4,11 @@
 
 * [x] make todos meaningful
 * [ ] __comment code__
-  * [ ] visualization
+  * [x] visualization
   * [x] dataCreation
   * [ ] Experiments
 * [ ] make __proper notes__ of things that were already done
-  * [ ] visualization
+  * [x] visualization
   * [x] dataCreation
   * [ ] Experiments
 * [ ] make __typing__ in code consistent
@@ -20,6 +20,7 @@
 * [x] Correct Data creation (--> todos in dataCreation.md)
 * [x] validate results from decision tree (how close classes actually are)
 * [x] make __HiCS implementation__ work
+* [ ] Mail regarding reimplementation of QSM
 * [ ] load and save data from data classes properly
 * [ ] find implementation for __Binning__
 * [ ] make __QSM__ implementation work
