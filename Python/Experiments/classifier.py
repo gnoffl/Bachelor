@@ -60,8 +60,8 @@ def run():
     members_ = [1000 for _ in range(6)]
     data, trained_tree = save_predicted_data(members=members_)
     #data = load_df("1000members_5depth_5min_samples.csv")
-    visualize(data, trained_tree)
-    matrix = vs.get_change_matrix(data)
+    #visualize(data, trained_tree)
+    matrix = vs.get_change_matrix(data, ("classes", "predicted_classes"))
     print(matrix)
 
 
