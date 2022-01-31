@@ -20,9 +20,10 @@
 * [x] Correct Data creation (--> todos in dataCreation.md)
 * [x] validate results from decision tree (how close classes actually are)
 * [x] make __HiCS implementation__ work
-* [ ] official paperwork for thesis
-* [ ] Mail regarding reimplementation of QSM
+* [ ] official paperwork for thesis (need to wait for Daniel to hear about approval of 
+request)
 * [ ] load and save data from data classes properly
+* [ ] think about HiCS Parameters
 * [ ] find implementation for __Binning__
 * [ ] make __QSM__ implementation work
 * [ ] make implementation for __Binning__ work

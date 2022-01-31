@@ -11,10 +11,11 @@ zwischen Klasse 1 und 2 legen
 rücken
 * [x] 5 auf "andere Seite" (--> niedrige Werte) rücken
 * [ ] Speichern von Objekt
-* [ ] Laden von Objekt
+* [ ] Laden von Objekt (Kommentare fehlen, Methode übersichtlicher machen)
 * [ ] Typing überall einhalten
 
 ### Optional Todos
+* [ ] Laden und Speichern mit pickle oder json oder so implementieren
 * [ ] Code für sekundäre Klassen kommentieren
 * [ ] **GeometricUniformData:** Dichte in Überschneidungsbereichen ist nicht konstant
 * [ ] **SimpleCorrelationData:** nicht die unverrauschten Originaldaten als Dimension benutzen,
