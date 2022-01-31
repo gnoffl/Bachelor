@@ -14,13 +14,13 @@ def adjust_description(directory: str, arguments: List[str]) -> None:
     if "description.txt" in files:
         with open(os.path.join(directory, "description.txt"), "r+") as f:
             content = f.read()
-            index = content.find("\n\nHiCS PARAMETERS")
+            index = content.find("HiCS PARAMETERS")
             # empty the file after the beginning of the HiCS parameters, set the file pointer to the correct location to
             # start writing at the new end of the file
             if index != -1:
                 f.truncate(index)
                 f.seek(index)
-            f.write("\n\nHiCS PARAMETERS:\n")
+            f.write("HiCS PARAMETERS:\n")
             for i, arg in enumerate(arguments):
                 #entries should come in pairs with the first being "--command" and the second being the value
                 # --> saving arguments as pairs
@@ -28,6 +28,7 @@ def adjust_description(directory: str, arguments: List[str]) -> None:
                     f.write(f"{arg}\n")
                 else:
                     f.write(f"    {arg} ")
+            f.write("\n\n")
 
 
 def run_HiCS(csv_in: str, csv_out: str = "", further_params: List[str] = None) -> None:
