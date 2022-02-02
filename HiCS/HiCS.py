@@ -48,7 +48,7 @@ def run_HiCS(csv_in: str, csv_out: str = "", further_params: List[str] = None) -
             path = csv_in[0:last_slash]
         else:
             path = csv_in[0:last_backslash]
-        csv_out = os.path.join(path, "out.csv")
+        csv_out = os.path.join(path, "HiCS_output.csv")
     arguments = ["--csvIn", f"{csv_in}", "--csvOut", f"{csv_out}", "--hasHeader", "true"]
     if further_params:
         arguments += further_params
