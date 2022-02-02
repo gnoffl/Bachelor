@@ -1,8 +1,10 @@
+from __future__ import annotations
 from typing import List, Tuple, Dict
 import Python.DataCreation.visualization as visualization
 import HiCS.HiCS as hics
 
 import datetime
+import json
 import pandas as pd
 import matplotlib.pyplot as plt
 from mpl_toolkits.mplot3d import Axes3D
@@ -10,6 +12,13 @@ import matplotlib as mpl
 from abc import ABC, abstractmethod
 import numpy as np
 import os
+
+
+path_to_data = "D:\\Gernot\\Programmieren\\Bachelor\\Python\\Experiments\\Data"
+
+
+class CustomError(Exception):
+    pass
 
 
 def add_gaussian_noise(data: pd.Series, sd: float) -> pd.Series:
@@ -40,6 +49,7 @@ class Data(ABC):
     data: pd.DataFrame
     members: List[int]
     path: str
+    now: datetime.datetime
 
     def __init__(self):
         self.notes = None
@@ -50,52 +60,119 @@ class Data(ABC):
         path = os.path.join(os.path.dirname(__file__), "..", "Experiments", "Data", f"{now_string}_{class_name}")
         self.path = path
 
-    def create_class_info(self, notes: str = "") -> None:
+    @staticmethod
+    @abstractmethod
+    def load(path: str) -> Data:
+        """
+        loads a data set from a given path
+        :param path: path to the data set
+        :return: the loaded dataset object
+        """
+        pass
+
+    def extend_notes(self, notes: str):
+        """
+        extends the notes string by the given notes
+        :param notes: notes to be appended
+        """
+        if self.notes:
+            if notes:
+                self.notes += "\n" + (11 * " ") + notes
+        else:
+            self.notes = notes
+
+    def write_description(self, file) -> None:
+        """
+        writes the attributes and date for the object in the description file.
+        :param file: file thats written in
+        """
+        proper_date_time_string = self.now.strftime("%d.%m.%Y %H:%M:%S")
+        file.write(f"CREATED: {proper_date_time_string}\nATTRIBUTES:\n")
+        for k, v in vars(self).items():
+            if str(k) == "data":
+                continue
+            file.write(f"    {str(k)}: {str(v)} \n")
+        file.write("\n")
+
+    #todo firstline? o.O
+    def update_saved_info(self) -> None:
+        """
+        overwrites old saved data for the object and replaces it with the current information of the object
+        """
+        with open(os.path.join(self.path, "description.txt"), "r+") as f:
+            _ = f.readline()
+            rest = f.read()
+
+            paragraphs = rest.split("\n\n")
+            f.truncate(0)
+            f.seek(0)
+            self.write_description(f)
+            for i, par in enumerate(paragraphs):
+                if i != 0:
+                    f.write(par)
+                    f.write("\n\n")
+
+    def save(self, folder_name: str = "", notes: str = "") -> None:
         """
         creates a folder with a "description.txt" file, which contains the attributes of the object and possibly notes.
         Also the creation date is saved.
         :param notes: notes to be saved
+        :param folder_name: name of folder, where the information will be saved
         """
+        #update notes
+        self.extend_notes(notes)
+
+        if folder_name:
+            self.path = self.path[:self.path.rfind("\\") + 1] + folder_name
         path = self.path
+
+        folder_exists = False
         if not os.path.isdir(path):
             os.mkdir(path)
         else:
-            raise Exception("folder already exists!")
-        with open(os.path.join(path, "description.txt"), "w") as f:
-            proper_date_time_string = self.now.strftime("%d.%m.%Y %H:%M:%S")
-            f.write(f"CREATED: {proper_date_time_string}\n\nATTRIBUTES:\n")
-            for k, v in vars(self).items():
-                f.write(f"    {str(k)}: {str(v)}\n")
-            if notes:
-                f.write(f"\nNOTES: {notes}")
+            if folder_name:
+                raise CustomError("folder already exists!")
+            else:
+                folder_exists = True
+        if not folder_exists:
+            # create new info for class
+            with open(os.path.join(path, "description.txt"), "w") as f:
+                self.write_description(f)
+        else:
+            #only update info
+            self.update_saved_info()
+        #data has to be updated/saved either way
+        self.data.to_csv(os.path.join(path, "data.csv"), index=False)
 
-    def save_data_for_hics(self, path: str = "") -> str:
+    def save_data_for_hics(self, path: str = "", notes: str = "") -> str:
         """
         Saves the "data" attribute without the "classes" column as a csv file in the folder for the description of the
         object or at a given path.
         :param path: Path to a location where the csv is supposed to be saved, if not in the folder describing the object
+        :param notes: notes to be saved in the description of the Data set
         :return: the path to the file
         """
         if not path:
-            self.create_class_info(self.notes)
+            self.save(notes=notes)
             path = self.path
         #no reason to overwrite old data for HiCS
-        if "HiCS_Data.csv" not in os.listdir(path):
+        if "HiCS_Input_Data.csv" not in os.listdir(path):
             data_for_hics = self.data.drop(columns=["classes"])
-            file_path = os.path.join(path, "HiCS_Data.csv")
+            file_path = os.path.join(path, "HiCS_Input_Data.csv")
             #HiCS program expects a csv file with ";" as delimiter. index column is not useful
             data_for_hics.to_csv(file_path, sep=";", index=False)
             return file_path
-        return os.path.join(path, "HiCS_Data.csv")
+        return os.path.join(path, "HiCS_Input_Data.csv")
 
-    def run_hics(self, csv_out: str = "", further_params: List[str] = None) -> None:
+    def run_hics(self, csv_out: str = "", further_params: List[str] = None, notes: str = "") -> None:
         """
         runs HiCS for the Data object. First creates Info for the object using "create_class_info" and saves the input
         for HiCS into that folder. Output of Hics is also written into that folder, unless specified otherwise.
         :param csv_out: location and file name for output
         :param further_params: parameters for HiCS
+        :param notes: notes to be saved in the description of the Data set
         """
-        csv_in = self.save_data_for_hics()
+        csv_in = self.save_data_for_hics(notes=notes)
         hics.run_HiCS(csv_in, csv_out, further_params)
 
 
@@ -362,6 +439,7 @@ class SimpleCorrelationData(Data):
         self.create_dim_2_3_4()
 
 
+#todo: refactor, comment
 class MaybeActualDataSet(Data):
 
     """
@@ -396,6 +474,89 @@ class MaybeActualDataSet(Data):
         self.create_data()
         add_random_dims(self.data, ["rand_00", "rand_01", "rand_02"])
 
+    @staticmethod
+    def parse_class_dict(class_dict: str) -> Dict:
+        res_dict = {}
+        pair_index = 0
+        while pair_index > -1:
+            pair_index = class_dict.find(")")
+            if pair_index > -1:
+                pair = class_dict[:pair_index+1]
+                class_dict = class_dict[pair_index+3:]
+            else:
+                break
+            dim_name = pair.split(": ")[0].strip("\'")
+            tuple_values = pair.split(": ")[1].strip("()").split(", ")
+            tuple_ = tuple([float(value) for value in tuple_values])
+            res_dict[dim_name] = tuple_
+        return res_dict
+
+    @staticmethod
+    def parse_parameters(value: str) -> Dict:
+        value = value[1:-1]
+        result_dict = {}
+        class_index = 0
+        while class_index > -1:
+            class_index = value.find("}")
+            if class_index > -1:
+                curr_class = value[:class_index+1]
+                value = value[class_index+3:]
+            else:
+                curr_class = value
+            name_index = curr_class.find(": ")
+            class_name = curr_class[:name_index].strip("\'")
+            class_dict = curr_class[name_index+2:].strip("{}")
+            result_dict[class_name] = MaybeActualDataSet.parse_class_dict(class_dict)
+        return result_dict
+
+    @staticmethod
+    def load(path: str, ignore_validity_date: bool = False) -> MaybeActualDataSet:
+        """"""
+        validity_date = datetime.datetime(2022, 2, 2, 15, 14, 0, 0)
+
+        result = MaybeActualDataSet([1])
+        result.data = pd.read_csv(os.path.join(path, "data.csv"))
+        with open(os.path.join(path, "description.txt"), "r+") as f:
+            created_line = f.readline()
+            created_line = created_line.strip("\n")
+            content = f.read()
+
+        paragraphs = content.split("\n\n")
+        if not created_line.startswith("CREATED: ") or not paragraphs[0].startswith("ATTRIBUTES:\n"):
+            raise CustomError("file not in expected format!")
+        date = created_line.split(" ")[1]
+        time = created_line.split(" ")[2]
+        result.path = path
+        day, month, year = date.split(".")
+        hours, minutes, seconds = time.split(":")
+        year = int(year)
+        day = int(day)
+        month = int(month)
+        hours = int(hours)
+        minutes = int(minutes)
+        seconds = int(seconds)
+        now = datetime.datetime(year=year, month=month, day=day, hour=hours, minute=minutes, second=seconds, microsecond=0)
+        if now < validity_date:
+            if ignore_validity_date:
+                print("WARNING: DATA OLDER THAN VALIDITY DATE!!")
+            else:
+                raise CustomError("Data older than validity date!")
+        result.now = now
+        attributes = paragraphs[0].split(" \n")
+        for attr in attributes:
+            attr = attr.lstrip()
+            index = attr.find(": ")
+            if index != -1:
+                name, value = attr[:index], attr[index+2:]
+                if name == "notes":
+                    result.notes = value
+                if name == "members":
+                    value = value.strip("[] ")
+                    result.members = [int(member) for member in value.split(",")]
+                if name == "parameters":
+                    dict_ = MaybeActualDataSet.parse_parameters(value)
+                    result.parameters = dict_
+        return result
 
     @staticmethod
     def create_class(class_number: int, members: int, class_parameters: Dict) -> pd.DataFrame:
@@ -446,10 +607,14 @@ class MaybeActualDataSet(Data):
 
 
 if __name__ == "__main__":
-    members_ = [1000 for _ in range(6)]
+    #MaybeActualDataSet.load("D:\\Gernot\\Programmieren\\Bachelor\\Python\\Experiments\\Data\\220131_125348_MaybeActualDataSet")
+    members_ = [100 for _ in range(6)]
     data = MaybeActualDataSet(members_)
-    df = data.data
     data.run_hics()
+    data = MaybeActualDataSet.load(data.path)
+    data.save()
+    df = data.data
+    #data.run_hics()
 
     #visualization.visualize_2d(df, ("dim_00", "dim_01"), class_column="classes")
     #visualization.visualize_2d(df, ("dim_00", "dim_02"), class_column="classes")
