@@ -7,14 +7,15 @@ import HiCS.HiCS as hics
 
 
 def main():
-    csv_in = "asdfadsf1/adsfasdf2/asdfasdf3\\asdfasdf4/asdfadsf5\\adsfadfadf6/test.csv"
-    index = csv_in.find("test")
-    print(csv_in[:-1])
+    with open("D:\\Gernot\\Programmieren\\Bachelor\\Python\\Experiments\\Data\\220202_161849_MaybeActualDataSet\\description.txt", "r") as f:
+        content = f.read()
+
+    print(repr(content))
 
 
 
 
 
 if __name__ == "__main__":
-    #main()
-    hics.adjust_description("D:\\Gernot\\Programmieren\\Bachelor\\Python\\Experiments\\Data\\220129_134113_MaybeActualDataSet", ["test1", "newnew", "test2", "newnew2"])
+    main()
+    #hics.adjust_description("D:\\Gernot\\Programmieren\\Bachelor\\Python\\Experiments\\Data\\220129_134113_MaybeActualDataSet", ["test1", "newnew", "test2", "newnew2"])

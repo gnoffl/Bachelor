@@ -22,6 +22,9 @@
 * [x] make __HiCS implementation__ work
 * [ ] official paperwork for thesis (need to wait for Daniel to hear about approval of 
 request)
+* [ ] plan progress for whole thesis
+* [ ] make sure HiCS doesnt get to see more columns than its supposed to
+* [ ] save tree and corresponding visualization
 * [ ] load and save data from data classes properly
 * [ ] think about HiCS Parameters
 * [ ] find implementation for __Binning__
