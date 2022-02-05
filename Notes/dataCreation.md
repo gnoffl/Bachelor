@@ -10,8 +10,9 @@ zwischen Klasse 1 und 2 legen
 * [x] 2, 3, 4 besser unterscheidbar machen ohne dim_04, dafür in dim_04 vielleicht näher aneinander
 rücken
 * [x] 5 auf "andere Seite" (--> niedrige Werte) rücken
-* [ ] Speichern von Objekt
-* [ ] Laden von Objekt (Kommentare fehlen, Methode übersichtlicher machen)
+* [x] Speichern von Objekt (auch in "Änderungen" vermerken)
+* [x] Laden von Objekt (Kommentare fehlen, Methode übersichtlicher machen)
+* [x] HiCS darf nur die korrekten Spalten sehen (keine die Klassen enthalten, nur daten)
 * [ ] Typing überall einhalten
 
 ### Optional Todos
@@ -46,9 +47,18 @@ tatsächlich erstmal den Datensatz darstellt, mit dem Experimente durchgeführt 
 ### Data
 Wichtige Methoden aus Data, die allen Klassen zur Verfügung gestellt werden sind
 folgende:
-* create_class_info
-* save_data_for_hics
+
+* load
+* save
 * run_hics
+
+_load_ ist dabei nur eine abstrakte Methode, die in jeder Klasse einzeln implementiert
+werden muss. _save_ erlaubt das Speichern von Objekten in einem Ordner. _run_hics_ 
+speichert die Daten zunächst in einer .csv Datei, die den Anforderungen für HiCS 
+entspricht. Anschließend wird HiCS auf dieser Datei aufgerufen, und die Ergebnisse in
+einer eigenen Datei gespeichert. Wenn nicht anders angegeben, werden sowohl die input-
+Daten für HiCS, als auch der output, im selben Ordner gespeichert, der zum Speichern 
+vom Objekt verwendet wird.
 
 ### MaybeActualDataSet
 Der Datensatz hat zur Zeit 8 Dimensionen, von denen 3 ("rand_00", "rand_01", "rand_02")
@@ -87,3 +97,24 @@ Neue Methoden:
 * run_hics
 
 Funktionalität um HiCS durchführen zu können.
+
+### Update für Data Klasse und MaybeActualDataSet (05.02.22)
+Funktionalität für HiCS komplett überarbeitet, und Save / Load implementiert.\
+Data hat neues Attribut "data_columns", eine Liste, in der die Namen der Spalten gespeichert sind,
+die reine Daten enthalten. Dies schließt also hauptsächlich Spalten aus, in denen Klassen gespeichert
+sind, oder Vorhersagen von Klassen. _save_data_for_hics_ nimmt nun nur noch die Spalten, die in
+"data_columns" gespeichert sind, sodass keine vorhergesagten Klassen die Suche nach Unterräumen
+verfälschen kann.\
+Speichern ist als _save_ in der Überklasse "Data" implementiert. Aus dem Klassennamen der erbenden
+Klasse sowie dem Datum der Erstellung der Klasse wird ein eindeutiger Pfad generiert, unter dem die
+Informationen für das zu speichernde Objekt abgelegt werden. Beim Speichern wird eine Datei "data.csv"
+anegelegt, die die tatsächlichen Daten des Objekts enthalten. Alle Metadaten sowie Notizen und
+Informationen zu durchgeführten Experimenten mit diesem Datensatz werden in einer 2. Datei
+"description.txt" gespeichert. Der Pfad / Ordner kann auch für andere Informationen verwendet werden,
+die für den entsprechenden Datensatz relevant sind (z.B. HiCS input und output werden auch hier
+gespeichert).\
+Load wird von "Data" nur als abstrakte Methode vorgegeben und muss von den erbenden Klassen einzeln
+einzeln implementiert werden. Dies wurde für "MaybeActualDataSet" durchgeführt.\
+Funktionalität von Datei HiCS.py nahezu vollständing in diese Datei übernommen. Notizen und Parameter
+für HiCS werden jetzt korrekt in den Notizen des Daten-Objekts gespeichert. Abschnitte in den 
+Notizen lassen sich jetzt mit Methode _end_paragraph_in_notes_ von einander abtrennen.
