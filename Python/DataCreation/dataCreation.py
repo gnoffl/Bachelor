@@ -1,5 +1,8 @@
 from __future__ import annotations
 from typing import List, Tuple, Dict
+
+import sklearn.tree as tree
+
 import Python.DataCreation.visualization as visualization
 import HiCS.HiCS as hics
 
@@ -12,6 +15,7 @@ import matplotlib as mpl
 from abc import ABC, abstractmethod
 import numpy as np
 import os
+import pickle
 
 
 path_to_data = "D:\\Gernot\\Programmieren\\Bachelor\\Python\\Experiments\\Data"
@@ -83,6 +87,16 @@ class Data(ABC):
         now_string = now.strftime("%y%m%d_%H%M%S")
         path = os.path.join(os.path.dirname(__file__), "..", "Experiments", "Data", f"{now_string}_{class_name}")
         self.path = path
+
+    def load_tree(self) -> tree.DecisionTreeClassifier:
+        tree_path = os.path.join(self.path, "tree_classifier.pkl")
+        if os.path.isfile(tree_path):
+            with open(tree_path, "rb") as f:
+                print("loading tree!")
+                decision_tree = pickle.load(f)
+            return decision_tree
+        else:
+            raise CustomError("No Tree was saved, so no tree can be loaded!")
 
     @staticmethod
     @abstractmethod
