@@ -1,0 +1,30 @@
+"neuer" Datensatz
+	ZEIGEN:
+		gründe
+		zahlen
+		gif
+
+CLassification 
+	Zeigen
+		Abbildungen
+		decisionTree
+		Übergangsmatrix
+	Fragen
+		Parameter
+
+HiCS
+	Zeigen
+		Beispiel
+	Fragen
+		Parameter
+		welche Räume benutzen? --> höchster Kontrast vs. 0-4
+		räume mit interessanten Dims verwenden?
+
+Speicher- / Ladefunktion
+
+Binning
+	Welche Implementierung? --> CTree / partykit
+	was ist mit diagonalen linien? --> Problem für später
+
+QSM 
+	neu implementieren -> ja, vereinfachen pseudocode nutzen
