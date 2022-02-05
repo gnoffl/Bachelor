@@ -6,8 +6,9 @@
 * [x] Todos hier Füllen!
 * [x] Notizen erstellen
 * [x] Änderungsbereich einfügen
-* [ ] Implementierung der Datenklassen zu speichern und laden benutzen
-* [ ] DicisionTrees speichern
+* [x] Implementierung der Datenklassen zu speichern und laden benutzen
+* [x] DicisionTrees speichern
+* [x] Änderungen hier notieren
 * [ ] __run__ methode finalisieren
 
 ### Optional Todos
@@ -20,4 +21,11 @@ Anzahl von Datenpunkten pro Blatt im DecisionTree von 5.
 
 
 ## Änderungen
-_Noch keine Änderungen passiert_
+
+### Update Visualization (05.02.22)
+
+Visualisierung klappt jetzt wie intended. Sowohl für die DecisionTrees als auch
+den Datensatz an sich werden Bilder erstellt und abgespeichert. Tree an sich wird
+in PDF gespeichert, die in Ordner von Datensatz liegt. Zum Vergleich der Leistung
+des DecisionTrees werden Bilder von den original klassen sowie von den vorhergesagten
+Klassen in dem Unterordner "pics" vom Ordner des Datensatzes gespeichert.
