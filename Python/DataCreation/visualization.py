@@ -220,7 +220,7 @@ def create_hist(series: pd.Series, number_of_bins: int = 20, x_label: str = "") 
     plt.show()
 
 
-def get_cumulative_values(array: List[int]) -> Tuple[List[int], List[float]]:
+def get_cumulative_values(array: List[float]) -> Tuple[List[float], List[float]]:
     """
     Calculates the cumulative frequencies of values in an Array.
     :param array: Values for which the cumulative distribution is supposed to be calculated
@@ -230,17 +230,17 @@ def get_cumulative_values(array: List[int]) -> Tuple[List[int], List[float]]:
     #avoid destroying data --> safety copy
     new_array = array[:]
     new_array.sort()
-    last_val = new_array[0]
+    prev_val = new_array[0]
     values = []
     cum_frequencies = []
     for i, value in enumerate(new_array):
         # count how many values were <= the value for each value
         # count is given by pos in sorted array
-        if value != last_val:
-            values.append(last_val)
+        if value != prev_val:
+            values.append(prev_val)
             cum_frequencies.append(i)
-            last_val = value
-    # append data for last value (doesnt match condition value != last_val)
+            prev_val = value
+    # append data for last value (doesnt match condition value != prev_val)
     values.append(new_array[-1])
     length = len(new_array)
     cum_frequencies.append(length)
@@ -304,7 +304,7 @@ def get_number_of_changed_points(data: pd.DataFrame, dims: Tuple[str, str]) -> i
     return count
 
 
-def get_change_matrix(data, dims: Tuple[str, str]) -> pd.DataFrame:
+def get_change_matrix(data: pd.DataFrame, dims: Tuple[str, str]) -> pd.DataFrame:
     """
     returns a matrix showing the migration between classes.
     :param data: data

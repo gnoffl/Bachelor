@@ -92,7 +92,6 @@ class Data(ABC):
         tree_path = os.path.join(self.path, "tree_classifier.pkl")
         if os.path.isfile(tree_path):
             with open(tree_path, "rb") as f:
-                print("loading tree!")
                 decision_tree = pickle.load(f)
             return decision_tree
         else:
