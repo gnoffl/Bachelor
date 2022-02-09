@@ -21,7 +21,7 @@
 * [x] validate results from decision tree (how close classes actually are)
 * [x] make __HiCS implementation__ work
 * [x] load and save data from data classes properly
-* [ ] save tree and corresponding visualization
+* [x] save tree and corresponding visualization
 * [x] make sure HiCS doesnt get to see more columns than its supposed to
 * [ ] think about HiCS Parameters
 * [ ] official paperwork for thesis (need to wait for Daniel to hear about approval of 

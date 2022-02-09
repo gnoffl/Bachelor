@@ -18,7 +18,7 @@ def main():
     test["d"] = [5, 6, 7]
     test["e"] = [6, 7, 8]
     print(test)
-    print(test[["a", "b", "c"]])
+    print(test.columns)
 
 
 
