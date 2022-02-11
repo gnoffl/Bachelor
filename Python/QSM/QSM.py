@@ -93,9 +93,6 @@ def get_shifted_value(value_to_shift: float, shift: float, values: List[float], 
     return get_value_at_quantile(shifted_quantile, values, cum_frequencies)
 
 
-#todo: how does prediction on the tree work with different column orders / column names?
-# todo: results seem wrong
-#todo: visualization
 #todo: how to save results? --> explicit statements for neighborhoods, save matrices?
 def qsm(model,  # Model to use for the evaluation
         data_set: dc.Data,  # Data to use for manipulation
@@ -114,7 +111,6 @@ def qsm(model,  # Model to use for the evaluation
     :param predict_fn: Function that uses the model to predict classes for the dataset. Has to have the signature
     (model, pd.Dataframe, List[str]) -> List[int].
     """
-    #todo: do i need a series here? --> looks like no
     pred_classes = predict_fn(model, data_set.data, data_set.data_columns)
     data = data_set.data
     data["org_pred_classes_QSM"] = pred_classes

@@ -527,7 +527,6 @@ class SimpleCorrelationData(Data):
         self.create_dim_2_3_4()
 
 
-#todo: refactor, comment
 class MaybeActualDataSet(Data):
 
     """
