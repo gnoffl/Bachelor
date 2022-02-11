@@ -26,7 +26,9 @@
 * [ ] think about HiCS Parameters
 * [ ] official paperwork for thesis (need to wait for Daniel to hear about approval of 
 request)
-* [ ] implement __QSM__ in Python
+* [ ] finish implementation __QSM__ in Python (--> todos QSM.md)
 * [ ] plan progress for whole thesis
 * [ ] find implementation for __Binning__
 * [ ] make implementation for __Binning__ work
+* [ ] refactor training / prediction process of decision trees (prediction not needed)
+* [ ] maybe change dataset to show weaknesses of vanilla QSM better

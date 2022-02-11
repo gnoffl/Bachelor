@@ -13,6 +13,7 @@ rücken
 * [x] Speichern von Objekt (auch in "Änderungen" vermerken)
 * [x] Laden von Objekt (Kommentare fehlen, Methode übersichtlicher machen)
 * [x] HiCS darf nur die korrekten Spalten sehen (keine die Klassen enthalten, nur daten)
+* [ ] __load_tree__ sollte zu __load_model__ werden
 * [ ] Typing überall einhalten
 
 ### Optional Todos
@@ -118,3 +119,9 @@ einzeln implementiert werden. Dies wurde für "MaybeActualDataSet" durchgeführt
 Funktionalität von Datei HiCS.py nahezu vollständing in diese Datei übernommen. Notizen und Parameter
 für HiCS werden jetzt korrekt in den Notizen des Daten-Objekts gespeichert. Abschnitte in den 
 Notizen lassen sich jetzt mit Methode _end_paragraph_in_notes_ von einander abtrennen.
+
+### load_tree (11.02.22)
+
+Data gibt jetzt Method zum Laden eines trainierten DecisionTrees vor. Diese Funktion
+sollte in Zukunft so überarbeitet werden, dass ein allgemeines Model geladen werden
+kann.

@@ -10,6 +10,10 @@
 * [x] DicisionTrees speichern
 * [x] Änderungen hier notieren
 * [ ] __run__ methode finalisieren
+* [ ] Trainingprozess anpassen 
+    * [ ] Prediction alleine ist nicht sinnvoll
+    * [ ] Trainieren sollte im Mittelpunkt stehen
+    * [ ] Notizen müssen entsprechend angepasst werden
 
 ### Optional Todos
 _Bisher keine optionalen Todos vorhanden._
