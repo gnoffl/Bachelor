@@ -1,0 +1,34 @@
+neighborChordsObj-Function:
+
+%% Procedure: %%
+
+predictions_stored <- predict(model, data) 							%get original predicted classes
+predictions_stored <- (predictions_stored, id) 							%mark which prediction belongs to which observation
+
+%% Data Manipulation %%
+
+for i in 1:#features 									%manipulate each feature individually
+|	if q[i] >= 0								%positive q means positive direction of manipulation
+|	|	ecdffn <- ecdf(feature[i])					%estimate ecdf (empirical cumulative distribution function)
+|	|	qtemp <- ecdffn(feature[i]) + q[i]				%calculate ecdf-values between 0 and 1 and add q for corresponding feature
+|	|	feature[i]_manip <- quantile(feature[i], qtemp)			%get quantiles from original data for the new calculated ecdf-values
+|	else
+|	if q[i] < 0								%negative q means negative direction of manipulation
+|	|	ecdffn <- ecdf(-feature[i])					%estimate ecdf (empirical cumulative distribution function) for negative feature
+|	|	qtemp <- ecdffn(-feature[i]) - q[i]				%calculate ecdf-values between 0 and 1 for negative feature and add (substract a negative) q for corresponding feature
+|	|	feature[i]_manip <- -quantile(-feature[i], qtemp)			%get quantiles from negative original data for the new calculated ecdf-values and then flip values back to original scale
+|	end if-else
+
+
+end for every feature
+data[, feature[i]] <- feature[i]_manip							%replace with shifted values
+new_predictions <- predict(model, data)							%get predictions with the new data
+
+output <- list(data, predictions_stored, new_predictions, migrationmatrix, manipulations)
+
+output
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+migrationmatrix means a matrix, which displays all the different target classes in the rows and columns and indicates, how many observations have switched from one class to another (or stayed the same on the diagonal)
+
