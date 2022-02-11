@@ -25,5 +25,8 @@ def main():
 
 
 if __name__ == "__main__":
-    main()
-    #hics.adjust_description("D:\\Gernot\\Programmieren\\Bachelor\\Python\\Experiments\\Data\\220129_134113_MaybeActualDataSet", ["test1", "newnew", "test2", "newnew2"])
+    #main()
+    test = [1, 2, 3, 4, 5]
+    to_add = [0.1 for _ in test]
+    test += to_add
+    print(test)

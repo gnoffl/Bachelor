@@ -3,6 +3,7 @@ from typing import List, Tuple, Dict
 import pandas as pd
 import matplotlib.pyplot as plt
 from mpl_toolkits.mplot3d import Axes3D
+import numpy as np
 import matplotlib as mpl
 import random
 import glob
@@ -23,30 +24,73 @@ colors = [(1, 0, 0, 0.9),
           ]
 
 
+def calculate_visualized_area(x_axis: List[float] or np.ndarray, y_axis: List[float] or np.ndarray) -> Tuple[float, float, float, float]:
+    """
+    takes the values for 2 axes as input, and calculates the min and max for each dimension + a small padding, to use as
+    limits for the dimensions during visualization
+    :param x_axis: values for the x_axis
+    :param y_axis: values for the y_axis
+    :return: tuple of (x_axis_min, x_axis_max, y_axis_min, y_axis_max)
+    """
+    x_min, x_max = min(x_axis), max(x_axis)
+    y_min, y_max = min(y_axis), max(y_axis)
+    x_pad = 0.1 * (x_max - x_min)
+    y_pad = 0.1 * (y_max - y_min)
+    x_axis_min = x_min - x_pad
+    x_axis_max = x_max + x_pad
+    y_axis_min = y_min - y_pad
+    y_axis_max = y_max + y_pad
+    return x_axis_min, x_axis_max, y_axis_min, y_axis_max
+
+
+def find_common_area(x0_dim: List[float] or np.ndarray,
+                     y0_dim: List[float] or np.ndarray,
+                     x1_dim: List[float] or np.ndarray,
+                     y1_dim: List[float] or np.ndarray) -> Tuple[float, float, float, float]:
+    """
+    to be used when two graphs are supposed to be comparable, in the sense that both show the same range on the depicted
+    axes. calculates the min and max values for 2 dimensions for 2 graphs, and then combines the ranges for each
+    dimension for both graphs.
+    :param x0_dim: values for the x-dimension for the first graph
+    :param y0_dim: values for the y-dimension for the first graph
+    :param x1_dim: values for the x-dimension for the second graph
+    :param y1_dim: values for the x-dimension for the second graph
+    :return: Tuple of (x_axis_min, x_axis_max, y_axis_min, y_axis_max), that spans the values for both graphs
+    """
+    area_0 = calculate_visualized_area(x0_dim, y0_dim)
+    area_1 = calculate_visualized_area(x1_dim, y1_dim)
+    x_axis_min = min(area_0[0], area_1[0])
+    x_axis_max = max(area_0[1], area_1[1])
+    y_axis_min = min(area_0[2], area_1[2])
+    y_axis_max = max(area_0[3], area_1[3])
+    return x_axis_min, x_axis_max, y_axis_min, y_axis_max
+
+
 #first entry of dims will be x-axis, second will be y-axis
-def visualize_2d(df: pd.DataFrame, dims: Tuple[str, str], class_column: str or None = None, title: str = None, path: str = None) -> None:
+def visualize_2d(df: pd.DataFrame,
+                 dims: Tuple[str, str],
+                 class_column: str or None = None,
+                 title: str = None,
+                 path: str = None,
+                 visualized_area: Tuple[float, float, float, float] = None) -> None:
     """
     Creates a 2d Image of the given data, showing the dimensions whose names are given in dims.
     :param df: Dataframe containing the data
     :param dims: Tuple of the names of the columns that are to be the axes of the plot
     :param class_column: Name of the column that contains class names. Will be used for labeling the data
     :param title: Title of the plot
+    :param visualized_area: sets the limit of the x and y axes. order is x_min, x_max, y_min, y_max. If omitted, fitting
+    values will be calculated based on the data.
     :param path: If path is given, the plot will not be shown but instead saved at the given location
     """
     x_name, y_name = dims
     plt.figure(0, figsize=(8, 6))
     plt.clf()
 
-    x_min, x_max = df[x_name].min(), df[x_name].max()
-    y_min, y_max = df[y_name].min(), df[y_name].max()
-
-    x_pad = 0.1 * (x_max - x_min)
-    y_pad = 0.1 * (y_max - y_min)
-
-    x_axis_min = x_min - x_pad
-    x_axis_max = x_max + x_pad
-    y_axis_min = y_min - y_pad
-    y_axis_max = y_max + y_pad
+    if visualized_area:
+        x_axis_min, x_axis_max, y_axis_min, y_axis_max = visualized_area
+    else:
+        x_axis_min, x_axis_max, y_axis_min, y_axis_max = calculate_visualized_area(df[x_name].values, df[y_name].values)
 
     plt.xlim(x_axis_min, x_axis_max)
     plt.ylim(y_axis_min, y_axis_max)
@@ -73,6 +117,40 @@ def visualize_2d(df: pd.DataFrame, dims: Tuple[str, str], class_column: str or N
         plt.savefig(path)
     else:
         plt.show()
+
+
+def compare_shift_2d(df: pd.DataFrame,
+                     common_dim: str,
+                     dims_to_compare: Tuple[str, str],
+                     class_columns: Tuple[str, str] = None,
+                     titles: Tuple[str, str] = None,
+                     path: str = None) -> None:
+    """
+    method to compare data before and after shift induced by QSM. Will create two 2d visualizations of the Data, but
+    but the x and y limits will be the same for both graphs.
+    :param df: Dataframe with data to be visualized
+    :param common_dim: the Dimension that is not shifted
+    :param dims_to_compare: first the shifted dimension before shift, then the shifted dimension after shift
+    :param class_columns: column names of the predicted classification of the data before and after the shift
+    :param titles: titles for the created graphs. titles will be the name of the shifted column before and after shift,
+    if this argument is omitted
+    :param path: path where graphics should be saved. Graphics will only be shown, not saved, if this argument is omitted
+    """
+    x_axis_min, x_axis_max, y_axis_min, y_axis_max = find_common_area(df[common_dim].values,
+                                                                      df[dims_to_compare[0]].values,
+                                                                      df[common_dim].values,
+                                                                      df[dims_to_compare[1]].values)
+
+    visualized_area = (x_axis_min, x_axis_max, y_axis_min, y_axis_max)
+
+    class_column_0 = class_columns[0] if class_columns else None
+    class_column_1 = class_columns[1] if class_columns else None
+
+    title_0 = titles[0] if titles else dims_to_compare[0]
+    title_1 = titles[1] if titles else dims_to_compare[1]
+
+    visualize_2d(df=df, dims=(common_dim, dims_to_compare[0]), class_column=class_column_0, title=title_0, path=path, visualized_area=visualized_area)
+    visualize_2d(df=df, dims=(common_dim, dims_to_compare[1]), class_column=class_column_1, title=title_1, path=path, visualized_area=visualized_area)
 
 
 def visualize_3d(df: pd.DataFrame,
@@ -228,7 +306,7 @@ def get_cumulative_values(array: List[float]) -> Tuple[List[float], List[float]]
     value at the same index in the other array.
     """
     #avoid destroying data --> safety copy
-    new_array = array[:]
+    new_array = array.copy()
     new_array.sort()
     prev_val = new_array[0]
     values = []
@@ -247,6 +325,26 @@ def get_cumulative_values(array: List[float]) -> Tuple[List[float], List[float]]
 
     cum_frequencies = [cf / length for cf in cum_frequencies]
     return values, cum_frequencies
+
+
+def apply_constraints(constraints: Dict[str, List[Tuple[bool, float]]], df: pd.DataFrame) -> pd.DataFrame:
+    """
+    applies constraints to a dataframe. Mins and Maxs for multiple dimensions can be used to limit the data that is shown.
+    Does change the given Dataframe
+    :param constraints: possible constraints for the data. The keys are columns of df, for which the constraints are to be applied.
+    For each key, a list of Tuples can be supplied. Within the Tuple, the bool value determines, if the int-value will be interpreted
+    as a maximum or a minimum value (True --> max, False --> min)
+    :param df: the dataframe the constraints are applied to
+    :return: the changed dataframe
+    """
+    for dimension, constraint_list in constraints.items():
+        for constraint in constraint_list:
+            max_, value = constraint
+            if max_:
+                df = df.loc[df[dimension] <= value]
+            else:
+                df = df.loc[df[dimension] >= value]
+    return df
 
 
 def create_cumulative_plot(df: pd.DataFrame,
@@ -269,17 +367,12 @@ def create_cumulative_plot(df: pd.DataFrame,
     new_df = df.copy()
     if constraints:
         # apply the constaints to the data by limiting the dimensions
-        for dimension, constraint_list in constraints.items():
-            for constraint in constraint_list:
-                max_, value = constraint
-                if max_:
-                    new_df = new_df.loc[new_df[dimension] <= value]
-                else:
-                    new_df = new_df.loc[new_df[dimension] >= value]
+        new_df = apply_constraints(constraints, new_df)
 
     values, cum_frequencies = get_cumulative_values(new_df[dim].values)
     plt.clf()
     plt.title(title)
+
     if x_axis_label:
         plt.xlabel(x_axis_label)
     else:
@@ -291,6 +384,67 @@ def create_cumulative_plot(df: pd.DataFrame,
         plt.savefig(os.path.join(path_here, path_name))
     else:
         plt.show()
+
+
+def compare_shift_cumulative(df: pd.DataFrame,
+                             dims: Tuple[str, str],
+                             shift: float,
+                             constraints: Dict[str, List[Tuple[bool, float]]] = None,
+                             path_name: None or str = None,
+                             x_axis_labels: Tuple[str] = None,
+                             titles: Tuple[str, str] = None) -> None:
+    """
+    compare the cumulated distribution functions for one dimension before and after being shifted.
+    :param df: Dataframe containing the data
+    :param dims: names of the columns to compare before and after the shift
+    :param shift: "distance" the data was shifted (as quantile)
+    :param constraints: optional constraints to apply to the data
+    :param path_name: Path where the resulting figures will be saved. If omitted, the figures will only be shown, not
+    saved
+    :param x_axis_labels: labels for the x_axes in both plots
+    :param titles: title for the plots
+    """
+    new_df = df.copy()
+    if constraints:
+        # apply the constaints to the data by limiting the dimensions
+        new_df = apply_constraints(constraints, new_df)
+
+    values_0, cum_frequencies_0 = get_cumulative_values(new_df[dims[0]].values)
+    values_1, cum_frequencies_1 = get_cumulative_values(new_df[dims[1]].values)
+
+    cum_frequencies_1 = [elem + shift for elem in cum_frequencies_1]
+
+    if shift < 0:
+        new_first = values_0[0] - 0.000001 * abs(values_0[0])
+        values_1.insert(0, new_first)
+        cum_frequencies_1.insert(0, shift)
+
+    values = [values_0, values_1]
+    cum_frequencies = [cum_frequencies_0, cum_frequencies_1]
+
+    x_axis_min, x_axis_max, y_axis_min, y_axis_max = find_common_area(values_0, cum_frequencies_0, values_1,
+                                                                      cum_frequencies_1)
+    for i in range(2):
+        plt.clf()
+        if titles:
+            plt.title(titles[i])
+
+        if x_axis_labels:
+            plt.xlabel(x_axis_labels[i])
+        else:
+            plt.xlabel(dims[i])
+
+        plt.xlim(x_axis_min, x_axis_max)
+        plt.ylim(y_axis_min, y_axis_max)
+
+        plt.ylabel("Cumulative Frequency")
+        plt.plot(values[i], cum_frequencies[i])
+
+        if path_name:
+            path_here = os.path.dirname(__file__)
+            plt.savefig(os.path.join(path_here, path_name + str(i)))
+        else:
+            plt.show()
 
 
 def get_number_of_changed_points(data: pd.DataFrame, dims: Tuple[str, str]) -> int:
@@ -356,4 +510,7 @@ def main() -> None:
 
 if __name__ == "__main__":
     # main()
-    print(os.listdir("Plots/temp/"))
+    dim_01 = [1, 2, 3, 4, 5, 12, 13, 15, 12, 11, 1, 2, 3, 4, 5, 6, 7, 8, 9, 0]
+    series = pd.Series(dim_01)
+    get_cumulative_values(dim_01)
+    print(dim_01)
