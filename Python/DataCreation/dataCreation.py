@@ -3,7 +3,7 @@ from typing import List, Tuple, Dict
 
 import sklearn.tree as tree
 
-import Python.DataCreation.visualization as visualization
+import Python.DataCreation.visualization as vs
 import HiCS.HiCS as hics
 
 import datetime
@@ -427,7 +427,7 @@ class SimpleCorrelationData(Data):
         df["1"] = dim_01
         df["0"] = dim_00
         print("progress:\n", df.describe())
-        visualization.visualize_2d(df, ("0", "1"))
+        vs.visualize_2d(df, ("0", "1"))
 
     #area is the area of the outer square
     def fill_square_shell(self, number_of_points: int, area: int, dim_00, dim_01):
@@ -718,20 +718,20 @@ if __name__ == "__main__":
     df = data.data
     #data.run_hics()
 
-    #visualization.visualize_2d(df, ("dim_00", "dim_01"), class_column="classes")
-    #visualization.visualize_2d(df, ("dim_00", "dim_02"), class_column="classes")
-    #visualization.visualize_2d(df, ("dim_00", "dim_03"), class_column="classes")
-    #visualization.visualize_2d(df, ("dim_00", "dim_04"), class_column="classes")
-    #visualization.visualize_2d(df, ("dim_01", "dim_04"), class_column="classes")
-    #visualization.create_cumulative_plot(df["dim_00"].values)
-    #visualization.create_cumulative_plot(df, dim="dim_04", title="no constraints")
-    #visualization.create_cumulative_plot(df, dim="dim_04",
+    #vs.visualize_2d(df, ("dim_00", "dim_01"), class_column="classes")
+    #vs.visualize_2d(df, ("dim_00", "dim_02"), class_column="classes")
+    #vs.visualize_2d(df, ("dim_00", "dim_03"), class_column="classes")
+    #vs.visualize_2d(df, ("dim_00", "dim_04"), class_column="classes")
+    #vs.visualize_2d(df, ("dim_01", "dim_04"), class_column="classes")
+    #vs.create_cumulative_plot(df["dim_00"].values)
+    #vs.create_cumulative_plot(df, dim="dim_04", title="no constraints")
+    #vs.create_cumulative_plot(df, dim="dim_04",
     #                                     constraints={"dim_00": [(False, -.5), (True, 3.5)], "dim_01": [(False, -.5), (True, 3.5)], "dim_02": [(False, -2), (True, 2)], "dim_03": [(False, -2), (True, 2)]},
     #                                     title="with constraints")
-    #visualization.create_hist(df["dim_00"])
-    #visualization.create_hist(df["dim_04"])
-    #visualization.visualize_2d(df, ("dim_00", "dim_01"), class_column="classes")
-    #visualization.visualize_2d(df, ("dim_00", "dim_04"), class_column="classes")
-    #visualization.visualize_3d(df, ("dim_00", "dim_01", "dim_02"), class_column="classes")
-    #visualization.create_3d_gif(df=df, dims=("dim_00", "dim_01", "dim_04"), name="maybe_actual_data_updated", class_column="classes", steps=120, duration=33)
+    #vs.create_hist(df["dim_00"])
+    #vs.create_hist(df["dim_04"])
+    #vs.visualize_2d(df, ("dim_00", "dim_01"), class_column="classes")
+    #vs.visualize_2d(df, ("dim_00", "dim_04"), class_column="classes")
+    #vs.visualize_3d(df, ("dim_00", "dim_01", "dim_02"), class_column="classes")
+    #vs.create_3d_gif(df=df, dims=("dim_00", "dim_01", "dim_04"), name="maybe_actual_data_updated", class_column="classes", steps=120, duration=33)
 
