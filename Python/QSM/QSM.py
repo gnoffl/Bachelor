@@ -1,10 +1,32 @@
-from typing import List, Dict
+from typing import List, Dict, Tuple
 import pandas as pd
 
 import Python.DataCreation.dataCreation as dc
 import Python.DataCreation.visualization as vs
 from collections.abc import Callable
 import sklearn.tree as tree
+
+
+def binary_search(arr: List[float], val: float, limits: Tuple[int, int] = None) -> List[int]:
+    if limits:
+        start, end = limits
+    else:
+        start = 0
+        end = len(arr) - 1
+    #Abbruchbedigungen:
+    if start > end:
+        if end < 0 or start >= len(arr):
+            return []
+        else:
+            return [end, start]
+    index = (start + end) // 2
+    cand = arr[index]
+    if cand == val:
+        return [index]
+    elif cand > val:
+        return binary_search(arr, val, (start, index - 1))
+    else:
+        return binary_search(arr, val, (index + 1, end))
 
 
 #todo: make sure, that linear interpolation is valid here
@@ -26,7 +48,6 @@ def linear_interpolation(x0: float, x1: float, y0: float, y1: float, x: float) -
     return m * x + b
 
 
-#todo: implement binary search
 #todo: test edge cases
 def get_value_at_quantile(quantile: float, values: List[float], cum_frequencies: List[float]) -> float:
     """
@@ -42,31 +63,23 @@ def get_value_at_quantile(quantile: float, values: List[float], cum_frequencies:
     """
     # solves edge case and saves iterating over the whole list
     # edge case where shifted quantile == 0 will be solved in the first iteration of the loop with an exact match
-    if quantile == 1:
-        return values[-1]
-    next_larger_quant_index = 0
-    exact_match = False
-    for i, quant in enumerate(cum_frequencies):
-        if quant < quantile:
-            continue
-        elif quant == quantile:
-            next_larger_quant_index = i
-            exact_match = True
-        else:
-            next_larger_quant_index = i
-        break
+    if quantile < cum_frequencies[0]:
+        return values[0]
+    indexes = binary_search(cum_frequencies, quantile)
+    length = len(indexes)
+    if length <= 0:
+        raise dc.CustomError("Could not find the quantile you were looking for!"
+                             f"\n quantile was {quantile}")
+    smaller_val = values[indexes[0]]
+    if len(indexes) == 1:
+        return smaller_val
+    larger_val = values[indexes[1]]
+    smaller_quant = cum_frequencies[indexes[0]]
+    larger_quant = cum_frequencies[indexes[1]]
 
-    next_larger_value = values[next_larger_quant_index]
-    # no need for interpolation, if value was hit perfectly
-    if exact_match:
-        return next_larger_value
-    next_smaller_value = values[next_larger_quant_index - 1]
-    next_larger_quant = cum_frequencies[next_larger_quant_index]
-    next_smaller_quant = cum_frequencies[next_larger_quant_index - 1]
-    return linear_interpolation(next_smaller_quant, next_larger_quant, next_smaller_value, next_larger_value, quantile)
+    return linear_interpolation(smaller_quant, larger_quant, smaller_val, larger_val, quantile)
 
 
-#todo: implement binary search
 #todo: test edge cases
 def get_shifted_value(value_to_shift: float, shift: float, values: List[float], cum_frequencies: List[float]) -> float:
     """
@@ -79,15 +92,10 @@ def get_shifted_value(value_to_shift: float, shift: float, values: List[float], 
     (between 0 and 1). Entry at an index gives the relative frequency of the value at the same index in "values".
     :return: the value at the shifted quantile
     """
-    index = 0
-    for i, val in enumerate(values):
-        #since cumulative Values are calculated from the values of the dimension, every value that is searched for must
-        #exactly be found
-        if val == value_to_shift:
-            index = i
-            break
-        if i == len(values) - 1:
-            raise dc.CustomError("Didnt find the value you were looking for!")
+    indexes = binary_search(values, value_to_shift)
+    if len(indexes) != 1:
+        raise dc.CustomError("Didnt find the value you were looking for!")
+    index = indexes[0]
     #quantile values must between 0 and 1
     shifted_quantile = max(min(cum_frequencies[index] + shift, 1), 0)
     return get_value_at_quantile(shifted_quantile, values, cum_frequencies)
@@ -98,7 +106,7 @@ def qsm(model,  # Model to use for the evaluation
         data_set: dc.Data,  # Data to use for manipulation
         quantiles: Dict[str, float],  # Manipulation for the features (as list),
         predict_fn: Callable,  # predictfunction to get predicted classes [ARGUMENTS : OBJECT, DATA]
-        ) -> None:
+        save_changes: bool = True) -> None:
     """
     implementation for the quantile shift method (QSM). Dimensions of a dataset are shifted by a given quantiles. For
     each shifted Dimension the resulting data (together with all other unshifted dimensions) is classified by a model,
@@ -110,6 +118,7 @@ def qsm(model,  # Model to use for the evaluation
     the dimension are to be shifted (value between 0 and 1)
     :param predict_fn: Function that uses the model to predict classes for the dataset. Has to have the signature
     (model, pd.Dataframe, List[str]) -> List[int].
+    :param save_changes: determines if the dataset will be saved after running qsm or not
     """
     pred_classes = predict_fn(model, data_set.data, data_set.data_columns)
     data = data_set.data
@@ -131,17 +140,18 @@ def qsm(model,  # Model to use for the evaluation
         data[new_class_name] = predict_fn(model, data, prediction_dims)
         data_set.extend_notes_by_one_line(f"shifted column \"{dim}\" by {str(shift)}. Shifted column is \"{new_dim_name}\", corresponding predictions are in column \"{new_class_name}\"")
 
-    data_set.save()
+    if save_changes:
+        data_set.save()
 
 
-def run_QSM_decisionTree(path_to_data, quantiles) -> None:
+def run_QSM_decisionTree(dataset: dc.Data, quantiles: Dict, save_changes: bool = True) -> None:
     """
     runs QSM on a given Dataset, that has a trained DecisionTree
-    :param path_to_data: path to the save location of the dataset
+    :param dataset: the dataset to run qsm on
     :param quantiles:  list of tuples with the name of the dimension that is to be shifted and the value the dimension
     is to be shifted (value between 0 and 1)
+    :param save_changes: determines if the changes in the dataset are to be saved
     """
-    dataset = dc.MaybeActualDataSet.load(path_to_data)
     trained_tree = dataset.load_tree()
 
     def predict_fn(trained_tree_: tree.DecisionTreeClassifier, data: pd.DataFrame, dims: List[str]) -> List[int]:
@@ -177,13 +187,18 @@ def run_QSM_decisionTree(path_to_data, quantiles) -> None:
         values = values[prediction_dims]
         return trained_tree_.predict(values)
 
-    qsm(model=trained_tree, data_set=dataset, quantiles=quantiles, predict_fn=predict_fn)
+    qsm(model=trained_tree, data_set=dataset, quantiles=quantiles, predict_fn=predict_fn, save_changes=save_changes)
 
 
-def visualize_QSM_from_save(path: str, base_dim: str, dim_before_shift: str, shift: float):
+def visualize_QSM(base_dim: str, dim_before_shift: str, shift: float, path: str = "", dataset: dc.Data = None):
+    if not path and not dataset:
+        raise dc.CustomError("one of the parameters path or dataset needs to be given!")
+    if path and dataset:
+        raise dc.CustomError("only one of the parameters path or dataset must be given!")
     dim_after_shift = f"{dim_before_shift}_shifted_by_{str(shift)}"
     new_class_name = f"pred_with_{dim_after_shift}"
-    dataset = dc.MaybeActualDataSet.load(path)
+    if not dataset:
+        dataset = dc.MaybeActualDataSet.load(path)
     vs.compare_shift_2d(df=dataset.data,
                         common_dim=base_dim,
                         dims_to_compare=(dim_before_shift, dim_after_shift),
@@ -197,21 +212,24 @@ def main():
         "dim_00": 0.05,
         "dim_01": -0.2
     }
-    run_QSM_decisionTree(path_to_data="D:\\Gernot\\Programmieren\\Bachelor\\Python\\Experiments\\Data\\MaybeActualDataSet",
-                         quantiles=quantiles)
-    #visualize_QSM_from_save("D:\\Gernot\\Programmieren\\Bachelor\\Python\\Experiments\\Data\\MaybeActualDataSet",
-    #                        "dim_04",
-    #                        "dim_01",
-    #                        -0.2)
+    dataset_new = dc.MaybeActualDataSet.load("D:\\Gernot\\Programmieren\\Bachelor\\Python\\Experiments\\Data\\MaybeActualDataSet")
+    run_QSM_decisionTree(dataset=dataset_new,
+                         quantiles=quantiles,
+                         save_changes=False)
+    visualize_QSM(base_dim="dim_00", dim_before_shift="dim_04", shift=0.1, dataset=dataset_new)
+    dataset_old = dc.MaybeActualDataSet.load("D:\\Gernot\\Programmieren\\Bachelor\\Python\\Experiments\\Data\\MaybeActualDataSet")
+    visualize_QSM(base_dim="dim_00", dim_before_shift="dim_04", shift=0.1, dataset=dataset_old)
 
 
 def test_shift_methods():
-    frame = pd.DataFrame()
+    """frame = pd.DataFrame()
     test_dist = [345, 24567, 8456, 24315, 123, 2456, 4678, 589, 1, 5, 90, 8]
     frame["only_dim"] = test_dist
     vs.create_cumulative_plot(frame, "only_dim")
     values, cum_frequencies = vs.get_cumulative_values(test_dist)
-    print(f"shifted value 345 by 0.1 --> {get_shifted_value(4678, 0.1, values, cum_frequencies)}")
+    print(f"shifted value 345 by 0.1 --> {get_shifted_value(4678, 0.1, values, cum_frequencies)}")"""
+    arr = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]
+    print(binary_search(arr, 9.1))
 
 
 

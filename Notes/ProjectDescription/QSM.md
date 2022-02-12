@@ -3,11 +3,11 @@
 ## Todos
 
 ### Important Todos
-* [ ] Todos hier Füllen!
+* [x] Todos hier Füllen!
 * [x] Änderungsbereich einfügen
-* [ ] Notizen erstellen
-* [ ] Binary Search für Methoden "get_value_at_quantile" und "get_shifted_value" implementieren
-* [ ] Überprüfen, dass methode stabil auch bei Randwerte ist und so
+* [x] Notizen erstellen
+* [x] Binary Search für Methoden "get_value_at_quantile" und "get_shifted_value" implementieren
+* [x] Überprüfen, dass methode stabil auch bei Randwerten ist und so
 * [ ] Sicher stellen, dass lineare Interpolation eine valide Wahl ist
 
 ### Optional Todos
@@ -31,3 +31,8 @@ verschobenen Dimensionen, als auch die Vorhersagen auf diesen, werden in dem Dat
 gespeichert, sodass später wieder auf sie zugegriffen werden kann.
 
 ## Änderungen
+
+### Binäre suche implementiert (12.02.22)
+Suche auf den Listen für die Werte sowie deren kumulierte Häufigkeit wird jetzt per
+binärer Suche durchgeführt, statt linear die Listen abzusuchen. Verbessert die Laufzeit
+sehr deutlich.
