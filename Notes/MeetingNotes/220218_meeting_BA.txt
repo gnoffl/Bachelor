@@ -1,0 +1,9 @@
+ziel variable ist die dimension, in der wir verschieben wollen
+
+class_05 in dim_04 agrnicht mit den anderen klassen überschneiden lassen
+
+Für evaluation: Qualität der Ergebnisse, Laufzeit, Erklärbarkeit
+
+tests von HICS paper "abgucken" evtl (zb kolmogorov-smirnov / welch-t)
+
+eigene implementierung qsm mit original (anhand von R-Implementierung) testen (library für decisiontrees in R: rpart)
