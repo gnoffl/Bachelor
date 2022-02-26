@@ -148,12 +148,11 @@ def run() -> None:
     """
     runs the training process and visualizes results
     """
-    """members_ = [1000 for _ in range(6)]
-    dataset = dc.MaybeActualDataSet(members_)
+    dataset = dc.MaybeActualDataSet.load("D:\\Gernot\\Programmieren\\Bachelor\\Python\\Experiments\\Data\\220226_135403_MaybeActualDataSet")
     trained_tree = save_predicted_data(dataset=dataset, pred_col_name="predicted_classes")
-    dataset.run_hics()"""
-    dataset = dc.MaybeActualDataSet.load("D:\\Gernot\\Programmieren\\Bachelor\\Python\\Experiments\\Data\\220205_175907_MaybeActualDataSet")
-    trained_tree = dataset.load_tree()
+    dataset.run_hics()
+    """dataset = dc.MaybeActualDataSet.load("D:\\Gernot\\Programmieren\\Bachelor\\Python\\Experiments\\Data\\220226_135403_MaybeActualDataSet")
+    trained_tree = dataset.load_tree()"""
     visualize(dataset, trained_tree)
     #matrix = vs.get_change_matrix(data, ("classes", "predicted_classes"))
     #print(matrix)
