@@ -27,8 +27,9 @@
 * [ ] official paperwork for thesis (need to wait for Daniel to hear about approval of 
 request)
 * [ ] finish implementation __QSM__ in Python (--> todos QSM.md)
+* [ ] make sure qsm works just like in R (implement same pipeline in R and python)
 * [ ] plan progress for whole thesis
-* [ ] find implementation for __Binning__
 * [ ] make implementation for __Binning__ work
 * [ ] refactor training / prediction process of decision trees (prediction not needed)
-* [ ] maybe change dataset to show weaknesses of vanilla QSM better
+* [ ] change dataset to show weaknesses of vanilla QSM better (no overlap of class_05
+with any other class in dim_04)
