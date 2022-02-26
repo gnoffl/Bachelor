@@ -706,13 +706,13 @@ class MaybeActualDataSet(Data):
 
 if __name__ == "__main__":
     #MaybeActualDataSet.load("D:\\Gernot\\Programmieren\\Bachelor\\Python\\Experiments\\Data\\220131_125348_MaybeActualDataSet")
-    members_ = [100 for _ in range(6)]
+    members_ = [1000 for _ in range(6)]
     data = MaybeActualDataSet(members_)
     #data.run_hics()
     #data = MaybeActualDataSet.load(data.path)
-    data.save()
-    data = MaybeActualDataSet.load(data.path)
-    data.save()
+    #data.save()
+    #data = MaybeActualDataSet.load(data.path)
+    #data.save()
 
     df = data.data
     #data.run_hics()
@@ -731,6 +731,6 @@ if __name__ == "__main__":
     #vs.create_hist(df["dim_04"])
     #vs.visualize_2d(df, ("dim_00", "dim_01"), class_column="classes")
     #vs.visualize_2d(df, ("dim_00", "dim_04"), class_column="classes")
-    #vs.visualize_3d(df, ("dim_00", "dim_01", "dim_02"), class_column="classes")
+    vs.visualize_3d(df, ("dim_00", "dim_01", "dim_04"), class_column="classes")
     #vs.create_3d_gif(df=df, dims=("dim_00", "dim_01", "dim_04"), name="maybe_actual_data_updated", class_column="classes", steps=120, duration=33)
 
