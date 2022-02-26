@@ -125,3 +125,14 @@ Notizen lassen sich jetzt mit Methode _end_paragraph_in_notes_ von einander abtr
 Data gibt jetzt Method zum Laden eines trainierten DecisionTrees vor. Diese Funktion
 sollte in Zukunft so überarbeitet werden, dass ein allgemeines Model geladen werden
 kann.
+
+### Änderungen der Lage der Klassen (26.02.22)
+
+Die Lage der Klassen in dim_04 wurde so verändert, dass class_05 in dim_04 nun mit
+kleiner Klasse mehr eine Überschneidung hat. Dazu wurde die Dreiecksverteilung von
+class_05 in dim_04 von (2.5, 3.5, 4.5) auf (3, 4, 5) geändert. Die darüberliegenden
+Klassen (02, 03 und 04) wurden auch angehoben. Statt (4, 5, 6) haben sind nun die
+Verteilung (5, 6, 7). Durch die Änderung soll bewirkt werden, dass alle Datenpunkte,
+die in dim_04 zwischen 3 und 5 liegen, von einem DecisionTree automatisch als 
+class_05 klassifiziert werden. Dies sollte den Unterschied zwischen QSM und der
+verbesserten QSM besser verdeutlichen.
