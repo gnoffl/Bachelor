@@ -213,12 +213,15 @@ def main():
         "dim_01": -0.2
     }
     dataset_new = dc.MaybeActualDataSet.load("D:\\Gernot\\Programmieren\\Bachelor\\Python\\Experiments\\Data\\MaybeActualDataSet")
+    dataset_old = dc.MaybeActualDataSet.load("D:\\Gernot\\Programmieren\\Bachelor\\Python\\Experiments\\Data\\MaybeActualDataSet")
     run_QSM_decisionTree(dataset=dataset_new,
                          quantiles=quantiles,
                          save_changes=False)
     visualize_QSM(base_dim="dim_00", dim_before_shift="dim_04", shift=0.1, dataset=dataset_new)
-    dataset_old = dc.MaybeActualDataSet.load("D:\\Gernot\\Programmieren\\Bachelor\\Python\\Experiments\\Data\\MaybeActualDataSet")
-    visualize_QSM(base_dim="dim_00", dim_before_shift="dim_04", shift=0.1, dataset=dataset_old)
+    visualize_QSM(base_dim="dim_04", dim_before_shift="dim_01", shift=-0.2, dataset=dataset_old)
+    print("change matrix 04 / 01")
+    matrix = vs.get_change_matrix(dataset_new.data, ("org_pred_classes_QSM", "pred_with_dim_01_shifted_by_-0.2"))
+    print(matrix)
 
 
 def test_shift_methods():
