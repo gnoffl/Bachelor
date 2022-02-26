@@ -537,10 +537,10 @@ class MaybeActualDataSet(Data):
     class_params = [
         {"dim_00": (0,   0.8), "dim_01": (0,   0.8), "dim_02": (0,  0.8), "dim_03": (0,   0.8), "dim_04": (0,   1,   2)},
         {"dim_00": (1.5, 0.8), "dim_01": (1.5, 0.8), "dim_02": (0,  0.8), "dim_03": (0,   0.8), "dim_04": (1,   2,   3)},
-        {"dim_00": (1.5, 0.8), "dim_01": (1.5, 0.8), "dim_02": (0,  0.8), "dim_03": (0,   0.8), "dim_04": (4,   5,   6)},
-        {"dim_00": (.5,  0.8), "dim_01": (0,   0.8), "dim_02": (2,  0.8), "dim_03": (0,   0.8), "dim_04": (4,   5,   6)},
-        {"dim_00": (-.5, 0.8), "dim_01": (1.5, 0.8), "dim_02": (1,  0.8), "dim_03": (1.5, 0.8), "dim_04": (4,   5,   6)},
-        {"dim_00": (-2,  0.8), "dim_01": (-2,  0.8), "dim_02": (-2, 0.8), "dim_03": (-2,  0.8), "dim_04": (2.5, 3.5, 4.5)}
+        {"dim_00": (1.5, 0.8), "dim_01": (1.5, 0.8), "dim_02": (0,  0.8), "dim_03": (0,   0.8), "dim_04": (5,   6,   7)},
+        {"dim_00": (.5,  0.8), "dim_01": (0,   0.8), "dim_02": (2,  0.8), "dim_03": (0,   0.8), "dim_04": (5,   6,   7)},
+        {"dim_00": (-.5, 0.8), "dim_01": (1.5, 0.8), "dim_02": (1,  0.8), "dim_03": (1.5, 0.8), "dim_04": (5,   6,   7)},
+        {"dim_00": (-2,  0.8), "dim_01": (-2,  0.8), "dim_02": (-2, 0.8), "dim_03": (-2,  0.8), "dim_04": (3, 4, 5)}
     ]
 
     parameters: Dict
@@ -631,7 +631,7 @@ class MaybeActualDataSet(Data):
         :param ignore_validity_date: flag to ignore, if the data was created with an older version of the code
         :return: a new MaybeActualDataSet object with the attributes set as described in the saved version
         """
-        validity_date = datetime.datetime(2022, 2, 2, 15, 14, 0, 0)
+        validity_date = datetime.datetime(2022, 2, 26, 13, 50, 0, 0)
 
         result = MaybeActualDataSet([1])
         result.data = pd.read_csv(os.path.join(path, "data.csv"))
@@ -731,6 +731,6 @@ if __name__ == "__main__":
     #vs.create_hist(df["dim_04"])
     #vs.visualize_2d(df, ("dim_00", "dim_01"), class_column="classes")
     #vs.visualize_2d(df, ("dim_00", "dim_04"), class_column="classes")
-    vs.visualize_3d(df, ("dim_00", "dim_01", "dim_04"), class_column="classes")
-    #vs.create_3d_gif(df=df, dims=("dim_00", "dim_01", "dim_04"), name="maybe_actual_data_updated", class_column="classes", steps=120, duration=33)
+    #vs.visualize_3d(df, ("dim_00", "dim_01", "dim_04"), class_column="classes")
+    #vs.create_3d_gif(df=df, dims=("dim_00", "dim_01", "dim_04"), name="maybe_actual_data_updated", class_column="classes", steps=36)
 
