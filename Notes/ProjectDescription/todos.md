@@ -31,5 +31,5 @@ request)
 * [ ] plan progress for whole thesis
 * [ ] make implementation for __Binning__ work
 * [ ] refactor training / prediction process of decision trees (prediction not needed)
-* [ ] change dataset to show weaknesses of vanilla QSM better (no overlap of class_05
+* [x] change dataset to show weaknesses of vanilla QSM better (no overlap of class_05
 with any other class in dim_04)
