@@ -4,7 +4,7 @@ from typing import List, Tuple, Dict
 import sklearn.tree as tree
 
 import Python.visualization as vs
-import HiCS.HiCS as hics
+import HiCS
 
 import datetime
 import pandas as pd
@@ -81,7 +81,7 @@ class Data(ABC):
         now = datetime.datetime.now()
         self.now = now
         now_string = now.strftime("%y%m%d_%H%M%S")
-        path = os.path.join(os.path.dirname(__file__), "", "Experiments", "Data", f"{now_string}_{class_name}")
+        path = os.path.join(os.path.dirname(__file__), "..", "Data", f"{now_string}_{class_name}")
         self.path = path
 
     def load_tree(self) -> tree.DecisionTreeClassifier:
@@ -256,7 +256,7 @@ class Data(ABC):
                 csv_out = self.create_csv_out(csv_in)
             arguments = ["--csvIn", f"{csv_in}", "--csvOut", f"{csv_out}", "--hasHeader", "true"]
             params = arguments + further_params
-            hics.run_HiCS(params)
+            HiCS.run_HiCS(params)
             self.add_notes_for_HiCS(notes=notes, params=params)
 
 
@@ -730,5 +730,5 @@ if __name__ == "__main__":
     #vs.visualize_2d(df, ("dim_00", "dim_01"), class_column="classes")
     #vs.visualize_2d(df, ("dim_00", "dim_04"), class_column="classes")
     #vs.visualize_3d(df, ("dim_00", "dim_01", "dim_04"), class_column="classes")
-    #vs.create_3d_gif(df=df, dims=("dim_00", "dim_01", "dim_04"), name="maybe_actual_data_updated", class_column="classes", steps=36)
+    vs.create_3d_gif(df=df, dims=("dim_00", "dim_01", "dim_04"), name="maybe_actual_data_updated", class_column="classes", steps=120, duration=33)
 

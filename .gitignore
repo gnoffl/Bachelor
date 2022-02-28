@@ -134,7 +134,7 @@ dmypy.json
 /.idea/vcs.xml
 /.idea/Bachelor.iml
 /DataCreation/Plots/
-/Python/DataCreation/Plots/
+/Plots/
 /.idea/other.xml
 /R/QSM/.Rhistory
 /Python/Experiments/Data/220205_175907_MaybeActualDataSet/

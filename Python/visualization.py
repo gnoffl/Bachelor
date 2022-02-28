@@ -236,7 +236,7 @@ def create_3d_gif(df: pd.DataFrame, dims: Tuple[str, str, str], name: str, class
     if not duration:
         duration = 36 * 100 / steps
     x_name, y_name, z_name = dims
-    plots_folder = os.path.join(os.path.dirname(__file__), "DataCreation/Plots")
+    plots_folder = os.path.join(os.path.dirname(__file__), "../Plots")
 
     # folder where single pictures for the gif will be stored
     temp = os.path.join(plots_folder, "temp")

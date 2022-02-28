@@ -1,5 +1,5 @@
 import pandas as pd
-
+import dataCreation as dc
 
 def main():
     test = pd.DataFrame()
@@ -18,7 +18,5 @@ def main():
 
 if __name__ == "__main__":
     #main()
-    test = [1, 2, 3, 4, 5]
-    to_add = [0.1 for _ in test]
-    test += to_add
-    print(test)
+    dataset = dc.MaybeActualDataSet.load("D:\\Gernot\\Programmieren\\Bachelor\\Data\\220228_154701_MaybeActualDataSet")
+    dataset.save()
