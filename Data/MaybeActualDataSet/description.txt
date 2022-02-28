@@ -1,0 +1,23 @@
+CREATED: 05.02.2022 17:59:07
+ATTRIBUTES: 
+    notes: Predicted classes using Decision Tree in column "predicted_classes".
+           Parameters: max_depth=5, min_samples_leaf=5
+           -------------------
+           Notes for HiCS:
+           Parameters:
+           --csvIn D:\Gernot\Programmieren\Bachelor\Python\DataCreation\..\Experiments\Data\220205_175907_MaybeActualDataSet\HiCS_Input_Data.csv
+           --csvOut D:\Gernot\Programmieren\Bachelor\Python\DataCreation\..\Experiments\Data\220205_175907_MaybeActualDataSet\HiCS_output.csv
+           --hasHeader true
+           -------------------
+           notes for QSM:
+           prediction on the original data in column "org_pred_classes_QSM"
+           shifted column "dim_04" by 0.1. Shifted column is "dim_04_shifted_by_0.1", corresponding predictions are in column "pred_with_dim_04_shifted_by_0.1"
+           shifted column "dim_00" by 0.05. Shifted column is "dim_00_shifted_by_0.05", corresponding predictions are in column "pred_with_dim_00_shifted_by_0.05"
+           shifted column "dim_01" by -0.2. Shifted column is "dim_01_shifted_by_-0.2", corresponding predictions are in column "pred_with_dim_01_shifted_by_-0.2"
+           ------------------- 
+    now: 2022-02-05 17:59:07 
+    path: D:\Gernot\Programmieren\Bachelor\Python\Experiments\Data\MaybeActualDataSet 
+    parameters: {'class_00': {'dim_00': (0.0, 0.8), 'dim_01': (0.0, 0.8), 'dim_02': (0.0, 0.8), 'dim_03': (0.0, 0.8), 'dim_04': (0.0, 1.0, 2.0)}, 'class_01': {'dim_00': (1.5, 0.8), 'dim_01': (1.5, 0.8), 'dim_02': (0.0, 0.8), 'dim_03': (0.0, 0.8), 'dim_04': (1.0, 2.0, 3.0)}, 'class_02': {'dim_00': (1.5, 0.8), 'dim_01': (1.5, 0.8), 'dim_02': (0.0, 0.8), 'dim_03': (0.0, 0.8), 'dim_04': (4.0, 5.0, 6.0)}, 'class_03': {'dim_00': (0.5, 0.8), 'dim_01': (0.0, 0.8), 'dim_02': (2.0, 0.8), 'dim_03': (0.0, 0.8), 'dim_04': (4.0, 5.0, 6.0)}, 'class_04': {'dim_00': (-0.5, 0.8), 'dim_01': (1.5, 0.8), 'dim_02': (1.0, 0.8), 'dim_03': (1.5, 0.8), 'dim_04': (4.0, 5.0, 6.0)}, 'class_05': {'dim_00': (-2.0, 0.8), 'dim_01': (-2.0, 0.8), 'dim_02': (-2.0, 0.8), 'dim_03': (-2.0, 0.8), 'dim_04': (2.5, 3.5, 4.5)}, '': {}} 
+    members: [1000, 1000, 1000, 1000, 1000, 1000] 
+    data_columns: ['dim_00', 'dim_01', 'dim_02', 'dim_03', 'dim_04', 'rand_00', 'rand_01', 'rand_02'] 
+
