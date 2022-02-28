@@ -3,22 +3,18 @@ from typing import List, Tuple, Dict
 
 import sklearn.tree as tree
 
-import Python.DataCreation.visualization as vs
+import Python.visualization as vs
 import HiCS.HiCS as hics
 
 import datetime
-import json
 import pandas as pd
-import matplotlib.pyplot as plt
-from mpl_toolkits.mplot3d import Axes3D
-import matplotlib as mpl
 from abc import ABC, abstractmethod
 import numpy as np
 import os
 import pickle
 
 
-path_to_data = "D:\\Gernot\\Programmieren\\Bachelor\\Python\\Experiments\\Data"
+path_to_data = "/Python/Experiments/Data"
 
 
 class CustomError(Exception):
@@ -85,7 +81,7 @@ class Data(ABC):
         now = datetime.datetime.now()
         self.now = now
         now_string = now.strftime("%y%m%d_%H%M%S")
-        path = os.path.join(os.path.dirname(__file__), "..", "Experiments", "Data", f"{now_string}_{class_name}")
+        path = os.path.join(os.path.dirname(__file__), "", "Experiments", "Data", f"{now_string}_{class_name}")
         self.path = path
 
     def load_tree(self) -> tree.DecisionTreeClassifier:

@@ -1,8 +1,8 @@
 from typing import List, Dict, Tuple
 import pandas as pd
 
-import Python.DataCreation.dataCreation as dc
-import Python.DataCreation.visualization as vs
+import Python.dataCreation as dc
+import Python.visualization as vs
 from collections.abc import Callable
 import sklearn.tree as tree
 

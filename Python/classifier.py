@@ -1,14 +1,10 @@
-import sys
-from typing import List, Tuple
 import sklearn.tree as tree
-import pandas as pd
-import matplotlib.pyplot as plt
 import graphviz
 import os
 import pickle
 
-import Python.DataCreation.dataCreation as dc
-import Python.DataCreation.visualization as vs
+import Python.dataCreation as dc
+import Python.visualization as vs
 
 
 def load_tree(tree_path: str) -> tree.DecisionTreeClassifier:
@@ -58,33 +54,49 @@ def predict_classes(trained_tree: tree.DecisionTreeClassifier, dataset: dc.Data,
     data[pred_col_name] = results
 
 
-def save_predicted_data(dataset: dc.MaybeActualDataSet,
-                        pred_col_name: str,
-                        depth: int = 5,
-                        min_samples_leaf: int = 5,
-                        notes: str = "") -> tree.DecisionTreeClassifier:
+def create_and_save_tree(dataset: dc.MaybeActualDataSet,
+                         depth: int = 5,
+                         min_samples_leaf: int = 5,
+                         notes: str = "",
+                         visualize_tree_: bool = True,
+                         create_sample_pics: bool = True,
+                         pred_col_name: str = "") -> tree.DecisionTreeClassifier:
     """
     trains a decision tree on a MaybeActualDataSet, uses the tree to predict the classes and saves
     the resulting dataset. Also saves the resulting tree at the path of the dataset.
     :param dataset: the data on which predictions will be made
-    :param pred_col_name: name for the column, in which the predicted classes will be stored
     :param depth: maximal depth of the decision tree
     :param min_samples_leaf: minimum number of data points per leaf in the decision tree
     :param notes: Notes to be saved in the description of the data class object
+    :param visualize_tree_: determines whether the tree will be visualized
+    :param create_sample_pics: determines whether comparison pictures of the original classes of the dataset as well as
+    pictures of the dataset with classes from the predictions of the tree will be generated
+    :param pred_col_name: name for the column, in which the predicted classes will be stored. only necessary, if
+    create_sample_pics is True
     :return: Trained decision tree
     """
-    df = dataset.data
     trained_tree = train_decision_tree(dataset, max_depth=depth, min_samples_leaf=min_samples_leaf)
-    predict_classes(trained_tree=trained_tree, dataset=dataset, pred_col_name=pred_col_name)
 
-    dataset.extend_notes_by_one_line(f"Predicted classes using Decision Tree in column \"{pred_col_name}\".")
+    dataset.extend_notes_by_one_line(f"Trained DecisionTree!")
     dataset.extend_notes_by_one_line(f"Parameters: max_depth={depth}, min_samples_leaf={min_samples_leaf}")
-    dataset.end_paragraph_in_notes()
-    dataset.save(notes=notes)
     tree_path = os.path.join(dataset.path, "tree_classifier.pkl")
     if not os.path.isfile(tree_path):
         with open(tree_path, "wb") as f:
             pickle.dump(trained_tree, f)
+
+    if visualize_tree_:
+        visualize_tree(dataset=dataset, trained_tree=trained_tree)
+
+    if create_sample_pics:
+        if not pred_col_name:
+            raise dc.CustomError("pred_col_name wasnt given, so predicting is not possible!")
+        predict_classes(trained_tree=trained_tree, dataset=dataset, pred_col_name=pred_col_name)
+        dataset.extend_notes_by_one_line(f"Predicted classes using Decision Tree in column \"{pred_col_name}\".")
+        visualize(dataset=dataset, trained_tree=trained_tree, pred_col_name=pred_col_name)
+
+    dataset.end_paragraph_in_notes()
+    dataset.save(notes=notes)
+
     return trained_tree
 
 
@@ -115,11 +127,12 @@ def visualize_tree(dataset: dc.Data, trained_tree: tree.DecisionTreeClassifier) 
             os.remove(os.path.join(dataset.path, cand))
 
 
-def visualize(dataset: dc.Data, trained_tree: tree.DecisionTreeClassifier) -> None:
+def visualize(dataset: dc.Data, trained_tree: tree.DecisionTreeClassifier, pred_col_name: str) -> None:
     """
     visualizes data (original vs predicted) as multiple 2d pictures as well as the tree as a diagram
     :param dataset: data to be visualized
     :param trained_tree: the trained tree
+    :param pred_col_name: name, where the predicted classes are stored
     """
     df = dataset.data
     pics_path = os.path.join(dataset.path, "pics")
@@ -135,11 +148,11 @@ def visualize(dataset: dc.Data, trained_tree: tree.DecisionTreeClassifier) -> No
             make_pics = True
     if make_pics:
         vs.visualize_2d(df, ("dim_00", "dim_04"), "classes", title="original", path=os.path.join(pics_path, "00_04_org.png"))
-        vs.visualize_2d(df, ("dim_00", "dim_04"), "predicted_classes", title="predicted", path=os.path.join(pics_path, "00_04_pred.png"))
+        vs.visualize_2d(df, ("dim_00", "dim_04"), pred_col_name, title="predicted", path=os.path.join(pics_path, "00_04_pred.png"))
         vs.visualize_2d(df, ("dim_01", "dim_04"), "classes", title="original", path=os.path.join(pics_path, "01_04_org.png"))
-        vs.visualize_2d(df, ("dim_01", "dim_04"), "predicted_classes", title="predicted", path=os.path.join(pics_path, "01_04_pred.png"))
+        vs.visualize_2d(df, ("dim_01", "dim_04"), pred_col_name, title="predicted", path=os.path.join(pics_path, "01_04_pred.png"))
         vs.visualize_2d(df, ("dim_02", "dim_03"), "classes", title="original", path=os.path.join(pics_path, "02_03_org.png"))
-        vs.visualize_2d(df, ("dim_02", "dim_03"), "predicted_classes", title="predicted", path=os.path.join(pics_path, "02_03_pred.png"))
+        vs.visualize_2d(df, ("dim_02", "dim_03"), pred_col_name, title="predicted", path=os.path.join(pics_path, "02_03_pred.png"))
     #visualization of the decision tree
     visualize_tree(dataset, trained_tree)
 
@@ -148,12 +161,13 @@ def run() -> None:
     """
     runs the training process and visualizes results
     """
-    dataset = dc.MaybeActualDataSet.load("D:\\Gernot\\Programmieren\\Bachelor\\Python\\Experiments\\Data\\220226_135403_MaybeActualDataSet")
-    trained_tree = save_predicted_data(dataset=dataset, pred_col_name="predicted_classes")
+    members = [1000 for _ in range(6)]
+    dataset = dc.MaybeActualDataSet(members)
+    #dataset = dc.MaybeActualDataSet.load("D:\\Gernot\\Programmieren\\Bachelor\\Python\\Experiments\\Data\\220226_135403_MaybeActualDataSet")
+    create_and_save_tree(dataset, pred_col_name="pred_tree")
     dataset.run_hics()
     """dataset = dc.MaybeActualDataSet.load("D:\\Gernot\\Programmieren\\Bachelor\\Python\\Experiments\\Data\\220226_135403_MaybeActualDataSet")
     trained_tree = dataset.load_tree()"""
-    visualize(dataset, trained_tree)
     #matrix = vs.get_change_matrix(data, ("classes", "predicted_classes"))
     #print(matrix)
 

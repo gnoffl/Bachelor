@@ -1,12 +1,4 @@
-import numpy as np
-import sys
-import datetime
-
 import pandas as pd
-
-import Python.DataCreation.dataCreation as dc
-import os
-import HiCS.HiCS as hics
 
 
 def main():
