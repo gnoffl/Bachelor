@@ -141,5 +141,6 @@ dmypy.json
 /Python/Experiments/Data/220205_175907_MaybeActualDataSet/
 /R/Binning/.Rhistory
 
+#ignoring Data in general, but allowing exceptions
 /Data/*
 !/Data/MaybeActualDataSet
