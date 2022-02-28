@@ -545,7 +545,7 @@ class MaybeActualDataSet(Data):
 
     parameters: Dict
 
-    def __init__(self, members: List[int], notes: str = ""):
+    def __init__(self, members: List[int], notes: str = "", save: bool = True):
         """
         initializes the data class
         :param members: entries determine the number of data points per class
@@ -561,6 +561,8 @@ class MaybeActualDataSet(Data):
         self.create_data()
         add_random_dims(self.data, ["rand_00", "rand_01", "rand_02"])
         self.data_columns = [value for value in self.data.columns.values if value != "classes"]
+        if save:
+            self.save()
 
     @staticmethod
     def parse_class_dict(class_dict: str) -> Dict:
