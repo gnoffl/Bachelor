@@ -127,6 +127,7 @@ dmypy.json
 
 # Pyre type checker
 .pyre/
+
 /.idea/misc.xml
 /.idea/modules.xml
 /.idea/inspectionProfiles/profiles_settings.xml
@@ -139,3 +140,6 @@ dmypy.json
 /R/QSM/.Rhistory
 /Python/Experiments/Data/220205_175907_MaybeActualDataSet/
 /R/Binning/.Rhistory
+
+/Data/
+!/Data/MaybeActualDataSet
