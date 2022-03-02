@@ -89,7 +89,7 @@ def create_and_save_tree(dataset: dc.MaybeActualDataSet,
 
     if create_sample_pics:
         if not pred_col_name:
-            raise dc.CustomError("pred_col_name wasnt given, so predicting is not possible!")
+            raise dc.CustomError("pred_col_name wasnt given, so predicting is not possible! Pictures can not be generated!")
         predict_classes(trained_tree=trained_tree, dataset=dataset, pred_col_name=pred_col_name)
         dataset.extend_notes_by_one_line(f"Predicted classes using Decision Tree in column \"{pred_col_name}\".")
         visualize(dataset=dataset, trained_tree=trained_tree, pred_col_name=pred_col_name)
