@@ -30,6 +30,6 @@ request)
 * [ ] make sure qsm works just like in R (implement same pipeline in R and python)
 * [ ] plan progress for whole thesis
 * [ ] make implementation for __Binning__ work
-* [ ] refactor training / prediction process of decision trees (prediction not needed)
+* [x] refactor training / prediction process of decision trees (prediction not needed)
 * [x] change dataset to show weaknesses of vanilla QSM better (no overlap of class_05
 with any other class in dim_04)
