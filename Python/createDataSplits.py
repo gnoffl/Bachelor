@@ -5,7 +5,9 @@ import os
 
 
 def run_R_script(additional_arguments: List,
-                 path_to_script: str = 'D:\\Gernot\\Programmieren\\Bachelor\\R\\Binning\\run_binning.R'):
+                 path_to_script: str = ""):
+    if not path_to_script:
+        path_to_script = os.path.join("..", "R", "Binning", "run_binning.R")
     command = "C:/Program Files/R/R-4.1.2/bin/Rscript.exe"
     x = subprocess.check_output([command, path_to_script] + additional_arguments)
     print(x)
@@ -58,5 +60,5 @@ def test():
 
 
 if __name__ == "__main__":
-    main("D:\\Gernot\\Programmieren\\Bachelor\\Data\\220302_174106_MaybeActualDataSet", dim_to_shift="dim_04")
+    main(r"C:\Users\gerno\Programmieren\Bachelor\Data\220303_200505_MaybeActualDataSet", dim_to_shift="dim_04")
     #test()
