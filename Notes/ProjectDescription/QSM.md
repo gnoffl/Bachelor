@@ -8,7 +8,7 @@
 * [x] Notizen erstellen
 * [x] Binary Search für Methoden "get_value_at_quantile" und "get_shifted_value" implementieren
 * [x] Überprüfen, dass methode stabil auch bei Randwerten ist und so
-* [ ] Sicher stellen, dass lineare Interpolation eine valide Wahl ist
+* [ ] lineare interpolation durch shift auf nächsten Wert ersetzen
 
 ### Optional Todos
 * [ ] Überlegen, wie Ergebnisse am besten präsentiert und gespeichert werden (vermutlich

@@ -1,0 +1,8 @@
+kleinster split mind. q
+
+QSM NICHT interpolieren sondern nächsthöheren Punkt nehmen bie positiver verschiebung
+nächst kleineren bei negativer verschiebung
+
+werte von HiCS untersuchen (speziell vergleich von Werten von sub splits)
+
+für splits alle dimensionen verwenden, um hics laufen zu lassen und nächste dimension für split zu bestimmen
