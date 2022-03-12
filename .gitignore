@@ -144,4 +144,4 @@ dmypy.json
 #ignoring Data in general, but allowing exceptions
 /Data/*
 !/Data/MaybeActualDataSet
-*/.Rhistory
+*.Rhistory
