@@ -136,3 +136,12 @@ Verteilung (5, 6, 7). Durch die Änderung soll bewirkt werden, dass alle Datenpu
 die in dim_04 zwischen 3 und 5 liegen, von einem DecisionTree automatisch als 
 class_05 klassifiziert werden. Dies sollte den Unterschied zwischen QSM und der
 verbesserten QSM besser verdeutlichen.
+
+### clone_meta_data und take_new_data hinzugefügt (12.03.22)
+
+Zwei neue abstrakte Methode zu Data Superklasse hinzugefügt. _clone_meta_data_ erlaubt es,
+ein neues Data-Objekt zu erzeugen, das dieselben Metainformationen in seinen Attributen 
+trägt.\
+_take_new_data_ erlaubt es, einen neuen Dataframe als Daten anzunehmen und relevante Attribute
+entsprechend anzupassen. Für MaybeActualDataSet ist dies vor allem das _members_ Attribut.\
+Beide Methoden wurden bisher nur für MaybeActualDataSet implementiert.

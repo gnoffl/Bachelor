@@ -75,13 +75,14 @@ class Data(ABC):
     path: str
     now: datetime.datetime
 
-    def __init__(self):
+    def __init__(self, path: str = ""):
         self.notes = None
         class_name = type(self).__name__
         now = datetime.datetime.now()
         self.now = now
         now_string = now.strftime("%y%m%d_%H%M%S")
-        path = os.path.join(os.path.dirname(__file__), "..", "Data", f"{now_string}_{class_name}")
+        if not path:
+            path = os.path.join(os.path.dirname(__file__), "..", "Data", f"{now_string}_{class_name}")
         self.path = path
 
     def load_tree(self) -> tree.DecisionTreeClassifier:
@@ -101,6 +102,14 @@ class Data(ABC):
         :param path: path to the data set
         :return: the loaded dataset object
         """
+        pass
+
+    @abstractmethod
+    def clone_meta_data(self, path: str = "") -> Data:
+        pass
+
+    @abstractmethod
+    def take_new_data(self, data: pd.DataFrame) -> None:
         pass
 
     def end_paragraph_in_notes(self):
@@ -541,13 +550,13 @@ class MaybeActualDataSet(Data):
 
     parameters: Dict
 
-    def __init__(self, members: List[int], notes: str = "", save: bool = True):
+    def __init__(self, members: List[int], path: str = "", notes: str = "", save: bool = True):
         """
         initializes the data class
         :param members: entries determine the number of data points per class
         :param notes: notes to be put in the description.txt file for the class
         """
-        super().__init__()
+        super().__init__(path=path)
         np.random.seed(42)
         self.parameters = {}
         for i, class_param in enumerate(self.class_params):
@@ -631,7 +640,7 @@ class MaybeActualDataSet(Data):
         """
         validity_date = datetime.datetime(2022, 2, 26, 13, 50, 0, 0)
 
-        result = MaybeActualDataSet([1])
+        result = MaybeActualDataSet([1], save=False)
         result.data = pd.read_csv(os.path.join(path, "data.csv"))
         with open(os.path.join(path, "description.txt"), "r+") as f:
             created_line = f.readline()
@@ -701,18 +710,49 @@ class MaybeActualDataSet(Data):
         self.data = data
         self.add_dim_04()
 
+    def clone_meta_data(self, path: str = "") -> MaybeActualDataSet:
+        """
+        creates a new MaybeActualDataSet object with same metadata.
+        :param path: will be the path to create the new data at.
+        :return: new MaybeActualDataSet object without meaningful Data
+        """
+        result = MaybeActualDataSet([1], save=False, path=path)
+        result.extend_notes_by_one_line("this Dataset was created by duplicating metadata from another Dataset.")
+        result.extend_notes_by_one_line("parameters refer to the original Dataset")
+        result.end_paragraph_in_notes()
+        result.now = self.now
+        result.parameters = self.parameters
+        return result
+
+    def take_new_data(self, data: pd.DataFrame) -> None:
+        """
+        takes new Data for a MaybeActualDataSet object and adjusts members attribute
+        :param data: new Data to take
+        """
+        self.data = data.copy(deep=True)
+        class_counts = data["classes"].value_counts()
+        members = []
+        for i in range(len(self.class_params)):
+            try:
+                members.append(class_counts.at[i])
+            except KeyError:
+                members.append(0)
+        self.members = members
+
 
 if __name__ == "__main__":
     #MaybeActualDataSet.load("D:\\Gernot\\Programmieren\\Bachelor\\Python\\Experiments\\Data\\220131_125348_MaybeActualDataSet")
-    members_ = [1000 for _ in range(6)]
-    data = MaybeActualDataSet(members_)
+    members_ = [10 for _ in range(6)]
+    data1 = MaybeActualDataSet(members_)
+    data2 = data1.clone_meta_data()
+    data2.take_new_data(data1.data)
     #data.run_hics()
     #data = MaybeActualDataSet.load(data.path)
     #data.save()
     #data = MaybeActualDataSet.load(data.path)
     #data.save()
 
-    df = data.data
+    #df = data1.data
     #data.run_hics()
 
     #vs.visualize_2d(df, ("dim_00", "dim_01"), class_column="classes")
@@ -730,5 +770,5 @@ if __name__ == "__main__":
     #vs.visualize_2d(df, ("dim_00", "dim_01"), class_column="classes")
     #vs.visualize_2d(df, ("dim_00", "dim_04"), class_column="classes")
     #vs.visualize_3d(df, ("dim_00", "dim_01", "dim_04"), class_column="classes")
-    vs.create_3d_gif(df=df, dims=("dim_00", "dim_01", "dim_04"), name="maybe_actual_data_updated", class_column="classes", steps=120, duration=33)
+    #vs.create_3d_gif(df=df, dims=("dim_00", "dim_01", "dim_04"), name="maybe_actual_data_updated", class_column="classes", steps=120, duration=33)
 
