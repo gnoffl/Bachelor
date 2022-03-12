@@ -1,3 +1,5 @@
+import os.path
+
 import pandas as pd
 import dataCreation as dc
 
@@ -17,6 +19,6 @@ def main():
 
 
 if __name__ == "__main__":
-    #main()
-    dataset = dc.MaybeActualDataSet.load("D:\\Gernot\\Programmieren\\Bachelor\\Data\\220228_154701_MaybeActualDataSet")
-    dataset.save()
+    test = [10 for _ in range(20)]
+    print(len(test))
+    print(len(test[:9]))

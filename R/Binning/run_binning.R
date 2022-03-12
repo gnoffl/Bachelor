@@ -2,6 +2,15 @@
 ## Bei name_split den Namen der Variable eintragen, nach der gesplittet werden
 ## soll und bei name_shift den Namen der Variable eintragen, nach der später
 ## verschoben werden soll
+
+
+
+data = read.csv("D:\\Gernot\\Programmieren\\Bachelor\\Data\\220311_221633_MaybeActualDataSet\\data.csv", sep=",")
+splitted = split_datasets(data=data, name_split="dim_01", name_shift = "dim_04")
+test = data[1:300, "dim_04"]
+
+
+
 split_datasets <- function(data, name_split, name_shift){
   
   split_id <- which(names(data) == name_split)
@@ -30,6 +39,7 @@ split_datasets <- function(data, name_split, name_shift){
   
 }
 
+args = commandArgs(trailingOnly=TRUE)
 #test_arg1 = "D:\\Gernot\\Programmieren\\Bachelor\\Data\\220302_174106_MaybeActualDataSet\\Data_splits\\dim_02_dim_04\\dim_04\\Data_for_Splitting.csv"
 #test_arg2 = "dim_02"
 #test_arg3 = "dim_04"
@@ -41,23 +51,22 @@ split_datasets <- function(data, name_split, name_shift){
 #print(splitted[[1]])
 #print(splitted[[2]])
 
+for (arg in args){
+  print(arg)
+}
 
-#string = "D:\\test\\folder\\file.csv"
-#lit = strsplit(string, "\\\\")[[1]]
-#lit_new = append(actual_lit[-length(actual_lit)], "file_new.csv")
-#final_string = paste(lit_new, collapse = "\\")  
-#final_string
+
 
 
 #running the function
-args = commandArgs(trailingOnly=TRUE)
-data = read.csv(args[1], sep=",")
-print(args[1])
-splitted = split_datasets(data=data, name_split=args[2], name_shift = args[3])
+#args = commandArgs(trailingOnly=TRUE)
+#data = read.csv(args[1], sep=",")
+#print(args[1])
+#splitted = split_datasets(data=data, name_split=args[2], name_shift = args[3])
+#
+#lit = strsplit(args[1], "\\\\")[[1]]
+#lit_new = lit[-length(lit)]
 
-lit = strsplit(args[1], "\\\\")[[1]]
-lit_new = lit[-length(lit)]
 
-
-write.csv(splitted[[1]], paste(append(lit_new, "split_file1.csv"), collapse = "\\\\"))
-write.csv(splitted[[2]], paste(append(lit_new, "split_file2.csv"), collapse = "\\\\"))
+#write.csv(splitted[[1]], paste(append(lit_new, "split_file1.csv"), collapse = "\\\\"))
+#write.csv(splitted[[2]], paste(append(lit_new, "split_file2.csv"), collapse = "\\\\"))
