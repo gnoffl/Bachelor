@@ -45,7 +45,7 @@ ist, wie viele Datenpunkte von jeder Klasse in die anderen Klassen migrieren.
 ## Änderungen
 
 ### Visualisierungen für QSM (11.02.22)
-Um Daten vor und nach der Verschiebung durch QSM gut vergleichen zu können wurden zwei
+Um Daten vor und nach der Verschiebung durch QSM gut vergleichen zu können wurden
 neue Visualisierungsfunktionen eingeführt: __compare_shift_2d__ erlaubt es 2d-plots von
 Daten zu erstellen, einmal vor und einmal nach dem shift. Um die Vergleichbarkeit zu 
 maximieren, werden die Achsen der Dimensionen in beiden Plots die selben Maxima und
@@ -54,3 +54,13 @@ __find_common_area__ definiert. Die erste Berechnet die Maxima und Minima der Ac
 die ein einzelner Plot benötigt. Die 2. Funktion vergleicht die Werte, die 2 plots
 brauchen, und berechnet dann die gemeinsamen Maxima und Minima, sodass beide plots auf
 den selben Achsen dargestellt werden können.
+
+### Visualisierungen für Binning (13.03.22)
+
+Zur Visualisierung vom Binning, bei dem ein Datensatz in zwei neue Datensätz gesplittet wird,
+wurden zwei neue Methoden zur Visualisierung eingeführt. __compare_splits_2d__ stellt alle
+Datenpunkte des ursprünglichen Datensatzes in 2 Dimensionen in einer Grafik dar. Dabei werden
+die Datenpunkte der beiden splits jeweils in einer eigenen Farbe dargestellt.\
+__compare_splits_cumulative__ zeichnet in einem Graphen kumulative Plots für eine gewählte
+Dimension aus beiden Splits. Die kumulativen Plots können so gut vergleichen werden, und die
+Farben der Plots ist den Farben der Datenpunkte aus _compare_splits_2d_ angepasst.

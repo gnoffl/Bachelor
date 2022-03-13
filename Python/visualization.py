@@ -10,9 +10,9 @@ import glob
 from PIL import Image
 import os
 
-colors = [(1, 0, 0, 0.9),
+colors = [(0, 0, 1, 0.9),
+          (1, 0, 0, 0.9),
           (0, 1, 0, 0.9),
-          (0, 0, 1, 0.9),
           (1, 1, 0, 0.9),
           (1, 0, 1, 0.9),
           (0, 1, 1, 0.9),
@@ -106,7 +106,7 @@ def visualize_2d(df: pd.DataFrame,
         for i, clas in enumerate(classes):
             plt.scatter(df.loc[df[class_column] == clas, [x_name]],
                         df.loc[df[class_column] == clas, [y_name]],
-                        c=colors[i],
+                        color=colors[i],
                         edgecolor="k",
                         label=clas)
         plt.legend(bbox_to_anchor=(1.02, 1), loc="upper left", frameon=True)
@@ -117,6 +117,30 @@ def visualize_2d(df: pd.DataFrame,
         plt.savefig(path)
     else:
         plt.show()
+
+
+def compare_splits_2d(df0: pd.DataFrame,
+                      df1: pd.DataFrame,
+                      dims: Tuple[str, str],
+                      title: str = None,
+                      path: str = None) -> None:
+    """
+    Plots data from two datasets in the same 2d plot. Points from the dataset are colored in individual colors.
+    :param df0: first dataset
+    :param df1: second dataset
+    :param dims: dims to be plotted
+    :param title: title for the plot
+    :param path: potential path to save plot
+    """
+    new_df0 = df0.copy()
+    new_df1 = df1.copy()
+
+    new_df0["vis_class"] = 0
+    new_df1["vis_class"] = 1
+
+    final_df = pd.concat([new_df0, new_df1])
+
+    visualize_2d(df=final_df, dims=dims, class_column="vis_class", title=title, path=path)
 
 
 def compare_shift_2d(df: pd.DataFrame,
@@ -445,6 +469,56 @@ def compare_shift_cumulative(df: pd.DataFrame,
             plt.savefig(os.path.join(path_here, path_name + str(i)))
         else:
             plt.show()
+
+
+def compare_splits_cumulative(df0: pd.DataFrame,
+                              df1: pd.DataFrame,
+                              dim: str,
+                              path_name: None or str = None,
+                              x_axis_label: str = None,
+                              title: str = None
+                              ) -> None:
+    """
+    Plots a cumulative graph for a dimension from both datasets in a common plot.
+    :param df0: first dataset
+    :param df1: second dataset
+    :param dim: dimension for which the cumulative graphs are generated
+    :param path_name: potential name and path for a location to save the resulting plot
+    :param x_axis_label: label for the x-axis. If no label is given, dim will be used as the label
+    :param title: title for the plot
+    """
+    new_df0 = df0.copy()
+    new_df1 = df1.copy()
+
+    values_0, cum_frequencies_0 = get_cumulative_values(new_df0[dim].values)
+    values_1, cum_frequencies_1 = get_cumulative_values(new_df1[dim].values)
+
+    x_axis_min, x_axis_max, y_axis_min, y_axis_max = find_common_area(values_0, cum_frequencies_0, values_1,
+                                                                      cum_frequencies_1)
+
+    #plotting starts here
+    plt.clf()
+    if title:
+        plt.title(title)
+
+    if x_axis_label:
+        plt.xlabel(x_axis_label)
+    else:
+        plt.xlabel(dim)
+
+    plt.ylabel("Cumulative Frequency")
+
+    plt.xlim(x_axis_min, x_axis_max)
+    plt.ylim(y_axis_min, y_axis_max)
+
+    plt.plot(values_0, cum_frequencies_0, color=colors[0])
+    plt.plot(values_1, cum_frequencies_1, color=colors[1])
+
+    if path_name:
+        path_here = os.path.dirname(__file__)
+        plt.savefig(os.path.join(path_here, path_name))
+    else:
+        plt.show()
 
 
 def get_number_of_changed_points(data: pd.DataFrame, dims: Tuple[str, str]) -> int:
