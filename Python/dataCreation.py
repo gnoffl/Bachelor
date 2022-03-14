@@ -549,6 +549,7 @@ class MaybeActualDataSet(Data):
     ]
 
     parameters: Dict
+    HiCS_dims: List[str]
 
     def __init__(self, members: List[int], path: str = "", notes: str = "", save: bool = True):
         """
@@ -562,6 +563,7 @@ class MaybeActualDataSet(Data):
         for i, class_param in enumerate(self.class_params):
             self.parameters[f"class_{str(i).zfill(2)}"] = class_param
         self.members = members
+        self.HiCS_dims = []
         self.notes = notes
         self.create_data()
         add_random_dims(self.data, ["rand_00", "rand_01", "rand_02"])
@@ -605,9 +607,16 @@ class MaybeActualDataSet(Data):
         return result_dict
 
     @staticmethod
+    def read_list(list_string) -> List[str]:
+        list_string = list_string.strip("[] ")
+        list_string = list_string.replace(" ", "").replace("\'", "")
+        return [member for member in list_string.split(",") if member != ""]
+
+    @staticmethod
     def set_attributes(attr_string: str, result: MaybeActualDataSet) -> None:
         """
-        takes part of the description string and set the attributes found in that string for the process of loading a MaybeActualDataSet object from disc
+        takes part of the description string and set the attributes found in that string for the process of loading a
+        MaybeActualDataSet object from disc
         :param attr_string: part of the description file
         :param result: the MaybeActualDataSet object, that is created
         """
@@ -626,9 +635,9 @@ class MaybeActualDataSet(Data):
                     dict_ = MaybeActualDataSet.parse_parameters(value)
                     result.parameters = dict_
                 if name == "data_columns":
-                    value = value.strip("[] ")
-                    value = value.replace(" ", "").replace("\'", "")
-                    result.data_columns = [member for member in value.split(",")]
+                    result.data_columns = MaybeActualDataSet.read_list(value)
+                if name == "HiCS_dims":
+                    result.HiCS_dims = MaybeActualDataSet.read_list(value)
 
     @staticmethod
     def load(path: str, ignore_validity_date: bool = False) -> MaybeActualDataSet:
