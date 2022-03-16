@@ -263,7 +263,7 @@ class Data(ABC):
             csv_in = self.save_data_for_hics()
             if not csv_out:
                 csv_out = self.create_csv_out(csv_in)
-            arguments = ["--csvIn", f"{csv_in}", "--csvOut", f"{csv_out}", "--hasHeader", "true"]
+            arguments = ["--csvIn", f"{csv_in}", "--csvOut", f"{csv_out}", "--hasHeader", "true", "-s", "true"]
             params = arguments + further_params
             HiCS.run_HiCS(params)
             self.add_notes_for_HiCS(notes=notes, params=params)
