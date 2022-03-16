@@ -10,7 +10,12 @@ import visualization as vs
 
 
 def run_R_script(additional_arguments: List,
-                 path_to_script: str = ""):
+                 path_to_script: str = "") -> None:
+    """
+    runs an R script. is not used atm.
+    :param additional_arguments: additional arguments to be handed to the Script
+    :param path_to_script: path to the script to be executed
+    """
     if not path_to_script:
         path_to_script = os.path.join(os.path.dirname(__file__), "..", "R", "Binning", "run_binning.R")
     command = "C:/Program Files/R/R-4.1.2/bin/Rscript.exe"
@@ -20,6 +25,9 @@ def run_R_script(additional_arguments: List,
 
 
 def create_folder_for_splits(dataset: dc.Data) -> str:
+    """
+    NOT USED
+    """
     splits_folder = os.path.join(dataset.path, "Data_splits")
     if not os.path.isdir(splits_folder):
         os.mkdir(splits_folder)
@@ -33,15 +41,30 @@ def create_folder_for_splits(dataset: dc.Data) -> str:
 
 
 def _create_data_splits(dataset: dc.Data, dim_to_shift: str, max_splits: int, min_number_of_points: int):
+    """
+    NOT USED
+    """
     folder_path = create_folder_for_splits(dataset=dataset)
     run_R_script(additional_arguments=[folder_path, dim_to_shift, max_splits, min_number_of_points])
 
 
 def save_new_datasets(data1: pd.DataFrame, data2: pd.DataFrame, dataset: dc.Data) -> Tuple[dc.Data, dc.Data]:
-    split1 = dataset.clone_meta_data(path=os.path.join(dataset.path, "split1"))
-    split2 = dataset.clone_meta_data(path=os.path.join(dataset.path, "split2"))
+    """
+    creates new Datasets from given dataframes, by copying metadata from a given dataset. Saves the created Datasets as
+    subfolders of the given dataset.
+    :param data1: dataframe for dataset 1
+    :param data2: dataframe for dataset 2
+    :param dataset: "parent" dataset, from which metadata is copied, and where the resulting datasets will be saved
+    :return: Tuple of the created datasets
+    """
+    #naming of the datasets just takes the name of the parent dataset and appends "_0" or "_1"
+    parent_name = dataset.path.split("\\")[-1]
+    split1 = dataset.clone_meta_data(path=os.path.join(dataset.path, f"{parent_name}_0"))
+    split2 = dataset.clone_meta_data(path=os.path.join(dataset.path, f"{parent_name}_1"))
     split1.take_new_data(data1)
     split2.take_new_data(data2)
+
+    #saving the data, to create the folder structure and files
     split1.save()
     split2.save()
     return split1, split2
@@ -59,21 +82,31 @@ def create_optimal_split(dataset: dc.Data, dim_to_shift: str, dim_to_split: str,
     :param min_split_size: min number of points in a resulting split
     :return: the resulting datasets, if a split was performed, or None, if no split was performed
     """
+    #cannot split data, if size is not at least 2 * min_split
     length = len(dataset.data)
     if length < 2 * min_split_size:
         return None
     if min_split_size < 1:
-        raise dc.CustomError("min split size needs to be larger than 1!")
+        raise dc.CustomError("min split size needs to be larger than 0!")
     data = dataset.data.copy(deep=True)
     data = data.sort_values(by=[dim_to_split])
+    #ks_stat is supposed to be a list of the same length as the data of the dataset. At each index, is the result of the
+    #ks test when comparing the datasets, that result from splitting the data at the index. Since no splits are to be
+    #calculated where one dataset is smaller than min_split, dummy values are used in this range. Results have the shape
+    #of (D-value, p-value), so (0, 1) means both datasets are the same.
     ks_stat = [(0., 1.) for _ in range(min_split_size)]
     values = data[dim_to_shift].values
+    #range here is important. need to avoid off-by-one errors (dataset, whose length is exactly  2 * min_split can still
+    #be split in the middle)
     for i in range(min_split_size, len(data) - min_split_size + 1):
         result = stats.kstest(values[:i], values[i:])
         ks_stat.append(result)
+    #maybe unnecessary to also extend the list at the end. Is done to make the list actually have the same length as the
+    #dataset
     ks_stat.extend([(0, 1) for _ in range(min_split_size - 1)])
     split_index = find_optimal_split_index(ks_stat=ks_stat)
 
+    #split the dataframe at the resulting split point, create datasets from the dataframes and return them
     data1 = data.iloc[:split_index, :]
     data2 = data.iloc[split_index:, :]
     return save_new_datasets(data1, data2, dataset)
@@ -81,6 +114,14 @@ def create_optimal_split(dataset: dc.Data, dim_to_shift: str, dim_to_split: str,
 
 
 def find_optimal_split_index(ks_stat: List[stats.stats.KstestResult]) -> int:
+    """
+    selects the index from a List with results from kolmogorov Smirnov tests. Currently only selects the value with
+    the lowest p-value. If multiple values share the lowest p-value, the value with the highest D-value will be selected.
+    functionality should be expanded to decide whether a split should be performed at all, and tie-breakers for equal
+    p-values should be adjusted
+    :param ks_stat: List of results from Kolmogorov Smirnov tests
+    :return: index of best result
+    """
     min_p_val = min(ks_stat, key=lambda elem: elem[1])
     cand_list = [res for res in ks_stat if res[1] == min_p_val[1]]
 
@@ -89,13 +130,37 @@ def find_optimal_split_index(ks_stat: List[stats.stats.KstestResult]) -> int:
 
 
 def convert_indexes_to_column_names(dataset: dc.Data, indexes: List[str]) -> List[str]:
+    """
+    converts indexes of the list of columns to the names of the columns
+    :param dataset: Dataset, for which the indexes are to be converted
+    :param indexes: list of the indexes to be converted
+    :return: List with column names instead of indexes
+    """
     return [dataset.data_columns[int(index)] for index in indexes]
 
 
-def read_HiCS_results(dataset: dc.Data, dim_to_shift: str = ""):
+def convert_column_names_to_indexes(dataset: dc.Data, col_names: List[str]) -> List[str]:
+    return [str(dataset.data_columns.index(col)) for col in col_names]
+
+
+def read_HiCS_results(dataset: dc.Data, dim_to_shift: str = "") -> List[Tuple[float, List[str]]]:
+    """
+    parses an output file from HiCS. Returns List of spaces with their respective contrast value.
+    :param dataset: Dataset for which the HiCS output was generated
+    :param dim_to_shift: name of a dimension, that needs to be present in each space that is returned. If omitted, all
+    spaces are returned.
+    :return: List of all spaces containing the dim_to_shift (if given) together with their respective contrast value.
+    List consists of Tuples. First element of the tuples is the contrast value, second element of the Tuples is a list
+    of str, that contains str of the indices of the dimensions for the space.
+    """
     spaces = []
+    if "HiCS_output.csv" not in os.listdir(dataset.path):
+        dataset.run_hics()
     if dim_to_shift:
         index_str = str(dataset.data_columns.index(dim_to_shift))
+    #lines of the HiCS output consist of a number of leading spaces and then the contrast value. After the contrast,
+    # a list of dimensions is given, that define the subspace. elements of the List are seperated by ";". the list is
+    # seperated from the contrast value by "; ". each line stands for one subspace
     with open(os.path.join(dataset.path, "HiCS_output.csv"), "r") as f:
         line = f.readline().strip()
         while line:
@@ -109,32 +174,64 @@ def read_HiCS_results(dataset: dc.Data, dim_to_shift: str = ""):
     return spaces
 
 
-def get_HiCS(dataset: dc.Data, dim_to_shift: str, goodness_over_length: bool) -> List[str]:
-    spaces = read_HiCS_results(dataset, dim_to_shift)
+def get_HiCS(dataset: dc.Data,
+             dim_to_shift: str,
+             goodness_over_length: bool,
+             spaces: List[Tuple[float, List[str]]] = None) -> List[str]:
+    """
+    finds and returns the best HiCS, that contains the dim_to_shift, for a given dataset.
+    :param dataset: the dataset the HiCS is supposed to be found for.
+    :param dim_to_shift: Dimension that needs to be present.
+    :param goodness_over_length: if True, the HiCS with the highest contrast, that also contains dim_to_shift, will be
+    selected. If False, the HiCS with the most dimensions will be selected, if its contrast value is not lower than 70%
+    of the subspace with the overall highest contrast.
+    :param spaces: List with HiCS results. if not given will be read from disc
+    :return: List of strings with the names of the columns that make up the selected subspace.
+    """
+    if not spaces:
+        spaces = read_HiCS_results(dataset, dim_to_shift)
 
     max_val_elem = max(spaces, key=lambda elem: elem[0])
 
     if goodness_over_length:
-        return convert_indexes_to_column_names(dataset=dataset, indexes=max_val_elem[1])
+        dataset.HiCS_dims = convert_indexes_to_column_names(dataset=dataset, indexes=max_val_elem[1])
+        return dataset.HiCS_dims
 
     max_val = max_val_elem[0]
     max_length = len(max(spaces, key=lambda elem: len(elem[1]))[1])
 
+    #loops over length of subspaces starting from the max length. For each length the subspace with the best contrast
+    # is picked. if the contrast is greater than 70% of the over all highest contrast, the subspace is selected as best
+    # HiCS
     for length in range(max_length, len(max_val_elem[1]), -1):
         curr_spaces = [elem for elem in spaces if len(elem[1]) == length]
         curr_max = max(curr_spaces, key=lambda elem: elem[0])
         curr_max_val = curr_max[0]
         if curr_max_val > (.7 * max_val):
-            return convert_indexes_to_column_names(dataset=dataset, indexes=curr_max[1])
+            dataset.HiCS_dims = convert_indexes_to_column_names(dataset=dataset, indexes=curr_max[1])
+            return dataset.HiCS_dims
 
-    return convert_indexes_to_column_names(dataset=dataset, indexes=max_val_elem[1])
+    dataset.HiCS_dims = convert_indexes_to_column_names(dataset=dataset, indexes=max_val_elem[1])
+    return dataset.HiCS_dims
 
 
 def find_dim_to_split(dataset: dc.Data, dim_to_shift: str) -> str:
-    if not dataset.HiCS_dims:
-        dataset.HiCS_dims = get_HiCS(dataset=dataset, dim_to_shift=dim_to_shift, goodness_over_length=True)
+    """
+    selects the dimension that is most suited for splitting from the dataset.
+    :param dataset: the dataset to select the dimension from
+    :param dim_to_shift: name of the dimension to be shifted
+    :return: name of the dimension to be split
+    """
     spaces = read_HiCS_results(dataset=dataset, dim_to_shift=dim_to_shift)
+    #transforming hics_dims from names of columns to their indices, excluding the dim_to_shift
+    hics_dims = get_HiCS(dataset=dataset, dim_to_shift=dim_to_shift, goodness_over_length=True, spaces=spaces)
+    hics_dims = [dim for dim in hics_dims if dim != dim_to_shift]
+    hics_dims = convert_column_names_to_indexes(dataset, hics_dims)
+    #selecting the dim, that is part of the datasets best HiCS and has the highest contrast value in a pair with the
+    # dim_to_shift
     spaces = [elem for elem in spaces if len(elem[1]) == 2]
+    spaces = [elem for elem in spaces
+              if elem[1][0] in hics_dims or elem[1][1] in hics_dims]
     dim_to_shift_index_str = str(dataset.data_columns.index(dim_to_shift))
     dim_0, dim_1 = max(spaces, key=lambda elem: elem[0])[1]
     if dim_0 == dim_to_shift_index_str:
@@ -146,43 +243,88 @@ def find_dim_to_split(dataset: dc.Data, dim_to_shift: str) -> str:
 
 
 
-def create_binning_splits(dataset: dc.Data, dim_to_shift: str, min_split_size: int, remaining_splits: int):
-    if "HiCS_output.csv" not in os.listdir(dataset.path):
-        dataset.run_hics()
+def create_binning_splits(dataset: dc.Data,
+                          dim_to_shift: str,
+                          min_split_size: int,
+                          remaining_splits: int,
+                          visualize: bool = False) -> None:
+    """
+    recursively splits a dataset in subsets.
+    :param dataset: dataset to be split
+    :param dim_to_shift: dimension that is to be shifted. the dataset will be split in a way, that the distribution of
+    this dimension has the highest possible difference between the splits
+    :param min_split_size: minimal number of data points in a split
+    :param remaining_splits: max count of further splits (max count of splits in general when manually calling the
+    function)
+    :param visualize: determines whether the results will be displayed on the screen
+    """
+    if remaining_splits > 0:
 
-    dim_to_split = find_dim_to_split(dataset=dataset, dim_to_shift=dim_to_shift)
+        dim_to_split = find_dim_to_split(dataset=dataset, dim_to_shift=dim_to_shift)
 
-    split1, split2 = create_optimal_split(dataset=dataset, dim_to_shift=dim_to_shift, dim_to_split=dim_to_split, min_split_size=min_split_size)
+        # if criteria for split are not met, None will be returned
+        result = create_optimal_split(dataset=dataset,
+                                      dim_to_shift=dim_to_shift,
+                                      dim_to_split=dim_to_split,
+                                      min_split_size=min_split_size)
+        #only proceed, if result actually contains new datasets
+        if result:
+            split1, split2 = result
+            if visualize:
+                #visualize and splits
+                title = dataset.path.split("\\")[-1]
+                vs.compare_splits_2d(df0=split1.data,
+                                     df1=split2.data,
+                                     dims=(dim_to_split, dim_to_shift),
+                                     title=title,
+                                     path=os.path.join(dataset.path, "splits_2d.png"))
+                vs.compare_splits_cumulative(split1.data,
+                                             split2.data,
+                                             dim_to_shift,
+                                             title=title,
+                                             path=os.path.join(dataset.path, "splits_cum.png"))
 
-    vs.compare_splits_2d(split1.data, split2.data, (dim_to_split, dim_to_shift))
-    vs.compare_splits_cumulative(split1.data, split2.data, dim_to_shift)
+            #further split the resulting datasets
+            name1 = split1.path.split('\\')[-1]
+            print(f"{(remaining_splits - 1) * '  '}{name1}: {len(split1.data)}")
+            create_binning_splits(dataset=split1,
+                                  dim_to_shift=dim_to_shift,
+                                  min_split_size=min_split_size,
+                                  remaining_splits=remaining_splits - 1,
+                                  visualize=visualize)
+
+            name2 = split2.path.split('\\')[-1]
+            print(f"{(remaining_splits - 1) * '  '}{name2}: {len(split2.data)}")
+            create_binning_splits(dataset=split2,
+                                  dim_to_shift=dim_to_shift,
+                                  min_split_size=min_split_size,
+                                  remaining_splits=remaining_splits - 1,
+                                  visualize=visualize)
 
 
 def main():
-    _data = dc.MaybeActualDataSet.load(r"D:\Gernot\Programmieren\Bachelor\Data\220314_114453_MaybeActualDataSet")
+    members = [50 for _ in range(6)]
+    _data = dc.MaybeActualDataSet(members, save=True)
+    #_data = dc.MaybeActualDataSet.load(r"D:\Gernot\Programmieren\Bachelor\Data\220314_114453_MaybeActualDataSet")
     #dim_to_split = find_dim_to_split(_data, "dim_04")
     #print(dim_to_split)
-    create_binning_splits(dataset=_data, dim_to_shift="dim_04", min_split_size=30, remaining_splits=3)
+    remaining_splits = 3
+    name = _data.path.split('\\')[-1]
+    print(f"{(remaining_splits) * '  '}{name}: {len(_data.data)}")
+    create_binning_splits(dataset=_data, dim_to_shift="dim_04", min_split_size=30, remaining_splits=remaining_splits, visualize=True)
     #dims = get_HiCS(dataset=_data, dim_to_shift="dim_04", goodness_over_length=False)
     #_data.HiCS_dims = dims
     #_data.save()
 
 
 def test():
-    dataset = dc.MaybeActualDataSet([1000 for _ in range(6)])
-    columns = dataset.data.columns.values
-    test_dim = columns[2]
-    print(columns)
-    print(f"test_dim: {test_dim}")
-    print(f"cand: {columns[1]}")
-    columns[2] = columns[1]
-    columns[1] = test_dim
-    dataset.data.columns = columns
-    dataset.save_data_for_hics()
-    dataset.save()
+    #dataset = dc.MaybeActualDataSet([50 for _ in range(6)])
+    dataset = dc.MaybeActualDataSet.load(r"D:\Gernot\Programmieren\Bachelor\Data\220316_155110_MaybeActualDataSet\220316_155110_MaybeActualDataSet_1")
+    print(find_dim_to_split(dataset, dim_to_shift="dim_04"))
 
 
 if __name__ == "__main__":
     main()
+    #test()
     #main(data.path, dim_to_shift="dim_04", q=0.05)
     #test()
