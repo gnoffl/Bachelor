@@ -12,6 +12,7 @@
 * [ ] Wenn große Subspaces bevorzugt werden sollen: aktuell muss der längste Subspace 70 % des
 Werts vom besten HiCS haben. Diese Zahl ist abstrakt gewählt und sollte überdacht werden.
 * [ ] save pictures from visualization of binning in better spots (pics folder)
+* [ ] testen was passiert, wenn _create_binning_splits_ auf Datensatz erneut aufgerufen wird
 * [ ] add notes for split criteria in datasets
 * [ ] test if datasets actually only have the data they are supposed to
 * [ ] get_HiCS nochmal testen
