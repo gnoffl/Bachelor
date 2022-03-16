@@ -474,7 +474,7 @@ def compare_shift_cumulative(df: pd.DataFrame,
 def compare_splits_cumulative(df0: pd.DataFrame,
                               df1: pd.DataFrame,
                               dim: str,
-                              path_name: None or str = None,
+                              path: None or str = None,
                               x_axis_label: str = None,
                               title: str = None
                               ) -> None:
@@ -483,7 +483,7 @@ def compare_splits_cumulative(df0: pd.DataFrame,
     :param df0: first dataset
     :param df1: second dataset
     :param dim: dimension for which the cumulative graphs are generated
-    :param path_name: potential name and path for a location to save the resulting plot
+    :param path: potential name and path for a location to save the resulting plot
     :param x_axis_label: label for the x-axis. If no label is given, dim will be used as the label
     :param title: title for the plot
     """
@@ -514,9 +514,9 @@ def compare_splits_cumulative(df0: pd.DataFrame,
     plt.plot(values_0, cum_frequencies_0, color=colors[0])
     plt.plot(values_1, cum_frequencies_1, color=colors[1])
 
-    if path_name:
+    if path:
         path_here = os.path.dirname(__file__)
-        plt.savefig(os.path.join(path_here, path_name))
+        plt.savefig(os.path.join(path_here, path))
     else:
         plt.show()
 
