@@ -74,8 +74,10 @@ class Data(ABC):
     members: List[int]
     path: str
     now: datetime.datetime
+    HiCS_dims: List[str]
 
     def __init__(self, path: str = ""):
+        self.HiCS_dims = []
         self.notes = None
         class_name = type(self).__name__
         now = datetime.datetime.now()
@@ -549,7 +551,6 @@ class MaybeActualDataSet(Data):
     ]
 
     parameters: Dict
-    HiCS_dims: List[str]
 
     def __init__(self, members: List[int], path: str = "", notes: str = "", save: bool = True):
         """
@@ -563,7 +564,6 @@ class MaybeActualDataSet(Data):
         for i, class_param in enumerate(self.class_params):
             self.parameters[f"class_{str(i).zfill(2)}"] = class_param
         self.members = members
-        self.HiCS_dims = []
         self.notes = notes
         self.create_data()
         add_random_dims(self.data, ["rand_00", "rand_01", "rand_02"])
