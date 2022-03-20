@@ -713,7 +713,8 @@ class MaybeActualDataSet(Data):
         for i, class_members in enumerate(self.members):
             try:
                 class_parameters = self.parameters[f"class_{str(i).zfill(2)}"]
-                data = data.append(self.create_class(i, class_members, class_parameters))
+                #data = data.append(self.create_class(i, class_members, class_parameters))
+                data = pd.concat([data, self.create_class(i, class_members, class_parameters)])
             except IndexError:
                 pass
         self.data = data
