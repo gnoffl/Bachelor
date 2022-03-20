@@ -1,6 +1,6 @@
 from typing import List, Tuple
 import subprocess
-
+import classifier as cl
 import pandas as pd
 
 import dataCreation as dc
@@ -281,18 +281,8 @@ def create_binning_splits(dataset: dc.Data,
         if result:
             split1, split2 = result
             if visualize:
-                #visualize and splits
-                title = dataset.path.split("\\")[-1]
-                vs.compare_splits_2d(df0=split1.data,
-                                     df1=split2.data,
-                                     dims=(dim_to_split, dim_to_shift),
-                                     title=title,
-                                     path=os.path.join(dataset.path, "splits_2d.png"))
-                vs.compare_splits_cumulative(split1.data,
-                                             split2.data,
-                                             dim_to_shift,
-                                             title=title,
-                                             path=os.path.join(dataset.path, "splits_cum.png"))
+                #visualize the splits
+                create_and_save_visualizations_for_splits(dataset, dim_to_shift, dim_to_split, split1, split2)
 
             #further split the resulting datasets
             name1 = split1.path.split('\\')[-1]
@@ -312,6 +302,26 @@ def create_binning_splits(dataset: dc.Data,
                                   visualize=visualize)
 
 
+def create_and_save_visualizations_for_splits(dataset, dim_to_shift, dim_to_split, split1, split2):
+    folder_path = os.path.join(dataset.path, "pics")
+    split_pics_folder = os.path.join(folder_path, "Binning")
+    if not os.path.isdir(folder_path):
+        os.mkdir(folder_path)
+    if not os.path.isdir(split_pics_folder):
+        os.mkdir(split_pics_folder)
+    title = dataset.path.split("\\")[-1]
+    vs.compare_splits_2d(df0=split1.data,
+                         df1=split2.data,
+                         dims=(dim_to_split, dim_to_shift),
+                         title=title,
+                         path=os.path.join(split_pics_folder, "splits_2d.png"))
+    vs.compare_splits_cumulative(split1.data,
+                                 split2.data,
+                                 dim_to_shift,
+                                 title=title,
+                                 path=os.path.join(split_pics_folder, "splits_cum.png"))
+
+
 def main():
     members = [50 for _ in range(6)]
     _data = dc.MaybeActualDataSet(members, save=True)
@@ -322,6 +332,7 @@ def main():
     name = _data.path.split('\\')[-1]
     print(f"{(remaining_splits) * '  '}{name}: {len(_data.data)}")
     create_binning_splits(dataset=_data, dim_to_shift="dim_04", min_split_size=10, remaining_splits=remaining_splits, visualize=True)
+    cl.create_and_save_tree(_data, pred_col_name="tree_pred")
     #dims = get_HiCS(dataset=_data, dim_to_shift="dim_04", goodness_over_length=False)
     #_data.HiCS_dims = dims
     #_data.save()
@@ -339,8 +350,8 @@ def test_split_data():
 
 
 if __name__ == "__main__":
-    test_split_data()
-    #main()
+    #test_split_data()
+    main()
     #test()
     #main(data.path, dim_to_shift="dim_04", q=0.05)
     #test()

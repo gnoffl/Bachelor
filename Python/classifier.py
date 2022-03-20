@@ -58,8 +58,7 @@ def create_and_save_tree(dataset: dc.MaybeActualDataSet,
                          depth: int = 5,
                          min_samples_leaf: int = 5,
                          notes: str = "",
-                         visualize_tree_: bool = True,
-                         create_sample_pics: bool = True,
+                         visualize_tree: bool = True,
                          pred_col_name: str = "") -> tree.DecisionTreeClassifier:
     """
     trains a decision tree on a MaybeActualDataSet, uses the tree to predict the classes and saves
@@ -68,9 +67,9 @@ def create_and_save_tree(dataset: dc.MaybeActualDataSet,
     :param depth: maximal depth of the decision tree
     :param min_samples_leaf: minimum number of data points per leaf in the decision tree
     :param notes: Notes to be saved in the description of the data class object
-    :param visualize_tree_: determines whether the tree will be visualized
-    :param create_sample_pics: determines whether comparison pictures of the original classes of the dataset as well as
-    pictures of the dataset with classes from the predictions of the tree will be generated
+    :param visualize_tree: determines whether comparison pictures of the original classes of the dataset as well as
+    pictures of the dataset with classes from the predictions of the tree will be generated. Also a graphical
+    representation of the decisiontree will be generated
     :param pred_col_name: name for the column, in which the predicted classes will be stored. only necessary, if
     create_sample_pics is True
     :return: Trained decision tree
@@ -84,10 +83,7 @@ def create_and_save_tree(dataset: dc.MaybeActualDataSet,
         with open(tree_path, "wb") as f:
             pickle.dump(trained_tree, f)
 
-    if visualize_tree_:
-        visualize_tree(dataset=dataset, trained_tree=trained_tree)
-
-    if create_sample_pics:
+    if visualize_tree:
         if not pred_col_name:
             raise dc.CustomError("pred_col_name wasnt given, so predicting is not possible! Pictures can not be generated!")
         predict_classes(trained_tree=trained_tree, dataset=dataset, pred_col_name=pred_col_name)
@@ -100,12 +96,13 @@ def create_and_save_tree(dataset: dc.MaybeActualDataSet,
     return trained_tree
 
 
-def visualize_tree(dataset: dc.Data, trained_tree: tree.DecisionTreeClassifier) -> None:
+def visualize_tree(dataset: dc.Data, trained_tree: tree.DecisionTreeClassifier, tree_pics_path: str) -> None:
     """
     creates a pdf file of the given decision tree in the folder of the dataset
     :param dataset: dataset, for which the decision tree is relevant. Attribute "path" will be used as the location for
     the resulting pdf file
     :param trained_tree: the decision tree that is to be visualized
+    :param tree_pics_path: Path were pictures for the visualization of the tree is supposed to be saved
     """
     df = dataset.data
     values = df[dataset.data_columns]
@@ -117,14 +114,14 @@ def visualize_tree(dataset: dc.Data, trained_tree: tree.DecisionTreeClassifier) 
                              special_characters=True)
     with open(visualization_path, "r") as f2:
         content = f2.read()
-        graph = graphviz.Source(content, filename="tree_visualization", directory=dataset.path)
+        graph = graphviz.Source(content, filename="tree_visualization", directory=tree_pics_path)
         graph.render()
     # clean up unnecessary files
     candidates = ["tree_visualization", "tree_visualization_data.gv"]
-    files = os.listdir(dataset.path)
+    files = os.listdir(tree_pics_path)
     for cand in candidates:
         if cand in files:
-            os.remove(os.path.join(dataset.path, cand))
+            os.remove(os.path.join(tree_pics_path, cand))
 
 
 def visualize(dataset: dc.Data, trained_tree: tree.DecisionTreeClassifier, pred_col_name: str) -> None:
@@ -138,23 +135,26 @@ def visualize(dataset: dc.Data, trained_tree: tree.DecisionTreeClassifier, pred_
     pics_path = os.path.join(dataset.path, "pics")
     if not os.path.isdir(pics_path):
         os.mkdir(pics_path)
+    tree_pics_path = os.path.join(pics_path, "Decision_Tree")
+    if not os.path.isdir(tree_pics_path):
+        os.mkdir(tree_pics_path)
 
     #check if all pictures are already in the folder:
     make_pics = False
-    files_in_pics = os.listdir(pics_path)
+    files_in_pics = os.listdir(tree_pics_path)
     pics = ["00_04_org.png", "00_04_pred.png", "01_04_org.png", "01_04_pred.png", "02_03_org.png", "02_03_pred.png"]
     for pic in pics:
         if pic not in files_in_pics:
             make_pics = True
     if make_pics:
-        vs.visualize_2d(df, ("dim_00", "dim_04"), "classes", title="original", path=os.path.join(pics_path, "00_04_org.png"))
-        vs.visualize_2d(df, ("dim_00", "dim_04"), pred_col_name, title="predicted", path=os.path.join(pics_path, "00_04_pred.png"))
-        vs.visualize_2d(df, ("dim_01", "dim_04"), "classes", title="original", path=os.path.join(pics_path, "01_04_org.png"))
-        vs.visualize_2d(df, ("dim_01", "dim_04"), pred_col_name, title="predicted", path=os.path.join(pics_path, "01_04_pred.png"))
-        vs.visualize_2d(df, ("dim_02", "dim_03"), "classes", title="original", path=os.path.join(pics_path, "02_03_org.png"))
-        vs.visualize_2d(df, ("dim_02", "dim_03"), pred_col_name, title="predicted", path=os.path.join(pics_path, "02_03_pred.png"))
+        vs.visualize_2d(df, ("dim_00", "dim_04"), "classes", title="original", path=os.path.join(tree_pics_path, "00_04_org.png"))
+        vs.visualize_2d(df, ("dim_00", "dim_04"), pred_col_name, title="predicted", path=os.path.join(tree_pics_path, "00_04_pred.png"))
+        vs.visualize_2d(df, ("dim_01", "dim_04"), "classes", title="original", path=os.path.join(tree_pics_path, "01_04_org.png"))
+        vs.visualize_2d(df, ("dim_01", "dim_04"), pred_col_name, title="predicted", path=os.path.join(tree_pics_path, "01_04_pred.png"))
+        vs.visualize_2d(df, ("dim_02", "dim_03"), "classes", title="original", path=os.path.join(tree_pics_path, "02_03_org.png"))
+        vs.visualize_2d(df, ("dim_02", "dim_03"), pred_col_name, title="predicted", path=os.path.join(tree_pics_path, "02_03_pred.png"))
     #visualization of the decision tree
-    visualize_tree(dataset, trained_tree)
+    visualize_tree(dataset, trained_tree, tree_pics_path)
 
 
 def run() -> None:
