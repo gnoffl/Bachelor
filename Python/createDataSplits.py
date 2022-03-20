@@ -109,7 +109,17 @@ def create_optimal_split(dataset: dc.Data, dim_to_shift: str, dim_to_split: str,
     #split the dataframe at the resulting split point, create datasets from the dataframes and return them
     data1 = data.iloc[:split_index, :]
     data2 = data.iloc[split_index:, :]
-    return save_new_datasets(data1, data2, dataset)
+    dataset1, dataset2 = save_new_datasets(data1, data2, dataset)
+    dataset1.extend_notes_by_one_line(f"This dataset results from splitting a parent dataset.")
+    dataset1.extend_notes_by_one_line(f"split criterion: {dim_to_split} < {data[dim_to_split].iloc[split_index]}")
+    dataset1.end_paragraph_in_notes()
+
+
+    dataset2.extend_notes_by_one_line(f"This dataset results from splitting a parent dataset.")
+    dataset2.extend_notes_by_one_line(f"split criterion: {dim_to_split} >= {data[dim_to_split].iloc[split_index]}")
+    dataset2.end_paragraph_in_notes()
+
+    return dataset1, dataset2
 
 
 
@@ -308,10 +318,10 @@ def main():
     #_data = dc.MaybeActualDataSet.load(r"D:\Gernot\Programmieren\Bachelor\Data\220314_114453_MaybeActualDataSet")
     #dim_to_split = find_dim_to_split(_data, "dim_04")
     #print(dim_to_split)
-    remaining_splits = 3
+    remaining_splits = 2
     name = _data.path.split('\\')[-1]
     print(f"{(remaining_splits) * '  '}{name}: {len(_data.data)}")
-    create_binning_splits(dataset=_data, dim_to_shift="dim_04", min_split_size=30, remaining_splits=remaining_splits, visualize=True)
+    create_binning_splits(dataset=_data, dim_to_shift="dim_04", min_split_size=10, remaining_splits=remaining_splits, visualize=True)
     #dims = get_HiCS(dataset=_data, dim_to_shift="dim_04", goodness_over_length=False)
     #_data.HiCS_dims = dims
     #_data.save()
@@ -323,8 +333,14 @@ def test():
     print(find_dim_to_split(dataset, dim_to_shift="dim_04"))
 
 
+def test_split_data():
+    dataset = dc.MaybeActualDataSet.load(r"C:\Users\gerno\Programmieren\Bachelor\Data\220320_201805_MaybeActualDataSet\220320_201805_MaybeActualDataSet_1")
+    print(dataset.data.describe()["dim_02"])
+
+
 if __name__ == "__main__":
-    main()
+    test_split_data()
+    #main()
     #test()
     #main(data.path, dim_to_shift="dim_04", q=0.05)
     #test()
