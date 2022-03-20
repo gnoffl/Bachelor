@@ -114,11 +114,13 @@ def create_optimal_split(dataset: dc.Data, dim_to_shift: str, dim_to_split: str,
     dataset1, dataset2 = save_new_datasets(data1, data2, dataset)
     dataset1.extend_notes_by_one_line(f"This dataset results from splitting a parent dataset.")
     dataset1.extend_notes_by_one_line(f"split criterion: {dim_to_split} < {data[dim_to_split].iloc[split_index]}")
+    dataset1.extend_notes_by_one_line(f"number of data points: {len(dataset1.data)}")
     dataset1.end_paragraph_in_notes()
 
 
     dataset2.extend_notes_by_one_line(f"This dataset results from splitting a parent dataset.")
     dataset2.extend_notes_by_one_line(f"split criterion: {dim_to_split} >= {data[dim_to_split].iloc[split_index]}")
+    dataset2.extend_notes_by_one_line(f"number of data points: {len(dataset2.data)}")
     dataset2.end_paragraph_in_notes()
 
     return dataset1, dataset2
@@ -134,7 +136,7 @@ def find_optimal_split_index(ks_stat: List[stats.stats.KstestResult]) -> int:
     :return: index of best result
     """
     min_p_val = min(ks_stat, key=lambda elem: elem[1])
-    if min_p_val > .05:
+    if min_p_val[1] > .05:
         return -1
     cand_list = [res for res in ks_stat if res[1] == min_p_val[1]]
 
@@ -255,12 +257,11 @@ def find_dim_to_split(dataset: dc.Data, dim_to_shift: str) -> str:
         raise dc.CustomError("dim_to_shift was not in pair!")
 
 
-
-def create_binning_splits(dataset: dc.Data,
-                          dim_to_shift: str,
-                          min_split_size: int,
-                          remaining_splits: int,
-                          visualize: bool = False) -> None:
+def recursive_splitting(dataset: dc.Data,
+                        dim_to_shift: str,
+                        min_split_size: int,
+                        remaining_splits: int,
+                        visualize: bool = True) -> None:
     """
     recursively splits a dataset in subsets.
     :param dataset: dataset to be split
@@ -290,19 +291,39 @@ def create_binning_splits(dataset: dc.Data,
             #further split the resulting datasets
             name1 = split1.path.split('\\')[-1]
             print(f"{(remaining_splits - 1) * '  '}{name1}: {len(split1.data)}")
-            create_binning_splits(dataset=split1,
-                                  dim_to_shift=dim_to_shift,
-                                  min_split_size=min_split_size,
-                                  remaining_splits=remaining_splits - 1,
-                                  visualize=visualize)
+            recursive_splitting(dataset=split1,
+                                dim_to_shift=dim_to_shift,
+                                min_split_size=min_split_size,
+                                remaining_splits=remaining_splits - 1,
+                                visualize=visualize)
 
             name2 = split2.path.split('\\')[-1]
             print(f"{(remaining_splits - 1) * '  '}{name2}: {len(split2.data)}")
-            create_binning_splits(dataset=split2,
-                                  dim_to_shift=dim_to_shift,
-                                  min_split_size=min_split_size,
-                                  remaining_splits=remaining_splits - 1,
-                                  visualize=visualize)
+            recursive_splitting(dataset=split2,
+                                dim_to_shift=dim_to_shift,
+                                min_split_size=min_split_size,
+                                remaining_splits=remaining_splits - 1,
+                                visualize=visualize)
+
+
+def create_binning_splits(dataset: dc.Data,
+                          dim_to_shift: str,
+                          q: float,
+                          remaining_splits: int,
+                          visualize: bool = True) -> None:
+    """
+    wrapper to start recursive splitting of the data
+    :param dataset: dataset to be split
+    :param dim_to_shift: dimension that is to be shifted. the dataset will be split in a way, that the distribution of
+    this dimension has the highest possible difference between the splits
+    :param q: fraction by which the data will be shifted
+    :param remaining_splits: max count of further splits (max count of splits in general when manually calling the
+    function)
+    :param visualize: determines whether the results will be displayed on the screen
+    """
+    min_split_size = max(int(len(dataset.data) * q), 1)
+    recursive_splitting(dataset=dataset, dim_to_shift=dim_to_shift, min_split_size=min_split_size,
+                        remaining_splits=remaining_splits, visualize=visualize)
 
 
 def create_and_save_visualizations_for_splits(dataset, dim_to_shift, dim_to_split, split1, split2):
@@ -333,9 +354,8 @@ def main():
     #print(dim_to_split)
     remaining_splits = 2
     name = _data.path.split('\\')[-1]
-    print(f"{(remaining_splits) * '  '}{name}: {len(_data.data)}")
-    create_binning_splits(dataset=_data, dim_to_shift="dim_04", min_split_size=10, remaining_splits=remaining_splits, visualize=True)
-    cl.create_and_save_tree(_data, pred_col_name="tree_pred")
+    print(f"{remaining_splits * '  '}{name}: {len(_data.data)}")
+    create_binning_splits(dataset=_data, dim_to_shift="dim_04", q=.05, remaining_splits=remaining_splits, visualize=True)
     #dims = get_HiCS(dataset=_data, dim_to_shift="dim_04", goodness_over_length=False)
     #_data.HiCS_dims = dims
     #_data.save()
