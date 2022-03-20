@@ -85,7 +85,7 @@ def create_optimal_split(dataset: dc.Data, dim_to_shift: str, dim_to_split: str,
     #cannot split data, if size is not at least 2 * min_split
     length = len(dataset.data)
     if length < 2 * min_split_size:
-        return None
+        return
     if min_split_size < 1:
         raise dc.CustomError("min split size needs to be larger than 0!")
     data = dataset.data.copy(deep=True)
@@ -105,6 +105,8 @@ def create_optimal_split(dataset: dc.Data, dim_to_shift: str, dim_to_split: str,
     #dataset
     ks_stat.extend([(0, 1) for _ in range(min_split_size - 1)])
     split_index = find_optimal_split_index(ks_stat=ks_stat)
+    if split_index < 0:
+        return
 
     #split the dataframe at the resulting split point, create datasets from the dataframes and return them
     data1 = data.iloc[:split_index, :]
@@ -122,7 +124,6 @@ def create_optimal_split(dataset: dc.Data, dim_to_shift: str, dim_to_split: str,
     return dataset1, dataset2
 
 
-
 def find_optimal_split_index(ks_stat: List[stats.stats.KstestResult]) -> int:
     """
     selects the index from a List with results from kolmogorov Smirnov tests. Currently only selects the value with
@@ -133,6 +134,8 @@ def find_optimal_split_index(ks_stat: List[stats.stats.KstestResult]) -> int:
     :return: index of best result
     """
     min_p_val = min(ks_stat, key=lambda elem: elem[1])
+    if min_p_val > .05:
+        return -1
     cand_list = [res for res in ks_stat if res[1] == min_p_val[1]]
 
     # this is just a temporary fix: returns index of result with min p and max D
