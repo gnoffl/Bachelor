@@ -270,18 +270,22 @@ class Data(ABC):
         return csv_out
 
 
-    def run_hics(self, csv_out: str = "", further_params: List[str] = None, notes: List[str] = "", silent:bool = True) -> None:
+    def run_hics(self, csv_out: str = "", further_params: List[str] = None,
+                 notes: List[str] = "", silent:bool = True, csv_in: str = "") -> None:
         """
         runs HiCS for the Data object. First creates Info for the object using "create_class_info" and saves the input
         for HiCS into that folder. Output of Hics is also written into that folder, unless specified otherwise.
         :param csv_out: location and file name for output
         :param further_params: parameters for HiCS
         :param notes: notes to be saved in the description of the Data set
+        :param silent: determines whether HiCS generates progress information, which will be printed to the console
+        :param csv_in: possible path to a file with input data for HiCS. If not given the Data will be generated
         """
         if further_params is None:
             further_params = []
-        if ("HiCS_Input_Data.csv" not in os.listdir(self.path)) and ("HiCS_output.csv" not in os.listdir(self.path)):
+        if not csv_in:
             csv_in = self.save_data_for_hics()
+        if "HiCS_output.csv" not in os.listdir(self.path):
             if not csv_out:
                 csv_out = self.create_csv_out(csv_in)
             arguments = ["--csvIn", f"{csv_in}", "--csvOut", f"{csv_out}", "--hasHeader", "true"]
