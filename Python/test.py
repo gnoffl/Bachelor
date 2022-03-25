@@ -20,7 +20,7 @@ def main():
 
 
 if __name__ == "__main__":
-    if re.match(r"[01](_[01])*", "220325_171922_MaybeActualDataSet_0_0_1_0"):
-        print("True")
-    else:
-        print("False")
+    dataset = dc.MaybeActualDataSet.load(r"D:\Gernot\Programmieren\Bachelor\Data\220325_181838_MaybeActualDataSet\1\1_0\1_0_0\1_0_0_1")
+    description = dataset.data.describe()
+    print(description["dim_02"])
+    print(description["dim_01"])
