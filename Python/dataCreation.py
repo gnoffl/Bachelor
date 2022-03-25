@@ -75,10 +75,13 @@ class Data(ABC):
     path: str
     now: datetime.datetime
     HiCS_dims: List[str]
+    notes: str or None
+    note_buffer: List[str]
 
     def __init__(self, path: str = ""):
         self.HiCS_dims = []
         self.notes = None
+        self.note_buffer = []
         class_name = type(self).__name__
         now = datetime.datetime.now()
         self.now = now
@@ -113,6 +116,22 @@ class Data(ABC):
     @abstractmethod
     def take_new_data(self, data: pd.DataFrame) -> None:
         pass
+
+    def buffer_note(self, note: str) -> None:
+        """
+        appends a note to the note_buffer
+        :param note: note to be appended
+        """
+        self.note_buffer.append(note)
+
+    def create_buffered_notes(self) -> None:
+        """
+        appends all notes in the note_buffer as a paragraph to the notes of the dataset.
+        """
+        for note in self.note_buffer:
+            self.extend_notes_by_one_line(note)
+        self.end_paragraph_in_notes()
+        self.note_buffer = []
 
     def end_paragraph_in_notes(self):
         """
