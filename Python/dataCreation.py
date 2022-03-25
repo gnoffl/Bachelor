@@ -270,7 +270,7 @@ class Data(ABC):
         return csv_out
 
 
-    def run_hics(self, csv_out: str = "", further_params: List[str] = None, notes: List[str] = "") -> None:
+    def run_hics(self, csv_out: str = "", further_params: List[str] = None, notes: List[str] = "", silent:bool = True) -> None:
         """
         runs HiCS for the Data object. First creates Info for the object using "create_class_info" and saves the input
         for HiCS into that folder. Output of Hics is also written into that folder, unless specified otherwise.
@@ -284,7 +284,9 @@ class Data(ABC):
             csv_in = self.save_data_for_hics()
             if not csv_out:
                 csv_out = self.create_csv_out(csv_in)
-            arguments = ["--csvIn", f"{csv_in}", "--csvOut", f"{csv_out}", "--hasHeader", "true", "-s", "true"]
+            arguments = ["--csvIn", f"{csv_in}", "--csvOut", f"{csv_out}", "--hasHeader", "true"]
+            if silent:
+                arguments.extend(["-s", "true"])
             params = arguments + further_params
             HiCS.run_HiCS(params)
             self.add_notes_for_HiCS(notes=notes, params=params)
