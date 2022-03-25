@@ -1,3 +1,4 @@
+import re
 from typing import List, Tuple
 import subprocess
 import classifier as cl
@@ -58,9 +59,8 @@ def create_new_datasets(data1: pd.DataFrame, data2: pd.DataFrame, dataset: dc.Da
     :return: Tuple of the created datasets
     """
     #naming of the datasets just takes the name of the parent dataset and appends "_0" or "_1"
-    parent_name = dataset.path.split("\\")[-1]
-    split1 = dataset.clone_meta_data(path=os.path.join(dataset.path, f"{parent_name}_0"))
-    split2 = dataset.clone_meta_data(path=os.path.join(dataset.path, f"{parent_name}_1"))
+    split1 = dataset.clone_meta_data(path=os.path.join(dataset.path, get_new_dataset_name(dataset, "0")))
+    split2 = dataset.clone_meta_data(path=os.path.join(dataset.path, get_new_dataset_name(dataset, "1")))
     split1.take_new_data(data1)
     split2.take_new_data(data2)
 
@@ -68,6 +68,13 @@ def create_new_datasets(data1: pd.DataFrame, data2: pd.DataFrame, dataset: dc.Da
     split1.save()
     split2.save()
     return split1, split2
+
+
+def get_new_dataset_name(dataset: dc.Data, suffix: str):
+    parent_name = dataset.path.split("\\")[-1]
+    if re.match(r"[01](_[01])*", parent_name):
+        return f"{parent_name}_{suffix}"
+    return suffix
 
 
 def create_optimal_split(dataset: dc.Data, dim_to_shift: str, dim_to_split: str, min_split_size: int)\
@@ -85,8 +92,8 @@ def create_optimal_split(dataset: dc.Data, dim_to_shift: str, dim_to_split: str,
     #cannot split data, if size is not at least 2 * min_split
     length = len(dataset.data)
     if length < 2 * min_split_size:
-        print(f"Dataset was not split again, because the number of points is less than twice "
-              f"the min_split_size (min_split_size = {min_split_size})!")
+        #print(f"Dataset was not split again, because the number of points is less than twice "
+        #      f"the min_split_size (min_split_size = {min_split_size})!")
         dataset.buffer_note(f"Dataset was not split again, because the number of points is less than twice "
                             f"the min_split_size (min_split_size = {min_split_size})!")
         return
@@ -110,10 +117,10 @@ def create_optimal_split(dataset: dc.Data, dim_to_shift: str, dim_to_split: str,
     ks_stat.extend([(0, 1) for _ in range(min_split_size - 1)])
     split_index = find_optimal_split_index(ks_stat=ks_stat)
     if split_index < 0:
-        print(f"Dataset was not split again, because no significant split lead to "
-              f"significantly differences in the dim_to_shift!")
-        dataset.buffer_note(f"Dataset was not split again, because no significant split lead to "
-                            f"significantly differences in the dim_to_shift!")
+        #print(f"Dataset was not split again, because no split lead to "
+        #      f"significantly different distributions in the dim_to_shift!")
+        dataset.buffer_note(f"Dataset was not split again, because no split lead to "
+                            f"significantly different distributions in the dim_to_shift!")
         return
 
     #split the dataframe at the resulting split point, create datasets from the dataframes and return them
@@ -145,6 +152,7 @@ def find_optimal_split_index(ks_stat: List[stats.stats.KstestResult]) -> int:
     """
     min_p_val = min(ks_stat, key=lambda elem: elem[1])
     if min_p_val[1] > .05:
+        #print(ks_stat)
         return -1
     cand_list = [res for res in ks_stat if res[1] == min_p_val[1]]
 
@@ -178,7 +186,7 @@ def read_HiCS_results(dataset: dc.Data, dim_to_shift: str = "") -> List[Tuple[fl
     """
     spaces = []
     if "HiCS_output.csv" not in os.listdir(dataset.path):
-        dataset.run_hics(silent=False)
+        dataset.run_hics(silent=True)
     if dim_to_shift:
         index_str = str(dataset.data_columns.index(dim_to_shift))
     #lines of the HiCS output consist of a number of leading spaces and then the contrast value. After the contrast,
@@ -303,7 +311,7 @@ def recursive_splitting(dataset: dc.Data,
 
             #further split the resulting datasets
             name1 = split1.path.split('\\')[-1]
-            print(f"{(remaining_splits - 1) * '  '}{name1}: {len(split1.data)}")
+            #print(f"{(remaining_splits - 1) * '  '}{name1}: {len(split1.data)}")
             recursive_splitting(dataset=split1,
                                 dim_to_shift=dim_to_shift,
                                 min_split_size=min_split_size,
@@ -311,7 +319,7 @@ def recursive_splitting(dataset: dc.Data,
                                 visualize=visualize)
 
             name2 = split2.path.split('\\')[-1]
-            print(f"{(remaining_splits - 1) * '  '}{name2}: {len(split2.data)}")
+            #print(f"{(remaining_splits - 1) * '  '}{name2}: {len(split2.data)}")
             recursive_splitting(dataset=split2,
                                 dim_to_shift=dim_to_shift,
                                 min_split_size=min_split_size,
@@ -319,7 +327,7 @@ def recursive_splitting(dataset: dc.Data,
                                 visualize=visualize)
     else:
         dataset.buffer_note(f"data set not split further because maximum number of splits was reached!")
-        print("splitting terminated because max number of splits was reached!")
+        #print("splitting terminated because max number of splits was reached!")
 
     dataset.create_buffered_notes()
     dataset.save()
@@ -375,7 +383,7 @@ def main():
     #print(dim_to_split)
     remaining_splits = 10
     name = _data.path.split('\\')[-1]
-    print(f"{remaining_splits * '  '}{name}: {len(_data.data)}")
+    #print(f"{remaining_splits * '  '}{name}: {len(_data.data)}")
     create_binning_splits(dataset=_data, dim_to_shift="dim_04", q=.01, remaining_splits=remaining_splits, visualize=True)
     #dims = get_HiCS(dataset=_data, dim_to_shift="dim_04", goodness_over_length=False)
     #_data.HiCS_dims = dims
