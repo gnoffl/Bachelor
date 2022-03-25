@@ -1,4 +1,5 @@
 import os.path
+import re
 
 import pandas as pd
 import dataCreation as dc
@@ -19,6 +20,7 @@ def main():
 
 
 if __name__ == "__main__":
-    test = [10 for _ in range(20)]
-    print(len(test))
-    print(len(test[:9]))
+    if re.match(r"[01](_[01])*", "220325_171922_MaybeActualDataSet_0_0_1_0"):
+        print("True")
+    else:
+        print("False")
