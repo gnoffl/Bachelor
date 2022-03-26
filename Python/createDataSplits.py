@@ -182,12 +182,14 @@ def read_HiCS_results(dataset: dc.Data, dim_to_shift: str = "") -> List[Tuple[fl
     spaces are returned.
     :return: List of all spaces containing the dim_to_shift (if given) together with their respective contrast value.
     List consists of Tuples. First element of the tuples is the contrast value, second element of the Tuples is a list
-    of str, that contains str of the indices of the dimensions for the space.
+    of strings, that contains strings of the indices of the dimensions for the space.
     """
     spaces = []
     if "HiCS_output.csv" not in os.listdir(dataset.path):
         dataset.run_hics(silent=True)
     if dim_to_shift:
+        # HiCS results only use numbers to refer to columns of the data set, instead of using the names of the columns
+        # the dimension therefore has to be converted to the number of the column
         index_str = str(dataset.data_columns.index(dim_to_shift))
     #lines of the HiCS output consist of a number of leading spaces and then the contrast value. After the contrast,
     # a list of dimensions is given, that define the subspace. elements of the List are seperated by ";". the list is
@@ -197,8 +199,7 @@ def read_HiCS_results(dataset: dc.Data, dim_to_shift: str = "") -> List[Tuple[fl
         while line:
             val, dims = line.split("; ")
             dims = dims.split(";")
-            # HiCS results only use numbers to refer to columns of the data set, instead of using the names of the columns
-            # the dimension therefore has to be converted to the number of the column
+            # if no dim_to_shift is given, all subspaces will be returned
             if not dim_to_shift or index_str in dims:
                 spaces.append((float(val), dims))
             line = f.readline().strip()
@@ -208,20 +209,23 @@ def read_HiCS_results(dataset: dc.Data, dim_to_shift: str = "") -> List[Tuple[fl
 def get_HiCS(dataset: dc.Data,
              dim_to_shift: str,
              goodness_over_length: bool,
-             spaces: List[Tuple[float, List[str]]] = None) -> List[str]:
+             spaces: List[Tuple[float, List[str]]] = None,
+             threshold_fraction: float = 0.7) -> List[str]:
     """
     finds and returns the best HiCS, that contains the dim_to_shift, for a given dataset.
     :param dataset: the dataset the HiCS is supposed to be found for.
-    :param dim_to_shift: Dimension that needs to be present.
-    :param goodness_over_length: if True, the HiCS with the highest contrast, that also contains dim_to_shift, will be
-    selected. If False, the HiCS with the most dimensions will be selected, if its contrast value is not lower than 70%
-    of the subspace with the overall highest contrast.
+    :param dim_to_shift: Dimension that needs to be present in the returned Subspace.
+    :param goodness_over_length: if True, the Subspace with the highest contrast, that also contains dim_to_shift, will
+    be selected. If False, the Subspace with the most dimensions will be selected, if its contrast value is not lower
+    than threshold_fraction times the value of the subspace with the overall highest contrast.
     :param spaces: List with HiCS results. if not given will be read from disc
+    :param threshold_fraction: determines the cutoff contrast value for "long" subspaces
     :return: List of strings with the names of the columns that make up the selected subspace.
     """
     if not spaces:
         spaces = read_HiCS_results(dataset, dim_to_shift)
 
+    #element with the highest contrast value
     max_val_elem = max(spaces, key=lambda elem: elem[0])
 
     if goodness_over_length:
@@ -229,6 +233,9 @@ def get_HiCS(dataset: dc.Data,
         return dataset.HiCS_dims
 
     max_val = max_val_elem[0]
+    min_val = min(spaces, key=lambda elem: elem[0])[0]
+
+    threshold = calculate_threshold(max_val=max_val, min_val=min_val, threshold_fraction=threshold_fraction)
     max_length = len(max(spaces, key=lambda elem: len(elem[1]))[1])
 
     #loops over length of subspaces starting from the max length. For each length the subspace with the best contrast
@@ -238,12 +245,20 @@ def get_HiCS(dataset: dc.Data,
         curr_spaces = [elem for elem in spaces if len(elem[1]) == length]
         curr_max = max(curr_spaces, key=lambda elem: elem[0])
         curr_max_val = curr_max[0]
-        if curr_max_val > (.7 * max_val):
+        if curr_max_val > threshold:
             dataset.HiCS_dims = convert_indexes_to_column_names(dataset=dataset, indexes=curr_max[1])
             return dataset.HiCS_dims
 
     dataset.HiCS_dims = convert_indexes_to_column_names(dataset=dataset, indexes=max_val_elem[1])
     return dataset.HiCS_dims
+
+
+def calculate_threshold(max_val: float, min_val: float, threshold_fraction: float):
+    diff = max_val - min_val
+    diff_fraction = threshold_fraction * diff
+    threshold = diff_fraction + min_val
+    print(f"threshold = {threshold}")
+    return threshold
 
 
 def find_dim_to_split(dataset: dc.Data, dim_to_shift: str) -> str:
@@ -396,6 +411,12 @@ def test():
     print(find_dim_to_split(dataset, dim_to_shift="dim_04"))
 
 
+def test_get_hics():
+    dataset = dc.MaybeActualDataSet.load(r"D:\Gernot\Programmieren\Bachelor\Data\220325_181838_MaybeActualDataSet\1")
+    hics_dims = get_HiCS(dataset, dim_to_shift="dim_04", goodness_over_length=False)
+    print(hics_dims)
+
+
 def test_split_data():
     dataset = dc.MaybeActualDataSet.load(r"C:\Users\gerno\Programmieren\Bachelor\Data\220320_201805_MaybeActualDataSet\220320_201805_MaybeActualDataSet_1")
     print(dataset.data.describe()["dim_02"])
@@ -403,7 +424,8 @@ def test_split_data():
 
 if __name__ == "__main__":
     #test_split_data()
-    main()
+    test_get_hics()
+    #main()
     #test()
     #main(data.path, dim_to_shift="dim_04", q=0.05)
     #test()
