@@ -1,8 +1,10 @@
 import re
+import time
 from typing import List, Tuple
 import subprocess
 import classifier as cl
 import pandas as pd
+import concurrent.futures
 
 import dataCreation as dc
 import os
@@ -77,6 +79,93 @@ def get_new_dataset_name(dataset: dc.Data, suffix: str):
     return suffix
 
 
+def split_dataset(data: pd.DataFrame, dataset: dc.Data, dim_to_split: str, split_index: int):
+    # split the dataframe at the resulting split point, create datasets from the dataframes and return them
+    data1 = data.iloc[:split_index, :]
+    data2 = data.iloc[split_index:, :]
+    dataset1, dataset2 = create_new_datasets(data1, data2, dataset)
+    dataset1.extend_notes_by_one_line(f"This dataset results from splitting a parent dataset.")
+    dataset1.extend_notes_by_one_line(f"split criterion: {dim_to_split} < {data[dim_to_split].iloc[split_index]}")
+    dataset1.extend_notes_by_one_line(f"number of data points: {len(dataset1.data)}")
+    dataset1.end_paragraph_in_notes()
+    dataset2.extend_notes_by_one_line(f"This dataset results from splitting a parent dataset.")
+    dataset2.extend_notes_by_one_line(f"split criterion: {dim_to_split} >= {data[dim_to_split].iloc[split_index]}")
+    dataset2.extend_notes_by_one_line(f"number of data points: {len(dataset2.data)}")
+    dataset2.end_paragraph_in_notes()
+    return dataset1, dataset2
+
+
+def calculate_ks_tests(values: List[float], indices: List[int]):
+    results = []
+    for index in indices:
+        result = stats.kstest(values[:index], values[index:])
+        results.append((index, result))
+    return results
+
+
+def create_sub_lists(nr_processes: int, tests_to_calculate: List):
+    task_splits = []
+    task_len = int(len(tests_to_calculate) / nr_processes)
+    for i in range(nr_processes - 1):
+        start = i * task_len
+        end = (i + 1) * task_len
+        task_splits.append(tests_to_calculate[start:end])
+    task_splits.append(tests_to_calculate[(nr_processes - 1) * task_len:])
+    return task_splits
+
+
+def create_test_statistics_parallel(dataset: dc.Data, dim_to_shift: str, min_split_size: int, dim_to_split: str,
+                                    ordered_data: pd.DataFrame = None, nr_processes: int = 4):
+    if ordered_data is not None:
+        data = ordered_data
+    else:
+        data = dataset.data.copy(deep=True)
+        data = data.sort_values(by=[dim_to_split])
+    #ks_stat is supposed to be a list of the same length as the data of the dataset. At each index, is the result of the
+    #ks test when comparing the datasets, that result from splitting the data at the index. Since no splits are to be
+    #calculated where one dataset is smaller than min_split, dummy values are used in this range. Results have the shape
+    #of (D-value, p-value), so (0, 1) means both datasets are the same.
+    ks_stat = [(0., 1.) for _ in range(len(data))]
+    values = data[dim_to_shift].values
+    #range here is important. need to avoid off-by-one errors (dataset, whose length is exactly  2 * min_split can still
+    #be split in the middle)
+    tests_to_calculate = [i for i in range(min_split_size, len(data) - min_split_size + 1)]
+    tasks = create_sub_lists(nr_processes, tests_to_calculate)
+
+    with concurrent.futures.ProcessPoolExecutor() as executor:
+        processes = [executor.submit(calculate_ks_tests, values, task) for task in tasks]
+
+        for process in concurrent.futures.as_completed(processes):
+            results = process.result()
+            for index, ks_result in results:
+                ks_stat[index] = ks_result
+    return ks_stat
+
+
+def create_test_statistics(dataset: dc.Data, dim_to_shift: str, min_split_size: int, dim_to_split: str,
+                           ordered_data: pd.DataFrame = None):
+    if ordered_data is not None:
+        data = ordered_data
+    else:
+        data = dataset.data.copy(deep=True)
+        data = data.sort_values(by=[dim_to_split])
+    #ks_stat is supposed to be a list of the same length as the data of the dataset. At each index, is the result of the
+    #ks test when comparing the datasets, that result from splitting the data at the index. Since no splits are to be
+    #calculated where one dataset is smaller than min_split, dummy values are used in this range. Results have the shape
+    #of (D-value, p-value), so (0, 1) means both datasets are the same.
+    ks_stat = [(0., 1.) for _ in range(min_split_size)]
+    values = data[dim_to_shift].values
+    #range here is important. need to avoid off-by-one errors (dataset, whose length is exactly  2 * min_split can still
+    #be split in the middle)
+    for i in range(min_split_size, len(data) - min_split_size + 1):
+        result = stats.kstest(values[:i], values[i:])
+        ks_stat.append(result)
+    #maybe unnecessary to also extend the list at the end. Is done to make the list actually have the same length as the
+    #dataset
+    ks_stat.extend([(0., 1.) for _ in range(min_split_size - 1)])
+    return ks_stat
+
+
 def create_optimal_split(dataset: dc.Data, dim_to_shift: str, dim_to_split: str, min_split_size: int)\
         -> Tuple[dc.Data, dc.Data] or None:
     """
@@ -99,23 +188,24 @@ def create_optimal_split(dataset: dc.Data, dim_to_shift: str, dim_to_split: str,
         return
     if min_split_size < 1:
         raise dc.CustomError("min split size needs to be larger than 0!")
+
     data = dataset.data.copy(deep=True)
     data = data.sort_values(by=[dim_to_split])
-    #ks_stat is supposed to be a list of the same length as the data of the dataset. At each index, is the result of the
-    #ks test when comparing the datasets, that result from splitting the data at the index. Since no splits are to be
-    #calculated where one dataset is smaller than min_split, dummy values are used in this range. Results have the shape
-    #of (D-value, p-value), so (0, 1) means both datasets are the same.
-    ks_stat = [(0., 1.) for _ in range(min_split_size)]
-    values = data[dim_to_shift].values
-    #range here is important. need to avoid off-by-one errors (dataset, whose length is exactly  2 * min_split can still
-    #be split in the middle)
-    for i in range(min_split_size, len(data) - min_split_size + 1):
-        result = stats.kstest(values[:i], values[i:])
-        ks_stat.append(result)
-    #maybe unnecessary to also extend the list at the end. Is done to make the list actually have the same length as the
-    #dataset
-    ks_stat.extend([(0, 1) for _ in range(min_split_size - 1)])
+
+
+    start = time.perf_counter()
+
+
+    ks_stat = create_test_statistics_parallel(dataset=dataset, dim_to_shift=dim_to_shift,
+                                              min_split_size=min_split_size, dim_to_split=dim_to_split,
+                                              ordered_data=data)
+
+
+    print(f"time for create_test_statistics: {time.perf_counter() - start}")
+
+
     split_index = find_optimal_split_index(ks_stat=ks_stat)
+
     if split_index < 0:
         #print(f"Dataset was not split again, because no split lead to "
         #      f"significantly different distributions in the dim_to_shift!")
@@ -123,21 +213,7 @@ def create_optimal_split(dataset: dc.Data, dim_to_shift: str, dim_to_split: str,
                             f"significantly different distributions in the dim_to_shift!")
         return
 
-    #split the dataframe at the resulting split point, create datasets from the dataframes and return them
-    data1 = data.iloc[:split_index, :]
-    data2 = data.iloc[split_index:, :]
-    dataset1, dataset2 = create_new_datasets(data1, data2, dataset)
-    dataset1.extend_notes_by_one_line(f"This dataset results from splitting a parent dataset.")
-    dataset1.extend_notes_by_one_line(f"split criterion: {dim_to_split} < {data[dim_to_split].iloc[split_index]}")
-    dataset1.extend_notes_by_one_line(f"number of data points: {len(dataset1.data)}")
-    dataset1.end_paragraph_in_notes()
-
-
-    dataset2.extend_notes_by_one_line(f"This dataset results from splitting a parent dataset.")
-    dataset2.extend_notes_by_one_line(f"split criterion: {dim_to_split} >= {data[dim_to_split].iloc[split_index]}")
-    dataset2.extend_notes_by_one_line(f"number of data points: {len(dataset2.data)}")
-    dataset2.end_paragraph_in_notes()
-
+    dataset1, dataset2 = split_dataset(data=data, dataset=dataset, dim_to_split=dim_to_split, split_index=split_index)
     return dataset1, dataset2
 
 
@@ -309,14 +385,20 @@ def recursive_splitting(dataset: dc.Data,
     dataset.buffer_note(f"remaining_splits = {remaining_splits}")
     dataset.buffer_note(f"visualize = {visualize}")
     if remaining_splits > 0:
-
         dim_to_split = find_dim_to_split(dataset=dataset, dim_to_shift=dim_to_shift)
+
+
+        start = time.perf_counter()
+
 
         # if criteria for split are not met, None will be returned
         result = create_optimal_split(dataset=dataset,
                                       dim_to_shift=dim_to_shift,
                                       dim_to_split=dim_to_split,
                                       min_split_size=min_split_size)
+
+
+        print(f"time for create_optimal_split: {time.perf_counter() - start}")
         #only proceed, if result actually contains new datasets
         if result:
             split1, split2 = result
@@ -406,15 +488,39 @@ def main():
 
 
 def test():
-    #dataset = dc.MaybeActualDataSet([50 for _ in range(6)])
-    dataset = dc.MaybeActualDataSet.load(r"D:\Gernot\Programmieren\Bachelor\Data\220316_155110_MaybeActualDataSet\220316_155110_MaybeActualDataSet_1")
-    print(find_dim_to_split(dataset, dim_to_shift="dim_04"))
+    test_list = [i for i in range(99)]
+    print(test_list)
+    res = create_sub_lists(4, test_list)
+    for ress in res:
+        print(ress)
+        print(len(ress))
 
 
 def test_get_hics():
     dataset = dc.MaybeActualDataSet.load(r"D:\Gernot\Programmieren\Bachelor\Data\220325_181838_MaybeActualDataSet\1")
     hics_dims = get_HiCS(dataset, dim_to_shift="dim_04", goodness_over_length=False)
     print(hics_dims)
+
+
+def test_create_test_statistics_parallel():
+    members = [1000 for _ in range(6)]
+    dataset = dc.MaybeActualDataSet(members)
+    #dataset = dc.MaybeActualDataSet.load(r"D:\Gernot\Programmieren\Bachelor\Data\220326_173809_MaybeActualDataSet")
+    #create_test_statistics(dataset, "dim_04", 10, "dim_00")
+    """print(create_test_statistics_parallel(dataset, "dim_04", 5, "dim_00"))
+    print(create_test_statistics(dataset, "dim_04", 5, "dim_00"))"""
+
+    for i in range(5):
+
+        start = time.perf_counter()
+
+
+        create_binning_splits(dataset=dataset, dim_to_shift="dim_04", q=.01, remaining_splits=1,
+                              visualize=False)
+
+
+        print(f"overall time: {time.perf_counter() - start}")
+        print("---------------------------\n")
 
 
 def test_split_data():
@@ -424,7 +530,8 @@ def test_split_data():
 
 if __name__ == "__main__":
     #test_split_data()
-    test_get_hics()
+    test_create_test_statistics_parallel()
+    #test()
     #main()
     #test()
     #main(data.path, dim_to_shift="dim_04", q=0.05)
