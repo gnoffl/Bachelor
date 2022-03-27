@@ -15,10 +15,11 @@
 
 ## Logical progress
 
-* [ ] think about HiCS Parameters
+* [ ] think about HiCS Parameters (read HiCS paper again)
 * [ ] finish implementation __QSM__ (--> todos QSM.md)
 * [ ] plan progress for whole thesis
-* [ ] make implementation for __Binning__ work
+* [ ] remaining todos from Binning.md
+* [ ] implement execution of QSM on subsets of a given dataset
 
 
 
