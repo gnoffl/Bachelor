@@ -1,0 +1,28 @@
+C:\Users\gerno\anaconda3\envs\bachelor\python.exe D:/Gernot/Programmieren/Bachelor/Python/createDataSplits.py
+time for create_test_statistics: 79.3475694
+time for create_optimal_split: 79.4378454
+overall time: 81.05624279999999
+---------------------------
+
+time for create_test_statistics: 78.7067446
+time for create_optimal_split: 78.7760056
+overall time: 78.87529980000001
+---------------------------
+
+time for create_test_statistics: 74.6397227
+time for create_optimal_split: 74.70093730000002
+overall time: 74.7995133
+---------------------------
+
+time for create_test_statistics: 74.5832532
+time for create_optimal_split: 74.64410749999999
+overall time: 74.74279660000002
+---------------------------
+
+time for create_test_statistics: 74.49715829999997
+time for create_optimal_split: 74.557437
+overall time: 74.65827630000001
+---------------------------
+
+
+Process finished with exit code 0
