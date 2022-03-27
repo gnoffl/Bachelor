@@ -43,7 +43,7 @@ def create_folder_for_splits(dataset: dc.Data) -> str:
     return splits_folder
 
 
-def _create_data_splits(dataset: dc.Data, dim_to_shift: str, max_splits: int, min_number_of_points: int):
+def _create_data_splits(dataset: dc.Data, dim_to_shift: str, max_splits: int, min_number_of_points: int) -> None:
     """
     NOT USED
     """
@@ -51,71 +51,119 @@ def _create_data_splits(dataset: dc.Data, dim_to_shift: str, max_splits: int, mi
     run_R_script(additional_arguments=[folder_path, dim_to_shift, max_splits, min_number_of_points])
 
 
-def create_new_datasets(data1: pd.DataFrame, data2: pd.DataFrame, dataset: dc.Data) -> Tuple[dc.Data, dc.Data]:
+def get_new_dataset_name(dataset: dc.Data, suffix: str) -> str:
     """
-    creates new Datasets from given dataframes, by copying metadata from a given dataset and saves them to create the
-    necessary folder structure
-    :param data1: dataframe for dataset 1
-    :param data2: dataframe for dataset 2
-    :param dataset: "parent" dataset, from which metadata is copied, and where the resulting datasets paths will lead
-    :return: Tuple of the created datasets
+    creates names for datasets that result from splitting a parent dataset. Resulting datasets will be named with a
+    sequence of zeros and ones, depending on whether they are the "first" or "second" split of the parent dataset. The
+    digits are seperated by "_".
+    :param dataset:
+    :param suffix:
+    :return:
     """
-    #naming of the datasets just takes the name of the parent dataset and appends "_0" or "_1"
-    split1 = dataset.clone_meta_data(path=os.path.join(dataset.path, get_new_dataset_name(dataset, "0")))
-    split2 = dataset.clone_meta_data(path=os.path.join(dataset.path, get_new_dataset_name(dataset, "1")))
-    split1.take_new_data(data1)
-    split2.take_new_data(data2)
-
-    #saving the data, to create the folder structure and files
-    split1.save()
-    split2.save()
-    return split1, split2
-
-
-def get_new_dataset_name(dataset: dc.Data, suffix: str):
     parent_name = dataset.path.split("\\")[-1]
+    #if this is the first split from a "normal" dataset, the name will just be "0" or "1". Otherwise the digit will be
+    # appended
     if re.match(r"[01](_[01])*", parent_name):
         return f"{parent_name}_{suffix}"
     return suffix
 
 
-def split_dataset(data: pd.DataFrame, dataset: dc.Data, dim_to_split: str, split_index: int):
+def split_dataset(data: pd.DataFrame, dataset: dc.Data, dim_to_split: str, split_index: int) -> Tuple[dc.Data, dc.Data]:
+    """
+    splits a dataset into two, given the sorted data, a dimension to split and a split index. Resulting Datasets will
+    be saved to create the necessary folder structure.
+    :param data: dataframe ordered by the dim_to_split
+    :param dataset: parent dataset, will be used as a template for the resulting datasets
+    :param dim_to_split: dimension in which the data will be split
+    :param split_index: index at which the data will be split
+    :return: the two resulting datasets
+    """
     # split the dataframe at the resulting split point, create datasets from the dataframes and return them
     data1 = data.iloc[:split_index, :]
     data2 = data.iloc[split_index:, :]
-    dataset1, dataset2 = create_new_datasets(data1, data2, dataset)
+
+    #naming of the datasets just takes the name of the parent dataset and appends "_0" or "_1"
+    dataset1 = dataset.clone_meta_data(path=os.path.join(dataset.path, get_new_dataset_name(dataset, "0")))
+    dataset2 = dataset.clone_meta_data(path=os.path.join(dataset.path, get_new_dataset_name(dataset, "1")))
+    dataset1.take_new_data(data1)
+    dataset2.take_new_data(data2)
+
+    #creating notes
     dataset1.extend_notes_by_one_line(f"This dataset results from splitting a parent dataset.")
     dataset1.extend_notes_by_one_line(f"split criterion: {dim_to_split} < {data[dim_to_split].iloc[split_index]}")
     dataset1.extend_notes_by_one_line(f"number of data points: {len(dataset1.data)}")
     dataset1.end_paragraph_in_notes()
+
     dataset2.extend_notes_by_one_line(f"This dataset results from splitting a parent dataset.")
     dataset2.extend_notes_by_one_line(f"split criterion: {dim_to_split} >= {data[dim_to_split].iloc[split_index]}")
     dataset2.extend_notes_by_one_line(f"number of data points: {len(dataset2.data)}")
     dataset2.end_paragraph_in_notes()
+
+    #saving the data, to create the folder structure and files
+    dataset1.save()
+    dataset2.save()
+
     return dataset1, dataset2
 
 
-def calculate_ks_tests(values: List[float], indices: List[int]):
+def calculate_ks_tests(values: List[float], indices: List[int]) -> List[Tuple[int, Tuple[float, float]]]:
+    """
+    calculates the ks tests for splits of a dimension at given indices
+    :param values: dimension to split. difference of the distribution of the values in the resulting splits will be
+    tested.
+    :param indices: indices at which the values are split
+    :return: List of ks tests together with the respective index. the Tuples have the index in the first position and
+    the result in the second position.
+    """
     results = []
     for index in indices:
         result = stats.kstest(values[:index], values[index:])
+        #also include index in the result, so it can be placed in the correct location of the full list
         results.append((index, result))
     return results
 
 
-def create_sub_lists(nr_processes: int, tests_to_calculate: List):
+def create_sub_lists(nr_sublists: int, source_list: List) -> List[List]:
+    """
+    splits a list into a list of sublists of roughly even length.
+    :param nr_sublists: number of sublists
+    :param source_list: list to split
+    :return:
+    """
     task_splits = []
-    task_len = int(len(tests_to_calculate) / nr_processes)
-    for i in range(nr_processes - 1):
+
+    #only an estimate for the best length for the list, will always be rounded down.
+    task_len = int(len(source_list) / nr_sublists)
+
+    for i in range(nr_sublists - 1):
         start = i * task_len
         end = (i + 1) * task_len
-        task_splits.append(tests_to_calculate[start:end])
-    task_splits.append(tests_to_calculate[(nr_processes - 1) * task_len:])
+        task_splits.append(source_list[start:end])
+    #last list will start at the end of the previous list and takes all remaining elements of the list. Length of this
+    #list may be longer than the other lists.
+    task_splits.append(source_list[(nr_sublists - 1) * task_len:])
     return task_splits
 
 
 def create_test_statistics_parallel(dataset: dc.Data, dim_to_shift: str, min_split_size: int, dim_to_split: str,
-                                    ordered_data: pd.DataFrame = None, nr_processes: int = 4):
+                                    ordered_data: pd.DataFrame = None, nr_processes: int = 4)\
+        -> List[Tuple[float, float]]:
+    """
+    creates the ks-test statistics for dataset. Data is sorted by dim_to_split and all allowed splits for the
+    dim_to_shift are then compared using the ks-test. Results are returned in a list.
+    :param dataset: the dataset to split
+    :param dim_to_shift: dimension for which the splits will be evaluated using the ks-test
+    :param min_split_size: min number of points per split
+    :param dim_to_split: data points will be sorted by this dimension
+    :param ordered_data: optional parameter. should contain the ordered data from the dataset. If given, the data wont
+    be ordered again
+    :param nr_processes: calculation of the ks-tests runs in parallel. this parameter determines the number of parallel
+    processes
+    :return: List of ks-test results. List has the length of the dataset. The Result at index i comes from comparing the
+    splits of the dim_to_shift, where the first split has the first i elements, and the second split the remaining
+    elements.
+    """
+    #only copy and sort data, if ordered_data is not given
     if ordered_data is not None:
         data = ordered_data
     else:
@@ -124,7 +172,8 @@ def create_test_statistics_parallel(dataset: dc.Data, dim_to_shift: str, min_spl
     #ks_stat is supposed to be a list of the same length as the data of the dataset. At each index, is the result of the
     #ks test when comparing the datasets, that result from splitting the data at the index. Since no splits are to be
     #calculated where one dataset is smaller than min_split, dummy values are used in this range. Results have the shape
-    #of (D-value, p-value), so (0, 1) means both datasets are the same.
+    #of (D-value, p-value), so (0, 1) means both datasets are the same (is used as dummy values, which can not distort
+    #the results).
     ks_stat = [(0., 1.) for _ in range(len(data))]
     values = data[dim_to_shift].values
     #range here is important. need to avoid off-by-one errors (dataset, whose length is exactly  2 * min_split can still
@@ -132,18 +181,35 @@ def create_test_statistics_parallel(dataset: dc.Data, dim_to_shift: str, min_spl
     tests_to_calculate = [i for i in range(min_split_size, len(data) - min_split_size + 1)]
     tasks = create_sub_lists(nr_processes, tests_to_calculate)
 
+    #parallel execution of code to speed the process up.
     with concurrent.futures.ProcessPoolExecutor() as executor:
         processes = [executor.submit(calculate_ks_tests, values, task) for task in tasks]
 
         for process in concurrent.futures.as_completed(processes):
             results = process.result()
+
+            #results from the processes need to be placed at the correct spot in the list
             for index, ks_result in results:
                 ks_stat[index] = ks_result
     return ks_stat
 
 
 def create_test_statistics(dataset: dc.Data, dim_to_shift: str, min_split_size: int, dim_to_split: str,
-                           ordered_data: pd.DataFrame = None):
+                           ordered_data: pd.DataFrame = None) -> List[Tuple[float, float]]:
+    """
+    creates the ks-test statistics for dataset. Data is sorted by dim_to_split and all allowed splits for the
+    dim_to_shift are then compared using the ks-test. Results are returned in a list.
+    :param dataset: the dataset to split
+    :param dim_to_shift: dimension for which the splits will be evaluated using the ks-test
+    :param min_split_size: min number of points per split
+    :param dim_to_split: data points will be sorted by this dimension
+    :param ordered_data: optional parameter. should contain the ordered data from the dataset. If given, the data wont
+    be ordered again
+    :return: List of ks-test results. List has the length of the dataset. The Result at index i comes from comparing the
+    splits of the dim_to_shift, where the first split has the first i elements, and the second split the remaining
+    elements.
+    """
+    #only copy and sort data, if ordered_data is not given
     if ordered_data is not None:
         data = ordered_data
     else:
@@ -166,6 +232,26 @@ def create_test_statistics(dataset: dc.Data, dim_to_shift: str, min_split_size: 
     return ks_stat
 
 
+def find_optimal_split_index(ks_stat: List[stats.stats.KstestResult]) -> int:
+    """
+    selects the index from a List with results from kolmogorov Smirnov tests. Currently only selects the value with
+    the lowest p-value. If multiple values share the lowest p-value, the value with the highest D-value will be selected.
+    Tie-breakers for equal.
+    If the lowest p-value is greater than .05, no valid index will be returned.
+    p-values should be validated.
+    :param ks_stat: List of results from Kolmogorov Smirnov tests
+    :return: index of best result
+    """
+    min_p_elem = min(ks_stat, key=lambda elem: elem[1])
+    if min_p_elem[1] > .05:
+        #print(ks_stat)
+        return -1
+    cand_list = [res for res in ks_stat if res[1] == min_p_elem[1]]
+
+    # returns index of result with min p and max D, maybe think of other solution
+    return ks_stat.index(max(cand_list, key=lambda elem: elem[0]))
+
+
 def create_optimal_split(dataset: dc.Data, dim_to_shift: str, dim_to_split: str, min_split_size: int)\
         -> Tuple[dc.Data, dc.Data] or None:
     """
@@ -181,59 +267,34 @@ def create_optimal_split(dataset: dc.Data, dim_to_shift: str, dim_to_split: str,
     #cannot split data, if size is not at least 2 * min_split
     length = len(dataset.data)
     if length < 2 * min_split_size:
-        #print(f"Dataset was not split again, because the number of points is less than twice "
-        #      f"the min_split_size (min_split_size = {min_split_size})!")
         dataset.buffer_note(f"Dataset was not split again, because the number of points is less than twice "
                             f"the min_split_size (min_split_size = {min_split_size})!")
         return
     if min_split_size < 1:
         raise dc.CustomError("min split size needs to be larger than 0!")
 
+    #order the data by the dim to split. Splitting the dataset at a certain index is now equivalent to splitting the
+    #data at a certain value for this dim.
     data = dataset.data.copy(deep=True)
     data = data.sort_values(by=[dim_to_split])
 
-
-    start = time.perf_counter()
-
-
+    #calculate the differences between the splits for all allowed splits
     ks_stat = create_test_statistics_parallel(dataset=dataset, dim_to_shift=dim_to_shift,
                                               min_split_size=min_split_size, dim_to_split=dim_to_split,
                                               ordered_data=data)
 
-
-    print(f"time for create_test_statistics: {time.perf_counter() - start}")
-
-
+    #find the index, where the difference between the split is highest
     split_index = find_optimal_split_index(ks_stat=ks_stat)
 
+    #-1 will be returned by find_optimal_split, when no split gives significant differences
     if split_index < 0:
-        #print(f"Dataset was not split again, because no split lead to "
-        #      f"significantly different distributions in the dim_to_shift!")
         dataset.buffer_note(f"Dataset was not split again, because no split lead to "
                             f"significantly different distributions in the dim_to_shift!")
         return
 
+    #create new datasets with the split data
     dataset1, dataset2 = split_dataset(data=data, dataset=dataset, dim_to_split=dim_to_split, split_index=split_index)
     return dataset1, dataset2
-
-
-def find_optimal_split_index(ks_stat: List[stats.stats.KstestResult]) -> int:
-    """
-    selects the index from a List with results from kolmogorov Smirnov tests. Currently only selects the value with
-    the lowest p-value. If multiple values share the lowest p-value, the value with the highest D-value will be selected.
-    functionality should be expanded to decide whether a split should be performed at all, and tie-breakers for equal
-    p-values should be adjusted
-    :param ks_stat: List of results from Kolmogorov Smirnov tests
-    :return: index of best result
-    """
-    min_p_val = min(ks_stat, key=lambda elem: elem[1])
-    if min_p_val[1] > .05:
-        #print(ks_stat)
-        return -1
-    cand_list = [res for res in ks_stat if res[1] == min_p_val[1]]
-
-    # this is just a temporary fix: returns index of result with min p and max D
-    return ks_stat.index(max(cand_list, key=lambda elem: elem[0]))
 
 
 def convert_indexes_to_column_names(dataset: dc.Data, indexes: List[str]) -> List[str]:
@@ -247,6 +308,12 @@ def convert_indexes_to_column_names(dataset: dc.Data, indexes: List[str]) -> Lis
 
 
 def convert_column_names_to_indexes(dataset: dc.Data, col_names: List[str]) -> List[str]:
+    """
+    converts the names of the columns to indexes of the list of columns
+    :param dataset: Dataset, for which the column names are to be converted
+    :param col_names: list of the column names to be converted
+    :return: List with indexes instead of column names
+    """
     return [str(dataset.data_columns.index(col)) for col in col_names]
 
 
@@ -280,6 +347,20 @@ def read_HiCS_results(dataset: dc.Data, dim_to_shift: str = "") -> List[Tuple[fl
                 spaces.append((float(val), dims))
             line = f.readline().strip()
     return spaces
+
+
+def calculate_threshold(max_val: float, min_val: float, threshold_fraction: float) -> float:
+    """
+    calculates the threshold p-value for given min, max and fraction for the get_HiCS method.
+    :param max_val: max p-value
+    :param min_val: min p-value
+    :param threshold_fraction: fraction
+    :return: min + fraction * (max - min)
+    """
+    diff = max_val - min_val
+    diff_fraction = threshold_fraction * diff
+    threshold = diff_fraction + min_val
+    return threshold
 
 
 def get_HiCS(dataset: dc.Data,
@@ -329,14 +410,6 @@ def get_HiCS(dataset: dc.Data,
     return dataset.HiCS_dims
 
 
-def calculate_threshold(max_val: float, min_val: float, threshold_fraction: float):
-    diff = max_val - min_val
-    diff_fraction = threshold_fraction * diff
-    threshold = diff_fraction + min_val
-    print(f"threshold = {threshold}")
-    return threshold
-
-
 def find_dim_to_split(dataset: dc.Data, dim_to_shift: str) -> str:
     """
     selects the dimension that is most suited for splitting from the dataset.
@@ -345,16 +418,20 @@ def find_dim_to_split(dataset: dc.Data, dim_to_shift: str) -> str:
     :return: name of the dimension to be split
     """
     spaces = read_HiCS_results(dataset=dataset, dim_to_shift=dim_to_shift)
-    #transforming hics_dims from names of columns to their indices, excluding the dim_to_shift
+
     hics_dims = get_HiCS(dataset=dataset, dim_to_shift=dim_to_shift, goodness_over_length=True, spaces=spaces)
+    #excluding the dim_to_shift
     hics_dims = [dim for dim in hics_dims if dim != dim_to_shift]
     hics_dims = convert_column_names_to_indexes(dataset, hics_dims)
+
     #selecting the dim, that is part of the datasets best HiCS and has the highest contrast value in a pair with the
     # dim_to_shift
     spaces = [elem for elem in spaces if len(elem[1]) == 2]
     spaces = [elem for elem in spaces
               if elem[1][0] in hics_dims or elem[1][1] in hics_dims]
     dim_to_shift_index_str = str(dataset.data_columns.index(dim_to_shift))
+
+    #selecting Subspace with highest contrast
     dim_0, dim_1 = max(spaces, key=lambda elem: elem[0])[1]
     if dim_0 == dim_to_shift_index_str:
         return dataset.data_columns[int(dim_1)]
@@ -362,6 +439,38 @@ def find_dim_to_split(dataset: dc.Data, dim_to_shift: str) -> str:
         return dataset.data_columns[int(dim_0)]
     else:
         raise dc.CustomError("dim_to_shift was not in pair!")
+
+
+def create_and_save_visualizations_for_splits(dataset, dim_to_shift, dim_to_split, split1, split2) -> None:
+    """
+    creates pictures to visualize splits. The resulting pictures are saved at the path of the parent dataset.
+    :param dataset: parent dataset
+    :param dim_to_shift: the splits are calculted to maximize the difference between the splits when comparing the
+    resulting distributions in this dimension
+    :param dim_to_split: dimension in which the dataset is split
+    :param split1: first split dataset
+    :param split2: second split dataset
+    """
+    #create necessary folder structure
+    folder_path = os.path.join(dataset.path, "pics")
+    split_pics_folder = os.path.join(folder_path, "Binning")
+    if not os.path.isdir(folder_path):
+        os.mkdir(folder_path)
+    if not os.path.isdir(split_pics_folder):
+        os.mkdir(split_pics_folder)
+    title = dataset.path.split("\\")[-1]
+
+    vs.compare_splits_2d(df0=split1.data,
+                         df1=split2.data,
+                         dims=(dim_to_split, dim_to_shift),
+                         title=title,
+                         path=os.path.join(split_pics_folder, "splits_2d.png"))
+
+    vs.compare_splits_cumulative(split1.data,
+                                 split2.data,
+                                 dim_to_shift,
+                                 title=title,
+                                 path=os.path.join(split_pics_folder, "splits_cum.png"))
 
 
 def recursive_splitting(dataset: dc.Data,
@@ -379,6 +488,7 @@ def recursive_splitting(dataset: dc.Data,
     function)
     :param visualize: determines whether the results will be displayed on the screen
     """
+    #add notes to be put in the dataset later
     dataset.buffer_note(f"recursive_splitting was called on this dataset with the following parameters:")
     dataset.buffer_note(f"dim_to_shift = {dim_to_shift}")
     dataset.buffer_note(f"min_split_size = {min_split_size}")
@@ -387,18 +497,12 @@ def recursive_splitting(dataset: dc.Data,
     if remaining_splits > 0:
         dim_to_split = find_dim_to_split(dataset=dataset, dim_to_shift=dim_to_shift)
 
-
-        start = time.perf_counter()
-
-
         # if criteria for split are not met, None will be returned
         result = create_optimal_split(dataset=dataset,
                                       dim_to_shift=dim_to_shift,
                                       dim_to_split=dim_to_split,
                                       min_split_size=min_split_size)
 
-
-        print(f"time for create_optimal_split: {time.perf_counter() - start}")
         #only proceed, if result actually contains new datasets
         if result:
             split1, split2 = result
@@ -407,16 +511,12 @@ def recursive_splitting(dataset: dc.Data,
                 create_and_save_visualizations_for_splits(dataset, dim_to_shift, dim_to_split, split1, split2)
 
             #further split the resulting datasets
-            name1 = split1.path.split('\\')[-1]
-            #print(f"{(remaining_splits - 1) * '  '}{name1}: {len(split1.data)}")
             recursive_splitting(dataset=split1,
                                 dim_to_shift=dim_to_shift,
                                 min_split_size=min_split_size,
                                 remaining_splits=remaining_splits - 1,
                                 visualize=visualize)
 
-            name2 = split2.path.split('\\')[-1]
-            #print(f"{(remaining_splits - 1) * '  '}{name2}: {len(split2.data)}")
             recursive_splitting(dataset=split2,
                                 dim_to_shift=dim_to_shift,
                                 min_split_size=min_split_size,
@@ -450,28 +550,10 @@ def create_binning_splits(dataset: dc.Data,
                         remaining_splits=remaining_splits, visualize=visualize)
 
 
-def create_and_save_visualizations_for_splits(dataset, dim_to_shift, dim_to_split, split1, split2):
-    folder_path = os.path.join(dataset.path, "pics")
-    split_pics_folder = os.path.join(folder_path, "Binning")
-    if not os.path.isdir(folder_path):
-        os.mkdir(folder_path)
-    if not os.path.isdir(split_pics_folder):
-        os.mkdir(split_pics_folder)
-    title = dataset.path.split("\\")[-1]
-    vs.compare_splits_2d(df0=split1.data,
-                         df1=split2.data,
-                         dims=(dim_to_split, dim_to_shift),
-                         title=title,
-                         path=os.path.join(split_pics_folder, "splits_2d.png"))
-    vs.compare_splits_cumulative(split1.data,
-                                 split2.data,
-                                 dim_to_shift,
-                                 title=title,
-                                 path=os.path.join(split_pics_folder, "splits_cum.png"))
-
-
 def main():
-
+    """
+    test function
+    """
     members = [100 for _ in range(6)]
     _data = dc.MaybeActualDataSet(members, save=True)
 
@@ -488,6 +570,9 @@ def main():
 
 
 def test():
+    """
+    test function
+    """
     test_list = [i for i in range(99)]
     print(test_list)
     res = create_sub_lists(4, test_list)
@@ -497,12 +582,18 @@ def test():
 
 
 def test_get_hics():
+    """
+    test function
+    """
     dataset = dc.MaybeActualDataSet.load(r"D:\Gernot\Programmieren\Bachelor\Data\220325_181838_MaybeActualDataSet\1")
     hics_dims = get_HiCS(dataset, dim_to_shift="dim_04", goodness_over_length=False)
     print(hics_dims)
 
 
 def test_create_test_statistics_parallel():
+    """
+    test function
+    """
     members = [1000 for _ in range(6)]
     dataset = dc.MaybeActualDataSet(members)
     #dataset = dc.MaybeActualDataSet.load(r"D:\Gernot\Programmieren\Bachelor\Data\220326_173809_MaybeActualDataSet")
@@ -524,6 +615,9 @@ def test_create_test_statistics_parallel():
 
 
 def test_split_data():
+    """
+    test function
+    """
     dataset = dc.MaybeActualDataSet.load(r"C:\Users\gerno\Programmieren\Bachelor\Data\220320_201805_MaybeActualDataSet\220320_201805_MaybeActualDataSet_1")
     print(dataset.data.describe()["dim_02"])
 
