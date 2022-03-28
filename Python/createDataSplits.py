@@ -51,24 +51,30 @@ def _create_data_splits(dataset: dc.Data, dim_to_shift: str, max_splits: int, mi
     run_R_script(additional_arguments=[folder_path, dim_to_shift, max_splits, min_number_of_points])
 
 
-def get_new_dataset_name(dataset: dc.Data, suffix: str) -> str:
+def get_new_dataset_name(dataset: dc.Data, suffix: str, dim_to_shift: str, q: float) -> str:
     """
     creates names for datasets that result from splitting a parent dataset. Resulting datasets will be named with a
     sequence of zeros and ones, depending on whether they are the "first" or "second" split of the parent dataset. The
     digits are seperated by "_".
-    :param dataset:
-    :param suffix:
-    :return:
+    :param dataset: parent dataset to derive name from
+    :param suffix: string to append to name to distinguish the created datasets. should be "0" or "1"
+    :param dim_to_shift: dimension to shift in the QSM. needs to be part of the name
+    :param q: quantile to shift the data. Needs to be part of the name
+    :return: the new name
     """
+    if suffix not in ["0", "1"]:
+        raise dc.CustomError("suffix needs to be \"0\" or \"1\"!")
     parent_name = dataset.path.split("\\")[-1]
     #if this is the first split from a "normal" dataset, the name will just be "0" or "1". Otherwise the digit will be
     # appended
-    if re.match(r"[01](_[01])*", parent_name):
+    start = fr"{dim_to_shift}_{str(q).replace('.', '')}"
+    if re.match(fr"{start}_[01](_[01])*", parent_name):
         return f"{parent_name}_{suffix}"
-    return suffix
+    return f"{start}_{suffix}"
 
 
-def split_dataset(data: pd.DataFrame, dataset: dc.Data, dim_to_split: str, split_index: int) -> Tuple[dc.Data, dc.Data]:
+def split_dataset(data: pd.DataFrame, dataset: dc.Data, dim_to_split: str,
+                  split_index: int, dim_to_shift: str, q: float) -> Tuple[dc.Data, dc.Data]:
     """
     splits a dataset into two, given the sorted data, a dimension to split and a split index. Resulting Datasets will
     be saved to create the necessary folder structure.
@@ -76,6 +82,8 @@ def split_dataset(data: pd.DataFrame, dataset: dc.Data, dim_to_split: str, split
     :param dataset: parent dataset, will be used as a template for the resulting datasets
     :param dim_to_split: dimension in which the data will be split
     :param split_index: index at which the data will be split
+    :param dim_to_shift: dimension to shift in the QSM. needs to be part of the name
+    :param q: quantile to shift the data. Necessary to create names of the resulting datasets
     :return: the two resulting datasets
     """
     # split the dataframe at the resulting split point, create datasets from the dataframes and return them
@@ -83,8 +91,12 @@ def split_dataset(data: pd.DataFrame, dataset: dc.Data, dim_to_split: str, split
     data2 = data.iloc[split_index:, :]
 
     #naming of the datasets just takes the name of the parent dataset and appends "_0" or "_1"
-    dataset1 = dataset.clone_meta_data(path=os.path.join(dataset.path, get_new_dataset_name(dataset, "0")))
-    dataset2 = dataset.clone_meta_data(path=os.path.join(dataset.path, get_new_dataset_name(dataset, "1")))
+    dataset1 = dataset.clone_meta_data(path=os.path.join(dataset.path, get_new_dataset_name(dataset=dataset, suffix="0",
+                                                                                            dim_to_shift=dim_to_shift,
+                                                                                            q=q)))
+    dataset2 = dataset.clone_meta_data(path=os.path.join(dataset.path, get_new_dataset_name(dataset=dataset, suffix="1",
+                                                                                            dim_to_shift=dim_to_shift,
+                                                                                            q=q)))
     dataset1.take_new_data(data1)
     dataset2.take_new_data(data2)
 
@@ -252,7 +264,7 @@ def find_optimal_split_index(ks_stat: List[stats.stats.KstestResult]) -> int:
     return ks_stat.index(max(cand_list, key=lambda elem: elem[0]))
 
 
-def create_optimal_split(dataset: dc.Data, dim_to_shift: str, dim_to_split: str, min_split_size: int)\
+def create_optimal_split(dataset: dc.Data, dim_to_shift: str, dim_to_split: str, min_split_size: int, q: float)\
         -> Tuple[dc.Data, dc.Data] or None:
     """
     tests every possible split of the data in the dim_to_split and determines the one which results in the strongest
@@ -262,6 +274,7 @@ def create_optimal_split(dataset: dc.Data, dim_to_shift: str, dim_to_split: str,
     :param dim_to_shift: target dimension for the kolmogorov smirnov test
     :param dim_to_split: dimension in which the dataset will be split
     :param min_split_size: min number of points in a resulting split
+    :param q: quantile to shift the data. Necessary to create names of the resulting datasets
     :return: the resulting datasets, if a split was performed, or None, if no split was performed
     """
     #cannot split data, if size is not at least 2 * min_split
@@ -293,7 +306,8 @@ def create_optimal_split(dataset: dc.Data, dim_to_shift: str, dim_to_split: str,
         return
 
     #create new datasets with the split data
-    dataset1, dataset2 = split_dataset(data=data, dataset=dataset, dim_to_split=dim_to_split, split_index=split_index)
+    dataset1, dataset2 = split_dataset(data=data, dataset=dataset, dim_to_split=dim_to_split, split_index=split_index,
+                                       dim_to_shift=dim_to_shift, q=q)
     return dataset1, dataset2
 
 
@@ -477,6 +491,7 @@ def recursive_splitting(dataset: dc.Data,
                         dim_to_shift: str,
                         min_split_size: int,
                         remaining_splits: int,
+                        q: float,
                         visualize: bool = True) -> None:
     """
     recursively splits a dataset in subsets.
@@ -484,6 +499,7 @@ def recursive_splitting(dataset: dc.Data,
     :param dim_to_shift: dimension that is to be shifted. the dataset will be split in a way, that the distribution of
     this dimension has the highest possible difference between the splits
     :param min_split_size: minimal number of data points in a split
+    :param q: quantile to shift the data. Necessary to create names of the resulting datasets
     :param remaining_splits: max count of further splits (max count of splits in general when manually calling the
     function)
     :param visualize: determines whether the results will be displayed on the screen
@@ -501,7 +517,8 @@ def recursive_splitting(dataset: dc.Data,
         result = create_optimal_split(dataset=dataset,
                                       dim_to_shift=dim_to_shift,
                                       dim_to_split=dim_to_split,
-                                      min_split_size=min_split_size)
+                                      min_split_size=min_split_size,
+                                      q=q)
 
         #only proceed, if result actually contains new datasets
         if result:
@@ -515,12 +532,14 @@ def recursive_splitting(dataset: dc.Data,
                                 dim_to_shift=dim_to_shift,
                                 min_split_size=min_split_size,
                                 remaining_splits=remaining_splits - 1,
+                                q=q,
                                 visualize=visualize)
 
             recursive_splitting(dataset=split2,
                                 dim_to_shift=dim_to_shift,
                                 min_split_size=min_split_size,
                                 remaining_splits=remaining_splits - 1,
+                                q=q,
                                 visualize=visualize)
     else:
         dataset.buffer_note(f"data set not split further because maximum number of splits was reached!")
@@ -547,23 +566,21 @@ def create_binning_splits(dataset: dc.Data,
     """
     min_split_size = max(int(len(dataset.data) * q), 1)
     recursive_splitting(dataset=dataset, dim_to_shift=dim_to_shift, min_split_size=min_split_size,
-                        remaining_splits=remaining_splits, visualize=visualize)
+                        remaining_splits=remaining_splits, visualize=visualize, q=q)
 
 
 def main():
     """
     test function
     """
-    members = [100 for _ in range(6)]
-    _data = dc.MaybeActualDataSet(members, save=True)
+    #members = [100 for _ in range(6)]
+    #_data = dc.MaybeActualDataSet(members, save=True)
 
-    #_data = dc.MaybeActualDataSet.load(r"D:\Gernot\Programmieren\Bachelor\Data\220325_153503_MaybeActualDataSet")
+    _data = dc.MaybeActualDataSet.load(r"D:\Gernot\Programmieren\Bachelor\Data\220328_132351_MaybeActualDataSet")
     #dim_to_split = find_dim_to_split(_data, "dim_04")
     #print(dim_to_split)
-    remaining_splits = 10
-    name = _data.path.split('\\')[-1]
-    #print(f"{remaining_splits * '  '}{name}: {len(_data.data)}")
-    create_binning_splits(dataset=_data, dim_to_shift="dim_04", q=.01, remaining_splits=remaining_splits, visualize=True)
+    remaining_splits = 2
+    create_binning_splits(dataset=_data, dim_to_shift="dim_04", q=-.05, remaining_splits=remaining_splits, visualize=True)
     #dims = get_HiCS(dataset=_data, dim_to_shift="dim_04", goodness_over_length=False)
     #_data.HiCS_dims = dims
     #_data.save()
@@ -622,11 +639,18 @@ def test_split_data():
     print(dataset.data.describe()["dim_02"])
 
 
+def test_get_name():
+    dataset = dc.MaybeActualDataSet.load(r"D:\Gernot\Programmieren\Bachelor\Data\220205_175907_MaybeActualDataSet",
+                                         ignore_validity_date=True)
+    print(get_new_dataset_name(dataset, "0", "dim_04", -0.5))
+
+
 if __name__ == "__main__":
     #test_split_data()
-    test_create_test_statistics_parallel()
+    #test_create_test_statistics_parallel()
+    #test_get_name()
     #test()
-    #main()
+    main()
     #test()
     #main(data.path, dim_to_shift="dim_04", q=0.05)
     #test()
