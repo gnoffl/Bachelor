@@ -58,7 +58,7 @@ def create_and_save_tree(dataset: dc.MaybeActualDataSet,
                          depth: int = 5,
                          min_samples_leaf: int = 5,
                          notes: str = "",
-                         visualize_tree: bool = True,
+                         visualize_tree_par: bool = True,
                          pred_col_name: str = "") -> tree.DecisionTreeClassifier:
     """
     trains a decision tree on a MaybeActualDataSet, uses the tree to predict the classes and saves
@@ -67,7 +67,7 @@ def create_and_save_tree(dataset: dc.MaybeActualDataSet,
     :param depth: maximal depth of the decision tree
     :param min_samples_leaf: minimum number of data points per leaf in the decision tree
     :param notes: Notes to be saved in the description of the data class object
-    :param visualize_tree: determines whether comparison pictures of the original classes of the dataset as well as
+    :param visualize_tree_par: determines whether comparison pictures of the original classes of the dataset as well as
     pictures of the dataset with classes from the predictions of the tree will be generated. Also a graphical
     representation of the decisiontree will be generated
     :param pred_col_name: name for the column, in which the predicted classes will be stored. only necessary, if
@@ -83,7 +83,7 @@ def create_and_save_tree(dataset: dc.MaybeActualDataSet,
         with open(tree_path, "wb") as f:
             pickle.dump(trained_tree, f)
 
-    if visualize_tree:
+    if visualize_tree_par:
         if not pred_col_name:
             raise dc.CustomError("pred_col_name wasnt given, so predicting is not possible! Pictures can not be generated!")
         predict_classes(trained_tree=trained_tree, dataset=dataset, pred_col_name=pred_col_name)
