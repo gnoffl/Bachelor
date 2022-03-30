@@ -106,7 +106,7 @@ def qsm(model,  # Model to use for the evaluation
         data_set: dc.Data,  # Data to use for manipulation
         quantiles: Dict[str, float],  # Manipulation for the features (as list),
         predict_fn: Callable,  # predictfunction to get predicted classes [ARGUMENTS : OBJECT, DATA]
-        save_changes: bool = True) -> None:
+        save_changes: bool = True) -> Dict[str, pd.DataFrame]:
     """
     implementation for the quantile shift method (QSM). Dimensions of a dataset are shifted by a given quantiles. For
     each shifted Dimension the resulting data (together with all other unshifted dimensions) is classified by a model,
@@ -119,6 +119,8 @@ def qsm(model,  # Model to use for the evaluation
     :param predict_fn: Function that uses the model to predict classes for the dataset. Has to have the signature
     (model, pd.Dataframe, List[str]) -> List[int].
     :param save_changes: determines if the dataset will be saved after running qsm or not
+    :returns: Dictionary with the resulting change matrices. Key is the original dimension, value is the dataframe
+    containing the matrix
     """
     pred_classes = predict_fn(model, data_set.data, data_set.data_columns)
     data = data_set.data
@@ -126,6 +128,7 @@ def qsm(model,  # Model to use for the evaluation
     print(data["org_pred_classes_QSM"].value_counts())
     data_set.extend_notes_by_one_line("notes for QSM:")
     data_set.extend_notes_by_one_line(f"prediction on the original data in column \"org_pred_classes_QSM\"")
+    results = {}
     for dim, shift in quantiles.items():
         new_dim_name = f"{dim}_shifted_by_{str(shift)}"
         prediction_dims = data_set.data_columns[:]
@@ -139,20 +142,27 @@ def qsm(model,  # Model to use for the evaluation
         new_class_name = f"pred_with_{new_dim_name}"
         data[new_class_name] = predict_fn(model, data, prediction_dims)
         data_set.extend_notes_by_one_line(f"shifted column \"{dim}\" by {str(shift)}. Shifted column is \"{new_dim_name}\", corresponding predictions are in column \"{new_class_name}\"")
-
+        results[dim] = vs.get_change_matrix(data, ("org_pred_classes_QSM", new_class_name))
     if save_changes:
         data_set.save()
+    return results
 
 
-def run_QSM_decisionTree(dataset: dc.Data, quantiles: Dict, save_changes: bool = True) -> None:
+def run_QSM_decisionTree(dataset: dc.Data, quantiles: Dict, save_changes: bool = True,
+                         trained_tree: tree.DecisionTreeClassifier = None) -> Dict[str, pd.DataFrame]:
     """
     runs QSM on a given Dataset, that has a trained DecisionTree
     :param dataset: the dataset to run qsm on
     :param quantiles:  list of tuples with the name of the dimension that is to be shifted and the value the dimension
     is to be shifted (value between 0 and 1)
     :param save_changes: determines if the changes in the dataset are to be saved
+    :param trained_tree: tree that will be used to make predictions in qsm. if none is given, Tree will be loaded from
+    the dataset.
+    :returns: Dictionary with the resulting change matrices. Key is the original dimension, value is the dataframe
+    containing the matrix
     """
-    trained_tree = dataset.load_tree()
+    if not trained_tree:
+        trained_tree = dataset.load_tree()
 
     def predict_fn(trained_tree_: tree.DecisionTreeClassifier, data: pd.DataFrame, dims: List[str]) -> List[int]:
         """
@@ -187,7 +197,7 @@ def run_QSM_decisionTree(dataset: dc.Data, quantiles: Dict, save_changes: bool =
         values = values[prediction_dims]
         return trained_tree_.predict(values)
 
-    qsm(model=trained_tree, data_set=dataset, quantiles=quantiles, predict_fn=predict_fn, save_changes=save_changes)
+    return qsm(model=trained_tree, data_set=dataset, quantiles=quantiles, predict_fn=predict_fn, save_changes=save_changes)
 
 
 def visualize_QSM(base_dim: str, dim_before_shift: str, shift: float, path: str = "", dataset: dc.Data = None):
@@ -212,15 +222,13 @@ def main():
         "dim_00": 0.05,
         "dim_01": -0.2
     }
-    dataset_new = dc.MaybeActualDataSet.load("D:\\Gernot\\Programmieren\\Bachelor\\Python\\Experiments\\Data\\MaybeActualDataSet")
-    dataset_old = dc.MaybeActualDataSet.load("D:\\Gernot\\Programmieren\\Bachelor\\Python\\Experiments\\Data\\MaybeActualDataSet")
-    run_QSM_decisionTree(dataset=dataset_new,
+    dataset = dc.MaybeActualDataSet.load(r"D:\Gernot\Programmieren\Bachelor\Data\220328_172240_MaybeActualDataSet")
+    run_QSM_decisionTree(dataset=dataset,
                          quantiles=quantiles,
                          save_changes=False)
-    visualize_QSM(base_dim="dim_00", dim_before_shift="dim_04", shift=0.1, dataset=dataset_new)
-    visualize_QSM(base_dim="dim_04", dim_before_shift="dim_01", shift=-0.2, dataset=dataset_old)
+    visualize_QSM(base_dim="dim_00", dim_before_shift="dim_04", shift=0.1, dataset=dataset)
     print("change matrix 04 / 01")
-    matrix = vs.get_change_matrix(dataset_new.data, ("org_pred_classes_QSM", "pred_with_dim_01_shifted_by_-0.2"))
+    matrix = vs.get_change_matrix(dataset.data, ("org_pred_classes_QSM", "pred_with_dim_01_shifted_by_-0.2"))
     print(matrix)
 
 
