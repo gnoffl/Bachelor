@@ -541,7 +541,7 @@ def get_change_matrix(data: pd.DataFrame, dims: Tuple[str, str]) -> pd.DataFrame
     """
     col1, col2 = dims
     present_classes = set(data[col1].values)
-    present_classes.union(set(data[col2]))
+    present_classes = present_classes.union(set(data[col2].values))
     index = []
     res_matrix = pd.DataFrame
 
