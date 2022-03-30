@@ -16,7 +16,9 @@
 ## Logical progress
 
 * [ ] think about HiCS Parameters (read HiCS paper again)
+* [ ] extract all tuning parameters into one file
 * [ ] finish implementation __QSM__ (--> todos QSM.md)
+* [ ] add some outputs, so a sense of progression is given
 * [ ] plan progress for whole thesis
 * [ ] remaining todos from Binning.md
 * [ ] implement execution of QSM on subsets of a given dataset

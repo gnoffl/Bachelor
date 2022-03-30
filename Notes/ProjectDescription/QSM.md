@@ -9,6 +9,7 @@
 * [x] Binary Search für Methoden "get_value_at_quantile" und "get_shifted_value" implementieren
 * [x] Überprüfen, dass methode stabil auch bei Randwerten ist und so
 * [ ] lineare interpolation durch shift auf nächsten Wert ersetzen
+* [ ] soll Spalte mit schon vorhergesagten werten nehmen, und dann nicht mehr selbst vorhersagen
 
 ### Optional Todos
 * [ ] Überlegen, wie Ergebnisse am besten präsentiert und gespeichert werden (vermutlich
