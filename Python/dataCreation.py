@@ -181,28 +181,28 @@ class Data(ABC):
                     f.write(par)
                     f.write("\n\n")
 
-    def save(self, folder_name: str = "", notes: str = "") -> None:
+    def save(self, save_path: str = "", notes: str = "") -> None:
         """
         creates a folder with a "description.txt" file, which contains the attributes of the object and possibly notes.
         Also, the creation date is saved.
         :param notes: notes to be saved
-        :param folder_name: name of folder, where the information will be saved
+        :param save_path: name of folder, where the information will be saved
         """
         #update notes
         self.extend_notes_by_one_line(notes)
 
-        if folder_name:
-            self.path = self.path[:self.path.rfind("\\") + 1] + folder_name
+        if save_path:
+            self.path = save_path
         path = self.path
 
         folder_exists = False
         if not os.path.isdir(path):
             os.mkdir(path)
         else:
-            if folder_name:
-                raise CustomError("folder already exists!")
-            else:
+            if not save_path:
                 folder_exists = True
+            else:
+                print("warning, writing into existing folder!")
         if not folder_exists:
             # create new info for class
             with open(os.path.join(path, "description.txt"), "w") as f:
