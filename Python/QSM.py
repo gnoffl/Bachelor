@@ -1,3 +1,4 @@
+import os.path
 from typing import List, Dict, Tuple
 import pandas as pd
 
@@ -200,20 +201,33 @@ def run_QSM_decisionTree(dataset: dc.Data, quantiles: Dict, save_changes: bool =
     return qsm(model=trained_tree, data_set=dataset, quantiles=quantiles, predict_fn=predict_fn, save_changes=save_changes)
 
 
-def visualize_QSM(base_dim: str, dim_before_shift: str, shift: float, path: str = "", dataset: dc.Data = None):
-    if not path and not dataset:
+def visualize_QSM(base_dim: str, dim_before_shift: str, shift: float, data_path: str = "",
+                  dataset: dc.Data = None, save: bool = True, save_path: str = ""):
+    if not data_path and not dataset:
         raise dc.CustomError("one of the parameters path or dataset needs to be given!")
-    if path and dataset:
+    if data_path and dataset:
         raise dc.CustomError("only one of the parameters path or dataset must be given!")
     dim_after_shift = f"{dim_before_shift}_shifted_by_{str(shift)}"
     new_class_name = f"pred_with_{dim_after_shift}"
     if not dataset:
-        dataset = dc.MaybeActualDataSet.load(path)
-    vs.compare_shift_2d(df=dataset.data,
-                        common_dim=base_dim,
-                        dims_to_compare=(dim_before_shift, dim_after_shift),
-                        class_columns=("org_pred_classes_QSM", new_class_name))
-    vs.compare_shift_cumulative(df=dataset.data, dims=(dim_before_shift, dim_after_shift), shift=shift)
+        dataset = dc.MaybeActualDataSet.load(data_path)
+    if save:
+        if not save_path:
+            save_path = os.path.join(dataset.path, "pics", "QSM")
+        vs.compare_shift_2d(df=dataset.data,
+                            common_dim=base_dim,
+                            dims_to_compare=(dim_before_shift, dim_after_shift),
+                            class_columns=("org_pred_classes_QSM", new_class_name),
+                            path=os.path.join(save_path, "compare_shift_2d.png"))
+        vs.compare_shift_cumulative(df=dataset.data, dims=(dim_before_shift, dim_after_shift),
+                                    shift=shift, save_path=os.path.join(save_path, "compare_cumulative_shift.png"))
+    else:
+        vs.compare_shift_2d(df=dataset.data,
+                            common_dim=base_dim,
+                            dims_to_compare=(dim_before_shift, dim_after_shift),
+                            class_columns=("org_pred_classes_QSM", new_class_name))
+        vs.compare_shift_cumulative(df=dataset.data, dims=(dim_before_shift, dim_after_shift), shift=shift)
+
 
 
 def main():

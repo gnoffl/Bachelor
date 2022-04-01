@@ -114,6 +114,7 @@ def visualize_2d(df: pd.DataFrame,
         plt.scatter(df[x_name], df[y_name], cmap=plt.cm.Set1, edgecolor="k")
     plt.subplots_adjust(right=0.87)
     if path:
+        create_save_path(path)
         plt.savefig(path)
     else:
         plt.show()
@@ -173,8 +174,18 @@ def compare_shift_2d(df: pd.DataFrame,
     title_0 = titles[0] if titles else dims_to_compare[0]
     title_1 = titles[1] if titles else dims_to_compare[1]
 
-    visualize_2d(df=df, dims=(common_dim, dims_to_compare[0]), class_column=class_column_0, title=title_0, path=path, visualized_area=visualized_area)
-    visualize_2d(df=df, dims=(common_dim, dims_to_compare[1]), class_column=class_column_1, title=title_1, path=path, visualized_area=visualized_area)
+    if path:
+        actual_path = path.split(".png")[0]
+        actual_path_0 = f"{actual_path}_0.png"
+        actual_path_1 = f"{actual_path}_1.png"
+
+        visualize_2d(df=df, dims=(common_dim, dims_to_compare[0]), class_column=class_column_0, title=title_0, path=actual_path_0, visualized_area=visualized_area)
+        visualize_2d(df=df, dims=(common_dim, dims_to_compare[1]), class_column=class_column_1, title=title_1, path=actual_path_1, visualized_area=visualized_area)
+    else:
+        visualize_2d(df=df, dims=(common_dim, dims_to_compare[0]), class_column=class_column_0, title=title_0,
+                     path=path, visualized_area=visualized_area)
+        visualize_2d(df=df, dims=(common_dim, dims_to_compare[1]), class_column=class_column_1, title=title_1,
+                     path=path, visualized_area=visualized_area)
 
 
 def visualize_3d(df: pd.DataFrame,
@@ -410,11 +421,20 @@ def create_cumulative_plot(df: pd.DataFrame,
         plt.show()
 
 
+def create_save_path(path):
+    path = os.path.normpath(path)
+    folders = path.split(os.sep)
+    for i in range(1, len(folders)):
+        curr_path = os.sep.join(folders[:i])
+        if not os.path.isdir(curr_path):
+            os.mkdir(curr_path)
+
+
 def compare_shift_cumulative(df: pd.DataFrame,
                              dims: Tuple[str, str],
                              shift: float,
                              constraints: Dict[str, List[Tuple[bool, float]]] = None,
-                             path_name: None or str = None,
+                             save_path: None or str = None,
                              x_axis_labels: Tuple[str] = None,
                              titles: Tuple[str, str] = None) -> None:
     """
@@ -423,7 +443,7 @@ def compare_shift_cumulative(df: pd.DataFrame,
     :param dims: names of the columns to compare before and after the shift
     :param shift: "distance" the data was shifted (as quantile)
     :param constraints: optional constraints to apply to the data
-    :param path_name: Path where the resulting figures will be saved. If omitted, the figures will only be shown, not
+    :param save_path: Path where the resulting figures will be saved. If omitted, the figures will only be shown, not
     saved
     :param x_axis_labels: labels for the x_axes in both plots
     :param titles: title for the plots
@@ -464,9 +484,11 @@ def compare_shift_cumulative(df: pd.DataFrame,
         plt.ylabel("Cumulative Frequency")
         plt.plot(values[i], cum_frequencies[i])
 
-        if path_name:
-            path_here = os.path.dirname(__file__)
-            plt.savefig(os.path.join(path_here, path_name + str(i)))
+        if save_path:
+            create_save_path(save_path + str(i))
+            actual_path = save_path.split(".png")[0]
+            actual_path = f"{actual_path}_{str(i)}.png"
+            plt.savefig(actual_path)
         else:
             plt.show()
 
@@ -583,8 +605,5 @@ def main() -> None:
 
 
 if __name__ == "__main__":
-    # main()
-    dim_01 = [1, 2, 3, 4, 5, 12, 13, 15, 12, 11, 1, 2, 3, 4, 5, 6, 7, 8, 9, 0]
-    series = pd.Series(dim_01)
-    get_cumulative_values(dim_01)
-    print(dim_01)
+    create_save_path(r"D:\Gernot\Programmieren\Bachelor\Data\220330_220119_MaybeActualDataSet\pics\QSM\test.csv")
+    #print("\\".join())
