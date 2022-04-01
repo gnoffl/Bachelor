@@ -4,6 +4,10 @@
 Differenz von bestem und schlechtestem Subspace genutzt (Problem(?): bezieht sich nur auf subspaces
 mit dim_to_shift)
 
+2. Ergebnisse
+
+3. Datensatz
+
 # Antworten
 
 1. 
