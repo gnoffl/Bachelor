@@ -24,11 +24,15 @@ def recursion_end(curr_folder: str, dim: str, q: float,
     new_dim_name = f"{dim}_shifted_by_{str(q)}"
     new_class_name = f"pred_with_{new_dim_name}"
     data = dataset.data.copy(deep=True)
+    org_dim_data = data[dim]
+    org_pred_data = data["org_pred_classes_QSM"]
     data[dim] = data[new_dim_name]
     data = data[dataset.data_columns]
     data["classes"] = dataset.data["classes"]
     data["pred_classes"] = dataset.data[new_class_name]
+    data["org_pred"] = org_pred_data
     data["source"] = curr_folder.split("\\")[-1]
+    data[f"{dim}_org"] = org_dim_data
     subspace_list.append(data)
     if dim != "dim_04":
         QSM.visualize_QSM(base_dim="dim_04", dim_before_shift=dim, shift=q, dataset=dataset)
@@ -94,9 +98,11 @@ def run_vanilla_qsm(dataset, quantiles, trained_tree=None):
                              trained_tree=trained_tree)
     for dim, q in quantiles.items():
         if dim != "dim_04":
-            QSM.visualize_QSM(base_dim="dim_04", dim_before_shift=dim, shift=q, dataset=dataset)
+            QSM.visualize_QSM(base_dim="dim_04", dim_before_shift=dim, shift=q, dataset=dataset,
+                              save_path=os.path.join(dataset.path, "pics", "QSM", "vanilla"))
         else:
-            QSM.visualize_QSM(base_dim="dim_00", dim_before_shift=dim, shift=q, dataset=dataset)
+            QSM.visualize_QSM(base_dim="dim_00", dim_before_shift=dim, shift=q, dataset=dataset,
+                              save_path=os.path.join(dataset.path, "pics", "QSM", "vanilla"))
 
         print(f"change matrix {dim} shifted by {q}")
         results_folder = os.path.join(dataset.path, "vanilla_results")
@@ -121,6 +127,11 @@ def main():
     QSM_on_binned_data(dataset=dataset, quantiles=quantiles, start_folders=start_folder_dict, trained_tree=trained_tree)
 
 
+def example_vis():
+    dataset = dc.MaybeActualDataSet.load(r"D:\Gernot\Programmieren\Bachelor\Data\220401_132946_MaybeActualDataSet\Splits\dim_04_01")
+    vs.compare_shift_2d(df=dataset.data, common_dim="dim_00", dims_to_compare=("dim_04", "dim_04_org"), class_columns=("source", "source"))
+
+
 def test():
     dataset = dc.MaybeActualDataSet.load(r"D:\Gernot\Programmieren\Bachelor\Data\220330_213345_MaybeActualDataSet\Splits\dim_04_01\0\0_1")
     print(len(dataset.data))
@@ -133,4 +144,5 @@ def test():
 
 if __name__ == "__main__":
     #main()
-    test()
+    #test()
+    example_vis()
