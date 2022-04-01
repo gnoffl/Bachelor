@@ -1,6 +1,6 @@
 import re
 import time
-from typing import List, Tuple
+from typing import List, Tuple, Dict
 import subprocess
 import classifier as cl
 import pandas as pd
@@ -62,15 +62,22 @@ def get_new_dataset_name(dataset: dc.Data, suffix: str, dim_to_shift: str, q: fl
     :param q: quantile to shift the data. Needs to be part of the name
     :return: the new name
     """
-    if suffix not in ["0", "1"]:
-        raise dc.CustomError("suffix needs to be \"0\" or \"1\"!")
+    if suffix not in ["0", "1", ""]:
+        raise dc.CustomError("suffix needs to be \"0\" or \"1\" or an empty string!")
     parent_name = dataset.path.split("\\")[-1]
     #if this is the first split from a "normal" dataset, the name will just be "0" or "1". Otherwise the digit will be
     # appended
     start = fr"{dim_to_shift}_{str(q).replace('.', '')}"
-    if re.match(fr"{start}_[01](_[01])*", parent_name):
-        return f"{parent_name}_{suffix}"
-    return f"{start}_{suffix}"
+    splits_folder = os.path.join(dataset.path, "Splits")
+    specific_folder = os.path.join(splits_folder, start)
+    if dataset.path.find(os.path.join("Splits", start)) == -1:
+        if not os.path.isdir(splits_folder):
+            os.mkdir(splits_folder)
+        if not os.path.isdir(specific_folder):
+            os.mkdir(specific_folder)
+        return os.path.join(specific_folder, suffix)
+    else:
+        return os.path.join(dataset.path, f"{parent_name}_{suffix}")
 
 
 def split_dataset(data: pd.DataFrame, dataset: dc.Data, dim_to_split: str,
@@ -91,12 +98,8 @@ def split_dataset(data: pd.DataFrame, dataset: dc.Data, dim_to_split: str,
     data2 = data.iloc[split_index:, :]
 
     #naming of the datasets just takes the name of the parent dataset and appends "_0" or "_1"
-    dataset1 = dataset.clone_meta_data(path=os.path.join(dataset.path, get_new_dataset_name(dataset=dataset, suffix="0",
-                                                                                            dim_to_shift=dim_to_shift,
-                                                                                            q=q)))
-    dataset2 = dataset.clone_meta_data(path=os.path.join(dataset.path, get_new_dataset_name(dataset=dataset, suffix="1",
-                                                                                            dim_to_shift=dim_to_shift,
-                                                                                            q=q)))
+    dataset1 = dataset.clone_meta_data(get_new_dataset_name(dataset=dataset, suffix="0", dim_to_shift=dim_to_shift, q=q))
+    dataset2 = dataset.clone_meta_data(get_new_dataset_name(dataset=dataset, suffix="1", dim_to_shift=dim_to_shift, q=q))
     dataset1.take_new_data(data1)
     dataset2.take_new_data(data2)
 
@@ -552,7 +555,7 @@ def recursive_splitting(dataset: dc.Data,
 def create_binning_splits(dataset: dc.Data,
                           dim_to_shift: str,
                           q: float,
-                          remaining_splits: int,
+                          max_split_nr: int,
                           visualize: bool = True) -> None:
     """
     wrapper to start recursive splitting of the data
@@ -560,27 +563,35 @@ def create_binning_splits(dataset: dc.Data,
     :param dim_to_shift: dimension that is to be shifted. the dataset will be split in a way, that the distribution of
     this dimension has the highest possible difference between the splits
     :param q: fraction by which the data will be shifted
-    :param remaining_splits: max count of further splits (max count of splits in general when manually calling the
+    :param max_split_nr: max count of further splits (max count of splits in general when manually calling the
     function)
     :param visualize: determines whether the results will be displayed on the screen
     """
-    min_split_size = max(int(len(dataset.data) * q), 1)
+    min_split_size = max(int(abs(len(dataset.data) * q)), 1)
     recursive_splitting(dataset=dataset, dim_to_shift=dim_to_shift, min_split_size=min_split_size,
-                        remaining_splits=remaining_splits, visualize=visualize, q=q)
+                        remaining_splits=max_split_nr, visualize=visualize, q=q)
+
+
+def data_binning(dataset: dc.Data, shifts: Dict[str, float], max_split_nr: int, visualize: bool = True) -> Dict[str, str]:
+    new_dict = {}
+    for dim, q in shifts.items():
+        create_binning_splits(dataset=dataset, dim_to_shift=dim, q=q, max_split_nr=max_split_nr, visualize=visualize)
+        new_dict[dim] = get_new_dataset_name(dataset=dataset, suffix="", dim_to_shift=dim, q=q)
+    return new_dict
 
 
 def main():
     """
     test function
     """
-    #members = [100 for _ in range(6)]
-    #_data = dc.MaybeActualDataSet(members, save=True)
+    members = [100 for _ in range(6)]
+    _data = dc.MaybeActualDataSet(members, save=True)
 
-    _data = dc.MaybeActualDataSet.load(r"D:\Gernot\Programmieren\Bachelor\Data\220328_132351_MaybeActualDataSet")
+    #_data = dc.MaybeActualDataSet.load(r"D:\Gernot\Programmieren\Bachelor\Data\220328_142537_MaybeActualDataSet")
     #dim_to_split = find_dim_to_split(_data, "dim_04")
     #print(dim_to_split)
     remaining_splits = 2
-    create_binning_splits(dataset=_data, dim_to_shift="dim_04", q=-.05, remaining_splits=remaining_splits, visualize=True)
+    create_binning_splits(dataset=_data, dim_to_shift="dim_04", q=-.05, max_split_nr=remaining_splits, visualize=True)
     #dims = get_HiCS(dataset=_data, dim_to_shift="dim_04", goodness_over_length=False)
     #_data.HiCS_dims = dims
     #_data.save()
@@ -590,13 +601,14 @@ def test():
     """
     test function
     """
-    test_list = [i for i in range(99)]
-    print(test_list)
-    res = create_sub_lists(4, test_list)
-    for ress in res:
-        print(ress)
-        print(len(ress))
-
+    quantiles = {
+        "dim_04": 0.1,
+        "dim_00": 0.05,
+        "dim_01": -0.2
+    }
+    members = [50 for _ in range(6)]
+    dataset = dc.MaybeActualDataSet(members)
+    print(data_binning(dataset, shifts=quantiles, max_split_nr=2, visualize=True))
 
 def test_get_hics():
     """
@@ -623,7 +635,7 @@ def test_create_test_statistics_parallel():
         start = time.perf_counter()
 
 
-        create_binning_splits(dataset=dataset, dim_to_shift="dim_04", q=.01, remaining_splits=1,
+        create_binning_splits(dataset=dataset, dim_to_shift="dim_04", q=.01, max_split_nr=1,
                               visualize=False)
 
 
@@ -640,17 +652,16 @@ def test_split_data():
 
 
 def test_get_name():
-    dataset = dc.MaybeActualDataSet.load(r"D:\Gernot\Programmieren\Bachelor\Data\220205_175907_MaybeActualDataSet",
-                                         ignore_validity_date=True)
-    print(get_new_dataset_name(dataset, "0", "dim_04", -0.5))
+    dataset = dc.MaybeActualDataSet.load(r"D:\Gernot\Programmieren\Bachelor\Data\220328_142537_MaybeActualDataSet")
+    print(get_new_dataset_name(dataset, "", "dim_04", -0.5))
 
 
 if __name__ == "__main__":
     #test_split_data()
     #test_create_test_statistics_parallel()
     #test_get_name()
-    #test()
-    main()
+    test()
+    #main()
     #test()
     #main(data.path, dim_to_shift="dim_04", q=0.05)
     #test()
