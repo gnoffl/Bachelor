@@ -12,7 +12,10 @@
 * [ ] visualisierung von allen QSM ansätzen korrekt speichern (visualisierung innerhalb
 von QSM)
 * [ ] visualisierung von gesamtem Datensatz nach QSM nach Binning
-* [ ] save change matrices
+* [ ] visualisierung von allen splits korrekt speichern (Bilder für splits werden in 
+  org Ordner gespeichert, nicht im root verzeichnis für den entsprechenden Shift)
+* [ ] convert all matrices to integers instead of floats 
+* [x] save change matrices
 * [ ] refactor QSM-specific code into qsm.py
 * [ ] save "original" prediction of classifier to compare
 * [ ] color of datapoints should not be depending on what classes are present

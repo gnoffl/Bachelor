@@ -1,5 +1,6 @@
 import os
 from typing import Dict, List
+import numpy
 
 import pandas as pd
 
@@ -89,6 +90,7 @@ def QSM_on_binned_data(dataset: dc.MaybeActualDataSet, quantiles: Dict[str, floa
         full_dataset.save(start_folder)
 
         result_matrix.to_csv(os.path.join(start_folder, "binning_result_matrix.csv"))
+        visualize_QSM_on_binned_data(full_dataset, dim)
 
 
 def run_vanilla_qsm(dataset, quantiles, trained_tree=None):
@@ -127,22 +129,39 @@ def main():
     QSM_on_binned_data(dataset=dataset, quantiles=quantiles, start_folders=start_folder_dict, trained_tree=trained_tree)
 
 
-def example_vis():
-    dataset = dc.MaybeActualDataSet.load(r"D:\Gernot\Programmieren\Bachelor\Data\220401_132946_MaybeActualDataSet\Splits\dim_04_01")
-    vs.compare_shift_2d(df=dataset.data, common_dim="dim_00", dims_to_compare=("dim_04", "dim_04_org"), class_columns=("source", "source"))
+def visualize_QSM_on_binned_data(dataset: dc.Data, shifted_dim, common_dim: str = ""):
+    if not common_dim:
+        #todo: this
+        pass
+    folder = os.path.join(dataset.path, "pics", "QSM_Binning")
+    vs.compare_shift_2d(df=dataset.data, common_dim=common_dim, dims_to_compare=(f"{shifted_dim}_org", shifted_dim),
+                        class_columns=("source", "source"),
+                        path=os.path.join(folder, "source.png"))
+    vs.compare_shift_2d(df=dataset.data, common_dim=common_dim, dims_to_compare=(f"{shifted_dim}_org", shifted_dim),
+                        class_columns=("pred_classes", "org_pred"),
+                        path=os.path.join(folder, "predictions.png"))
+    vs.compare_shift_2d(df=dataset.data, common_dim=common_dim, dims_to_compare=(f"{shifted_dim}_org", shifted_dim),
+                        class_columns=("classes", "classes"),
+                        path=os.path.join(folder, "classes.png"))
 
 
 def test():
-    dataset = dc.MaybeActualDataSet.load(r"D:\Gernot\Programmieren\Bachelor\Data\220330_213345_MaybeActualDataSet\Splits\dim_04_01\0\0_1")
-    print(len(dataset.data))
-    dim = "dim_04"
-    q = 0.1
-    new_dim_name = f"{dim}_shifted_by_{str(q)}"
-    new_class_name = f"pred_with_{new_dim_name}"
-    print(vs.get_change_matrix(dataset.data, ("org_pred_classes_QSM", new_class_name)))
+    dataset = dc.MaybeActualDataSet.load(r"C:\Users\gerno\Programmieren\Bachelor\Data\220401_203613_MaybeActualDataSet\Splits\dim_04_01")
+    print(numpy.array((1, 2, 3)))
+    print("nothing")
+    #members = [50 for _ in range(6)]
+    #dataset = dc.MaybeActualDataSet(members)
+    #trained_tree = cl.create_and_save_tree(dataset, pred_col_name="test")
+    #subspace_list = []
+    #recursion_end(dataset.path, dim="dim_04", q=0.1, subspace_list=subspace_list, trained_tree=trained_tree)
+
+    #full_data = pd.concat(subspace_list)
+    #full_dataset = dc.MaybeActualDataSet.clone_meta_data(dataset)
+    #full_dataset.take_new_data(full_data)
+    #full_dataset.save(r"C:\Users\gerno\Programmieren\Bachelor\Data\TEST")
 
 
 if __name__ == "__main__":
-    #main()
+    main()
     #test()
-    example_vis()
+    #example_vis()
