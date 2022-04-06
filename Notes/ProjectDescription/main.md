@@ -1,4 +1,4 @@
-# Visualization
+# Main
 
 ## Todos
 
@@ -8,7 +8,7 @@
 * [x] Notizen erstellen
 * [x] run QSM on binned data
 * [x] properly propagate results through recursion __(ein datenpunkt verschwindet? o.O)__
-* [ ] visualisierung so überarbeiten, dass Bilder gespeichert und nicht gezeigt werden
+* [x] visualisierung so überarbeiten, dass Bilder gespeichert und nicht gezeigt werden
 * [ ] visualisierung von allen QSM ansätzen korrekt speichern (visualisierung innerhalb
 von QSM)
 * [ ] visualisierung von gesamtem Datensatz nach QSM nach Binning
