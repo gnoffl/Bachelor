@@ -578,6 +578,7 @@ def create_binning_splits(dataset: dc.Data,
 def data_binning(dataset: dc.Data, shifts: Dict[str, float], max_split_nr: int, visualize: bool = True) -> Dict[str, str]:
     new_dict = {}
     for dim, q in shifts.items():
+        print(f"binning for dim \"{dim}\"..")
         create_binning_splits(dataset=dataset, dim_to_shift=dim, q=q, max_split_nr=max_split_nr, visualize=visualize)
         new_dict[dim] = get_new_dataset_name(dataset=dataset, suffix="", dim_to_shift=dim, q=q)
     return new_dict

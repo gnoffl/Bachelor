@@ -106,7 +106,6 @@ def run_vanilla_qsm(dataset, quantiles, trained_tree=None):
             QSM.visualize_QSM(base_dim="dim_00", dim_before_shift=dim, shift=q, dataset=dataset,
                               save_path=os.path.join(dataset.path, "pics", "QSM", "vanilla", dim))
 
-        print(f"change matrix {dim} shifted by {q}")
         results_folder = os.path.join(dataset.path, "vanilla_results")
         if not os.path.isdir(results_folder):
             os.mkdir(results_folder)
@@ -140,10 +139,15 @@ def main():
         "dim_01": -0.2
     }
     members = [50 for _ in range(6)]
+    print("initializing dataset..")
     dataset = dc.MaybeActualDataSet(members)
+    print("training decision tree..")
     trained_tree = cl.create_and_save_tree(dataset, pred_col_name="test")
+    print("start binning of data..")
     start_folder_dict = cds.data_binning(dataset=dataset, shifts=quantiles, max_split_nr=2, visualize=True)
+    print("running QSM on full dataset..")
     run_vanilla_qsm(dataset, quantiles, trained_tree)
+    print("running QSM on split dataset..")
     QSM_on_binned_data(dataset=dataset, quantiles=quantiles, start_folders=start_folder_dict, trained_tree=trained_tree)
 
 
