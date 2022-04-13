@@ -22,6 +22,9 @@
 * [ ] plan progress for whole thesis
 * [ ] remaining todos from Binning.md
 * [ ] implement execution of QSM on subsets of a given dataset
+* [ ] iris Dataset
+* [ ] Soccer Dataset
+* [ ] NN classifier for Soccer
 
 
 
