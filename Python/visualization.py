@@ -104,9 +104,16 @@ def visualize_2d(df: pd.DataFrame,
         classes = set(df[class_column].values)
         # plot classes seperately, to include a label, which then can be used to show the different classes in the plot
         for i, clas in enumerate(classes):
+            try:
+                if isinstance(clas, str) and "_" in clas:
+                    raise ValueError
+                color_ind = int(clas)
+            except ValueError:
+                color_ind = i
+            print(clas, color_ind)
             plt.scatter(df.loc[df[class_column] == clas, [x_name]],
                         df.loc[df[class_column] == clas, [y_name]],
-                        color=colors[i],
+                        color=colors[color_ind],
                         edgecolor="k",
                         label=clas)
         plt.legend(bbox_to_anchor=(1.02, 1), loc="upper left", frameon=True)
