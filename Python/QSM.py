@@ -126,7 +126,6 @@ def qsm(model,  # Model to use for the evaluation
     pred_classes = predict_fn(model, data_set.data, data_set.data_columns)
     data = data_set.data
     data["org_pred_classes_QSM"] = pred_classes
-    print(data["org_pred_classes_QSM"].value_counts())
     data_set.extend_notes_by_one_line("notes for QSM:")
     data_set.extend_notes_by_one_line(f"prediction on the original data in column \"org_pred_classes_QSM\"")
     results = {}
