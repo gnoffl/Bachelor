@@ -61,7 +61,6 @@ def recursive_QSM(curr_folder: str, curr_name: str, dim: str, q: float,
                                      subspace_list=subspace_list, trained_tree=trained_tree)
             result_matrix = add_result_matrices(result_matrix, curr_res)
 
-
     if count == 2:
         pass
     elif count == 0:
@@ -70,6 +69,7 @@ def recursive_QSM(curr_folder: str, curr_name: str, dim: str, q: float,
     else:
         raise dc.CustomError(f"{count} number of splits detected! Should be either 0 or 2!")
 
+    result_matrix = result_matrix.astype("int32")
     result_matrix.to_csv(os.path.join(curr_folder, "local_change_matrix.csv"))
     return result_matrix
 
