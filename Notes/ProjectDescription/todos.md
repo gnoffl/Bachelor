@@ -25,6 +25,7 @@
 * [ ] iris Dataset
 * [ ] Soccer Dataset
 * [ ] NN classifier for Soccer
+* [ ] check all (optional) todos
 
 
 

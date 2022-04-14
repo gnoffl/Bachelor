@@ -28,7 +28,13 @@ von QSM)
 * [ ] write script to copy all relevant information into one folder --> less searching for results etc
 
 ## Notizen
-
+main.py ist das Script, das zur Ausführung des gesamten Prozesses gedacht ist.
+Aktuell wird viel von der Abwicklung der Rekursion von QSM über die gesplitteten Datensätze
+sowie die Visualisierung der Ergebnis in dieser Datei geregelt. In Zukunft wird dies
+vielleicht noch in eine andere Datei refactored. Entscheidende Funktion ist
+_compare_vanilla_split_, die einen Datensatz annimmt, einen DecisionTree darauf trainiert,
+die Daten splittet und dann QSM auf dem gesamten Datensatz sowie auf den Splits laufen
+lässt. Die Ergebnisse werden alle Visualisiert, und die Ergebnisse gespeichert.
 
 
 ## Änderungen
