@@ -3,6 +3,12 @@
 ## Todos
 
 ### Important Todos
+nothing atm
+
+### Optional Todos
+* [ ] write script to copy all relevant information into one folder --> less searching for results etc
+
+### Done
 * [x] Typing für Methoden einhalten
 * [x] Code kommentieren
 * [x] Dokumentation erstellen
@@ -23,9 +29,6 @@ von QSM)
 * [x] save "original" prediction of classifier to compare
 * [x] color of datapoints should not be depending on what classes are present
 * [x] Mehr meldungen über den Fortschritt der Methode (allg. sinnvollere ausgaben)
-
-### Optional Todos
-* [ ] write script to copy all relevant information into one folder --> less searching for results etc
 
 ## Notizen
 main.py ist das Script, das zur Ausführung des gesamten Prozesses gedacht ist.
