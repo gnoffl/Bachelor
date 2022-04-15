@@ -15,13 +15,11 @@
 
 ## Logical progress
 
-* [ ] extract all tuning parameters into one file -> think about values
 * [ ] finish implementation __QSM__ (--> todos QSM.md)
-* [ ] think about HiCS Parameters (read HiCS paper again)
-* [ ] add some outputs, so a sense of progression is given
-* [ ] plan progress for whole thesis
 * [ ] remaining todos from Binning.md
-* [ ] implement execution of QSM on subsets of a given dataset
+* [ ] plan progress for whole thesis
+* [ ] extract all tuning parameters into one file -> think about values
+* [ ] think about HiCS Parameters (read HiCS paper again)
 * [ ] iris Dataset
 * [ ] Soccer Dataset
 * [ ] NN classifier for Soccer
@@ -43,3 +41,5 @@ approval of request)
 needed)
 * [x] change dataset to show weaknesses of vanilla QSM better (no overlap of
 class_05 with any other class in dim_04)
+* [x] add some outputs, so a sense of progression is given
+* [x] implement execution of QSM on subsets of a given dataset
