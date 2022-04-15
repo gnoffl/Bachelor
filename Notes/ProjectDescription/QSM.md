@@ -1,4 +1,4 @@
-# Visualization
+# QSM
 
 ## Todos
 
@@ -8,12 +8,15 @@
 * [x] Notizen erstellen
 * [x] Binary Search für Methoden "get_value_at_quantile" und "get_shifted_value" implementieren
 * [x] Überprüfen, dass methode stabil auch bei Randwerten ist und so
-* [ ] lineare interpolation durch shift auf nächsten Wert ersetzen (-> pos verschiebung immer höheren Wert nehmen,
+* [x] lineare interpolation durch shift auf nächsten Wert ersetzen (-> pos verschiebung immer höheren Wert nehmen,
 negative verschiebung -> immer niedrigeren Wert nehmen)
-* [ ] soll Spalte mit schon vorhergesagten werten nehmen, und dann nicht mehr selbst vorhersagen
+* [x] doku für binary search
+* [x] unnötige Funktionen entfernen
 
 ### Optional Todos
-* [ ] Überlegen, wie Ergebnisse am besten präsentiert und gespeichert werden (vermutlich
+* [ ] soll Spalte mit schon vorhergesagten werten nehmen, und dann nicht mehr selbst vorhersagen
+  (Im Kopf behalten, dass visualisierungen evtl von Spaltennamen abhängen)
+* [x] Überlegen, wie Ergebnisse am besten präsentiert und gespeichert werden (vermutlich
 gar nicht explizit speichern, sondern aus gespeicherten Daten nach Bedarf berechnen)
 
 ## Notizen

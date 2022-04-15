@@ -2,6 +2,7 @@ import os.path
 from typing import List, Dict, Tuple
 import pandas as pd
 
+import Python.classifier as cl
 import Python.dataCreation as dc
 import Python.visualization as vs
 from collections.abc import Callable
@@ -9,12 +10,23 @@ import sklearn.tree as tree
 
 
 def binary_search(arr: List[float], val: float, limits: Tuple[int, int] = None) -> List[int]:
+    """
+    searches a value on an ordered List. Returns index of the Value, if it is found. If the searched values lies between
+    two values in the list, the indexes of the flanking values will be returned. If the searched value lies outside the
+    range of the List, an empty list ist returned
+    :param arr: List with sorted values. The value will be searched in here
+    :param val: value to look for
+    :param limits: index between which the value will be searched. If omitted, value will be searched on the whole List
+    :return: returns a List. If the value is found, the List will contain the index, where the value was found. If the
+    searched values lies between two values in the list, the indexes of the flanking values will be returned. If the
+    searched value lies outside the range of the List (or outside the limits), an empty list ist returned
+    """
     if limits:
         start, end = limits
     else:
         start = 0
         end = len(arr) - 1
-    #Abbruchbedigungen:
+    #stopping criteria:
     if start > end:
         if end < 0 or start >= len(arr):
             return []
@@ -24,15 +36,17 @@ def binary_search(arr: List[float], val: float, limits: Tuple[int, int] = None) 
     cand = arr[index]
     if cand == val:
         return [index]
+    #if the candidate is larger than the searched value, search on the lower part of the search intervall
     elif cand > val:
         return binary_search(arr, val, (start, index - 1))
+    #if the candidate is smaller than the searched value, search on the higher part of the search intervall
     else:
         return binary_search(arr, val, (index + 1, end))
 
 
-#todo: make sure, that linear interpolation is valid here
 def linear_interpolation(x0: float, x1: float, y0: float, y1: float, x: float) -> float:
     """
+    NOT USED ANYMORE, SINCE VALUES SHOULD ONLY BE SHIFTED ONTO EXISTING VALUES
     takes to points with x and y values and an additional x value, that lies between the two points. Calculates the
     missing y value for the x value assuming a linear function between the two points
     :param x0: x value of the first point
@@ -49,14 +63,14 @@ def linear_interpolation(x0: float, x1: float, y0: float, y1: float, x: float) -
     return m * x + b
 
 
-#todo: test edge cases
-def get_value_at_quantile(quantile: float, values: List[float], cum_frequencies: List[float]) -> float:
+def get_value_at_shifted_quantile(quantile: float, shift: float, values: List[float], cum_frequencies: List[float]) -> float:
     """
     Calculates the value of a distribution at a given quantile. The distribution is given in the form of two lists, which
     contain all "measured" values, as well as their cumulative relative frequency. If the quantile, that is to be calculated
     is not in the cumulative frequencies, the corresponding value will be interpolated assuming a linear dependence between
     the next smaller and next larger value
-    :param quantile: Quantile the value is supposed to be calculated for
+    :param quantile: Original Quantile of the value
+    :param shift: quantile the value is supposed to be shifted
     :param values: Ascendingly sorted list of all distinct values in the relevant dimension.
     :param cum_frequencies: Ascendingly sorted list of the cumulative frequencies. The entries are relative frequencies
     (between 0 and 1). Entry at an index gives the relative frequency of the value at the same index in "values".
@@ -64,6 +78,8 @@ def get_value_at_quantile(quantile: float, values: List[float], cum_frequencies:
     """
     # solves edge case and saves iterating over the whole list
     # edge case where shifted quantile == 0 will be solved in the first iteration of the loop with an exact match
+    #quantile values must between 0 and 1
+    quantile = max(min(quantile + shift, 1), 0)
     if quantile < cum_frequencies[0]:
         return values[0]
     indexes = binary_search(cum_frequencies, quantile)
@@ -71,17 +87,16 @@ def get_value_at_quantile(quantile: float, values: List[float], cum_frequencies:
     if length <= 0:
         raise dc.CustomError("Could not find the quantile you were looking for!"
                              f"\n quantile was {quantile}")
-    smaller_val = values[indexes[0]]
     if len(indexes) == 1:
-        return smaller_val
-    larger_val = values[indexes[1]]
-    smaller_quant = cum_frequencies[indexes[0]]
-    larger_quant = cum_frequencies[indexes[1]]
+        return values[indexes[0]]
+    if shift < 0:
+        return values[indexes[0]]
+    elif shift > 0:
+        return values[indexes[1]]
+    else:
+        raise dc.CustomError("shift must not be zero!")
 
-    return linear_interpolation(smaller_quant, larger_quant, smaller_val, larger_val, quantile)
 
-
-#todo: test edge cases
 def get_shifted_value(value_to_shift: float, shift: float, values: List[float], cum_frequencies: List[float]) -> float:
     """
     shifts a value from a dimension by a certain quantile in the distribution of that dimension.
@@ -93,20 +108,17 @@ def get_shifted_value(value_to_shift: float, shift: float, values: List[float], 
     (between 0 and 1). Entry at an index gives the relative frequency of the value at the same index in "values".
     :return: the value at the shifted quantile
     """
-    indexes = binary_search(values, value_to_shift)
+    indexes = binary_search(arr=values, val=value_to_shift)
     if len(indexes) != 1:
         raise dc.CustomError("Didnt find the value you were looking for!")
     index = indexes[0]
-    #quantile values must between 0 and 1
-    shifted_quantile = max(min(cum_frequencies[index] + shift, 1), 0)
-    return get_value_at_quantile(shifted_quantile, values, cum_frequencies)
+    return get_value_at_shifted_quantile(quantile=cum_frequencies[index], shift=shift, values=values, cum_frequencies=cum_frequencies)
 
 
-#todo: how to save results? --> explicit statements for neighborhoods, save matrices?
 def qsm(model,  # Model to use for the evaluation
         data_set: dc.Data,  # Data to use for manipulation
         quantiles: Dict[str, float],  # Manipulation for the features (as list),
-        predict_fn: Callable,  # predictfunction to get predicted classes [ARGUMENTS : OBJECT, DATA]
+        predict_fn: Callable,  # predictfunction to get predicted classes [ARGUMENTS : OBJECT, DATA, PREDICTION_COLUMNS]
         save_changes: bool = True) -> Dict[str, pd.DataFrame]:
     """
     implementation for the quantile shift method (QSM). Dimensions of a dataset are shifted by a given quantiles. For
@@ -153,7 +165,7 @@ def run_QSM_decisionTree(dataset: dc.Data, quantiles: Dict, save_changes: bool =
     """
     runs QSM on a given Dataset, that has a trained DecisionTree
     :param dataset: the dataset to run qsm on
-    :param quantiles:  list of tuples with the name of the dimension that is to be shifted and the value the dimension
+    :param quantiles: list of tuples with the name of the dimension that is to be shifted and the value the dimension
     is to be shifted (value between 0 and 1)
     :param save_changes: determines if the changes in the dataset are to be saved
     :param trained_tree: tree that will be used to make predictions in qsm. if none is given, Tree will be loaded from
@@ -235,14 +247,17 @@ def main():
         "dim_00": 0.05,
         "dim_01": -0.2
     }
-    dataset = dc.MaybeActualDataSet.load(r"D:\Gernot\Programmieren\Bachelor\Data\220328_172240_MaybeActualDataSet")
-    run_QSM_decisionTree(dataset=dataset,
-                         quantiles=quantiles,
-                         save_changes=False)
-    visualize_QSM(base_dim="dim_00", dim_before_shift="dim_04", shift=0.1, dataset=dataset)
-    print("change matrix 04 / 01")
-    matrix = vs.get_change_matrix(dataset.data, ("org_pred_classes_QSM", "pred_with_dim_01_shifted_by_-0.2"))
-    print(matrix)
+    #dataset = dc.MaybeActualDataSet.load(r"D:\Gernot\Programmieren\Bachelor\Data\220415_111316_MaybeActualDataSet")
+    dataset = dc.MaybeActualDataSet([5, 5, 5, 5, 5])
+    cl.create_and_save_tree(dataset=dataset, visualize_tree_par=False)
+    results = run_QSM_decisionTree(dataset=dataset,
+                                   quantiles=quantiles,
+                                   save_changes=False)
+    visualize_QSM(base_dim="dim_00", dim_before_shift="dim_04", shift=0.1, dataset=dataset, save=False)
+    for dim, matrix in results.items():
+        print(dim)
+        print(matrix)
+        print("")
 
 
 def test_shift_methods():
@@ -253,7 +268,9 @@ def test_shift_methods():
     values, cum_frequencies = vs.get_cumulative_values(test_dist)
     print(f"shifted value 345 by 0.1 --> {get_shifted_value(4678, 0.1, values, cum_frequencies)}")"""
     arr = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]
-    print(binary_search(arr, 9.1))
+    values, cumulative_frequencies = vs.get_cumulative_values(arr)
+    res = get_shifted_value(2, .9, values=values, cum_frequencies=cumulative_frequencies)
+    print(res)
 
 
 
