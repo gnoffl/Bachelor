@@ -181,13 +181,12 @@ class Data(ABC):
                     f.write(par)
                     f.write("\n\n")
 
-    def save(self, save_path: str = "", notes: str = "", force_write: bool = False) -> None:
+    def save(self, save_path: str = "", notes: str = "") -> None:
         """
         creates a folder with a "description.txt" file, which contains the attributes of the object and possibly notes.
         Also, the creation date is saved.
         :param notes: notes to be saved
         :param save_path: name of folder, where the information will be saved
-        :param force_write: overwrite existing files in an already existing folder, when specifying the save_path
         """
         #update notes
         self.extend_notes_by_one_line(notes)
@@ -203,12 +202,7 @@ class Data(ABC):
             if not save_path:
                 folder_exists = True
             else:
-                files = os.listdir(path)
-                if "data.csv" in files or "description.txt" in files:
-                    if force_write:
-                        print("Warning: overwriting existing files!")
-                    else:
-                        raise CustomError("warning, overwriting existing files!")
+                print("warning, writing into existing folder!")
         if not folder_exists:
             # create new info for class
             with open(os.path.join(path, "description.txt"), "w") as f:
@@ -275,9 +269,8 @@ class Data(ABC):
         csv_out = os.path.join(path, "HiCS_output.csv")
         return csv_out
 
-
     def run_hics(self, csv_out: str = "", further_params: List[str] = None,
-                 notes: List[str] = "", silent:bool = True, csv_in: str = "") -> None:
+                 notes: List[str] = "", silent: bool = True, csv_in: str = "") -> None:
         """
         runs HiCS for the Data object. First creates Info for the object using "create_class_info" and saves the input
         for HiCS into that folder. Output of Hics is also written into that folder, unless specified otherwise.

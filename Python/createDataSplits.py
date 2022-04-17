@@ -458,7 +458,8 @@ def find_dim_to_split(dataset: dc.Data, dim_to_shift: str) -> str:
         raise dc.CustomError("dim_to_shift was not in pair!")
 
 
-def create_and_save_visualizations_for_splits(dataset, dim_to_shift, dim_to_split, split1, split2) -> None:
+def create_and_save_visualizations_for_splits(dataset: dc.Data, dim_to_shift: str, dim_to_split: str,
+                                              split1: dc.Data, split2: dc.Data) -> None:
     """
     creates pictures to visualize splits. The resulting pictures are saved at the path of the parent dataset.
     :param dataset: parent dataset
@@ -471,26 +472,23 @@ def create_and_save_visualizations_for_splits(dataset, dim_to_shift, dim_to_spli
     #create necessary folder structure
     folder_path = os.path.join(dataset.path, "pics")
     split_pics_folder = os.path.join(folder_path, "Binning")
-    final_folder = os.path.join(split_pics_folder, dim_to_shift)
     if not os.path.isdir(folder_path):
         os.mkdir(folder_path)
     if not os.path.isdir(split_pics_folder):
         os.mkdir(split_pics_folder)
-    if not os.path.isdir(final_folder):
-        os.mkdir(final_folder)
     title = dataset.path.split("\\")[-1]
 
     vs.compare_splits_2d(df0=split1.data,
                          df1=split2.data,
                          dims=(dim_to_split, dim_to_shift),
                          title=title,
-                         path=os.path.join(final_folder, "splits_2d.png"))
+                         path=os.path.join(split_pics_folder, "splits_2d.png"))
 
     vs.compare_splits_cumulative(split1.data,
                                  split2.data,
                                  dim_to_shift,
                                  title=title,
-                                 path=os.path.join(final_folder, "splits_cum.png"))
+                                 path=os.path.join(split_pics_folder, "splits_cum.png"))
 
 
 def recursive_splitting(dataset: dc.Data,
@@ -578,7 +576,6 @@ def create_binning_splits(dataset: dc.Data,
 def data_binning(dataset: dc.Data, shifts: Dict[str, float], max_split_nr: int, visualize: bool = True) -> Dict[str, str]:
     new_dict = {}
     for dim, q in shifts.items():
-        print(f"binning for dim \"{dim}\"..")
         create_binning_splits(dataset=dataset, dim_to_shift=dim, q=q, max_split_nr=max_split_nr, visualize=visualize)
         new_dict[dim] = get_new_dataset_name(dataset=dataset, suffix="", dim_to_shift=dim, q=q)
     return new_dict

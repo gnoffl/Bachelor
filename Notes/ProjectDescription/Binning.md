@@ -1,4 +1,4 @@
-# Classifier
+# Binning
 
 ## Todos
 
