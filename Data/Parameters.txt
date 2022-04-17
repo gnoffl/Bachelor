@@ -1,0 +1,20 @@
+DecisionTree:
+	max_depth
+	min_samples_leaf
+	
+
+CreateDataSplits
+	nr_processes
+	p-value for splits
+	threshold_fraction
+	max_split_nr
+
+dataCreation
+	HiCS_parameters
+	members
+
+main
+	quantiles
+
+visualization
+    number_of_bins
