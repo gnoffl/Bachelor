@@ -145,3 +145,4 @@ dmypy.json
 /Data/*
 !/Data/MaybeActualDataSet
 *.Rhistory
+!/Data/Parameters.txt
