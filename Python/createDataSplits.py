@@ -472,23 +472,26 @@ def create_and_save_visualizations_for_splits(dataset: dc.Data, dim_to_shift: st
     #create necessary folder structure
     folder_path = os.path.join(dataset.path, "pics")
     split_pics_folder = os.path.join(folder_path, "Binning")
+    final_folder = os.path.join(split_pics_folder, dim_to_shift)
     if not os.path.isdir(folder_path):
         os.mkdir(folder_path)
     if not os.path.isdir(split_pics_folder):
         os.mkdir(split_pics_folder)
+    if not os.path.isdir(final_folder):
+        os.mkdir(final_folder)
     title = dataset.path.split("\\")[-1]
 
     vs.compare_splits_2d(df0=split1.data,
                          df1=split2.data,
                          dims=(dim_to_split, dim_to_shift),
                          title=title,
-                         path=os.path.join(split_pics_folder, "splits_2d.png"))
+                         path=os.path.join(final_folder, "splits_2d.png"))
 
     vs.compare_splits_cumulative(split1.data,
                                  split2.data,
                                  dim_to_shift,
                                  title=title,
-                                 path=os.path.join(split_pics_folder, "splits_cum.png"))
+                                 path=os.path.join(final_folder, "splits_cum.png"))
 
 
 def recursive_splitting(dataset: dc.Data,

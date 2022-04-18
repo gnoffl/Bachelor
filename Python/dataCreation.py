@@ -181,12 +181,13 @@ class Data(ABC):
                     f.write(par)
                     f.write("\n\n")
 
-    def save(self, save_path: str = "", notes: str = "") -> None:
+    def save(self, save_path: str = "", notes: str = "", force_write: bool = False) -> None:
         """
         creates a folder with a "description.txt" file, which contains the attributes of the object and possibly notes.
         Also, the creation date is saved.
         :param notes: notes to be saved
         :param save_path: name of folder, where the information will be saved
+        :param force_write: overwrite existing files in an already existing folder, when specifying the save_path
         """
         #update notes
         self.extend_notes_by_one_line(notes)
@@ -202,7 +203,12 @@ class Data(ABC):
             if not save_path:
                 folder_exists = True
             else:
-                print("warning, writing into existing folder!")
+                files = os.listdir(path)
+                if "data.csv" in files or "description.txt" in files:
+                    if force_write:
+                        print("Warning: overwriting existing files!")
+                    else:
+                        raise CustomError("warning, overwriting existing files!")
         if not folder_exists:
             # create new info for class
             with open(os.path.join(path, "description.txt"), "w") as f:
