@@ -276,7 +276,8 @@ class Data(ABC):
         return csv_out
 
     def run_hics(self, csv_out: str = "", further_params: List[str] = None,
-                 notes: List[str] = "", silent: bool = True, csv_in: str = "") -> None:
+                 notes: List[str] = "", silent: bool = True, csv_in: str = "",
+                 args_as_string: str = "") -> None:
         """
         runs HiCS for the Data object. First creates Info for the object using "create_class_info" and saves the input
         for HiCS into that folder. Output of Hics is also written into that folder, unless specified otherwise.
@@ -295,9 +296,12 @@ class Data(ABC):
                 csv_out = self.create_csv_out(csv_in)
             arguments = ["--csvIn", f"{csv_in}", "--csvOut", f"{csv_out}", "--hasHeader", "true"]
             if silent:
-                arguments.extend(["-s", "true"])
+                arguments.extend(["-s"])
             params = arguments + further_params
-            HiCS.run_HiCS(params)
+            args_list = []
+            if args_as_string:
+                args_list = args_as_string.split(" ")
+            HiCS.run_HiCS(params + args_list)
             self.add_notes_for_HiCS(notes=notes, params=params)
 
 
@@ -784,8 +788,7 @@ if __name__ == "__main__":
     #MaybeActualDataSet.load("D:\\Gernot\\Programmieren\\Bachelor\\Python\\Experiments\\Data\\220131_125348_MaybeActualDataSet")
     members_ = [10 for _ in range(6)]
     data1 = MaybeActualDataSet(members_)
-    data2 = data1.clone_meta_data()
-    data2.take_new_data(data1.data)
+    data1.run_hics(silent=False, args_as_string="-s")
     #data.run_hics()
     #data = MaybeActualDataSet.load(data.path)
     #data.save()

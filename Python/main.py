@@ -1,7 +1,7 @@
 import os
 from typing import Dict, List
 import random
-
+import shutil
 import pandas as pd
 import sklearn.tree as tree
 
@@ -113,6 +113,39 @@ def recursive_QSM(curr_folder: str, curr_name: str, dim: str, q: float,
     return result_matrix
 
 
+def load_parameters():
+    path_here = os.path.dirname(__file__)
+    param_path = os.path.join(path_here, "..", "Data", "Parameters.txt")
+    parameters = {}
+    with open(param_path, "r") as f:
+        lines = f.readlines()
+        for line in lines:
+            if "	" in line:
+                line = line.strip()
+                if "=" in line:
+                    key, value = line.split("=")
+                    try:
+                        value = int(value)
+                    except ValueError:
+                        try:
+                            value = float(value)
+                        except ValueError:
+                            pass
+                    parameters[key] = value
+    return parameters, param_path
+
+
+def run_from_file(quantiles: Dict[str, float], dataset: dc.MaybeActualDataSet):
+    params, par_path = load_parameters()
+    new_par_path = os.path.join(dataset.path, "Parameters.txt")
+    shutil.copy2(par_path, new_par_path)
+    dataset.extend_notes_by_one_line("Parameters for running the comparison between methods can be found in "
+                                     "\"Parameters.txt\"")
+    dataset.end_paragraph_in_notes()
+    compare_vanilla_split(quantiles=quantiles, dataset=dataset, **params)
+
+
+
 def QSM_on_binned_data(dataset: dc.MaybeActualDataSet, quantiles: Dict[str, float],
                        start_folders: Dict[str, str], trained_tree: tree.DecisionTreeClassifier or None = None) -> None:
     """
@@ -206,7 +239,9 @@ def visualize_QSM_on_binned_data(dataset: dc.Data, shifted_dim: str, common_dim:
                         path=os.path.join(folder, "classes.png"))
 
 
-def compare_vanilla_split(quantiles: Dict[str, float], dataset: dc.MaybeActualDataSet) -> None:
+def compare_vanilla_split(quantiles: Dict[str, float], dataset: dc.MaybeActualDataSet, max_depth: int = 5,
+                          min_samples_leaf: int = 5, nr_processes: int = 4, p_value: float = 0.05,
+                          threshold_fraction: float = 0.7, max_split_nr: int = 3, HiCS_parameters: str = "") -> None:
     """
     runs QSM on the full dataset as well as the binned data. result matrices are saved as well as visualizations of the
     resulting shifted data for each approach
@@ -215,9 +250,12 @@ def compare_vanilla_split(quantiles: Dict[str, float], dataset: dc.MaybeActualDa
     :param dataset: dataset to run QSM on
     """
     print("training decision tree..")
-    trained_tree = cl.create_and_save_tree(dataset, pred_col_name="test")
+    trained_tree = cl.create_and_save_tree(dataset, pred_col_name="test", depth=max_depth,
+                                           min_samples_leaf=min_samples_leaf)
     print("start binning of data..")
-    start_folder_dict = cds.data_binning(dataset=dataset, shifts=quantiles, max_split_nr=2, visualize=True)
+    start_folder_dict = cds.data_binning(dataset=dataset, shifts=quantiles, max_split_nr=max_split_nr, visualize=True,
+                                         nr_processes=nr_processes, p_value=p_value,
+                                         threshold_fraction=threshold_fraction, HiCS_parameters=HiCS_parameters)
     print("running QSM on full dataset..")
     run_vanilla_qsm(dataset, quantiles, trained_tree)
     print("running QSM on split dataset..")
@@ -238,11 +276,10 @@ def main() -> None:
 
 
 def test():
-    dataset = dc.MaybeActualDataSet.load(r"D:\Gernot\Programmieren\Bachelor\Data\220404_210124_MaybeActualDataSet\Splits\dim_04_01")
-    visualize_QSM_on_binned_data(dataset, "dim_04")
+    run_from_file(dataset=dc.MaybeActualDataSet([1]), quantiles={})
 
 
 if __name__ == "__main__":
-    main()
-    #test()
+    #main()
+    test()
     #example_vis()

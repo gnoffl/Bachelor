@@ -247,7 +247,7 @@ def create_test_statistics(dataset: dc.Data, dim_to_shift: str, min_split_size: 
     return ks_stat
 
 
-def find_optimal_split_index(ks_stat: List[stats.stats.KstestResult]) -> int:
+def find_optimal_split_index(ks_stat: List[stats.stats.KstestResult], p_value: float = .05) -> int:
     """
     selects the index from a List with results from kolmogorov Smirnov tests. Currently only selects the value with
     the lowest p-value. If multiple values share the lowest p-value, the value with the highest D-value will be selected.
@@ -258,7 +258,7 @@ def find_optimal_split_index(ks_stat: List[stats.stats.KstestResult]) -> int:
     :return: index of best result
     """
     min_p_elem = min(ks_stat, key=lambda elem: elem[1])
-    if min_p_elem[1] > .05:
+    if min_p_elem[1] > p_value:
         #print(ks_stat)
         return -1
     cand_list = [res for res in ks_stat if res[1] == min_p_elem[1]]
@@ -267,7 +267,8 @@ def find_optimal_split_index(ks_stat: List[stats.stats.KstestResult]) -> int:
     return ks_stat.index(max(cand_list, key=lambda elem: elem[0]))
 
 
-def create_optimal_split(dataset: dc.Data, dim_to_shift: str, dim_to_split: str, min_split_size: int, q: float)\
+def create_optimal_split(dataset: dc.Data, dim_to_shift: str, dim_to_split: str, min_split_size: int, q: float,
+                        nr_processes: int = 4, p_value: float = 0.05)\
         -> Tuple[dc.Data, dc.Data] or None:
     """
     tests every possible split of the data in the dim_to_split and determines the one which results in the strongest
@@ -297,10 +298,10 @@ def create_optimal_split(dataset: dc.Data, dim_to_shift: str, dim_to_split: str,
     #calculate the differences between the splits for all allowed splits
     ks_stat = create_test_statistics_parallel(dataset=dataset, dim_to_shift=dim_to_shift,
                                               min_split_size=min_split_size, dim_to_split=dim_to_split,
-                                              ordered_data=data)
+                                              ordered_data=data, nr_processes=nr_processes)
 
     #find the index, where the difference between the split is highest
-    split_index = find_optimal_split_index(ks_stat=ks_stat)
+    split_index = find_optimal_split_index(ks_stat=ks_stat, p_value=p_value)
 
     #-1 will be returned by find_optimal_split, when no split gives significant differences
     if split_index < 0:
@@ -334,7 +335,7 @@ def convert_column_names_to_indexes(dataset: dc.Data, col_names: List[str]) -> L
     return [str(dataset.data_columns.index(col)) for col in col_names]
 
 
-def read_HiCS_results(dataset: dc.Data, dim_to_shift: str = "") -> List[Tuple[float, List[str]]]:
+def read_HiCS_results(dataset: dc.Data, dim_to_shift: str = "", HiCS_parameters: str = "") -> List[Tuple[float, List[str]]]:
     """
     parses an output file from HiCS. Returns List of spaces with their respective contrast value.
     :param dataset: Dataset for which the HiCS output was generated
@@ -346,7 +347,7 @@ def read_HiCS_results(dataset: dc.Data, dim_to_shift: str = "") -> List[Tuple[fl
     """
     spaces = []
     if "HiCS_output.csv" not in os.listdir(dataset.path):
-        dataset.run_hics(silent=True)
+        dataset.run_hics(silent=True, args_as_string=HiCS_parameters)
     if dim_to_shift:
         # HiCS results only use numbers to refer to columns of the data set, instead of using the names of the columns
         # the dimension therefore has to be converted to the number of the column
@@ -384,7 +385,7 @@ def get_HiCS(dataset: dc.Data,
              dim_to_shift: str,
              goodness_over_length: bool,
              spaces: List[Tuple[float, List[str]]] = None,
-             threshold_fraction: float = 0.7) -> List[str]:
+             threshold_fraction: float = 0.7, HiCS_parameters: str = "") -> List[str]:
     """
     finds and returns the best HiCS, that contains the dim_to_shift, for a given dataset.
     :param dataset: the dataset the HiCS is supposed to be found for.
@@ -397,7 +398,7 @@ def get_HiCS(dataset: dc.Data,
     :return: List of strings with the names of the columns that make up the selected subspace.
     """
     if not spaces:
-        spaces = read_HiCS_results(dataset, dim_to_shift)
+        spaces = read_HiCS_results(dataset, dim_to_shift, HiHiCS_parameters=HiCS_parameters)
 
     #element with the highest contrast value
     max_val_elem = max(spaces, key=lambda elem: elem[0])
@@ -427,16 +428,18 @@ def get_HiCS(dataset: dc.Data,
     return dataset.HiCS_dims
 
 
-def find_dim_to_split(dataset: dc.Data, dim_to_shift: str) -> str:
+def find_dim_to_split(dataset: dc.Data, dim_to_shift: str, threshold_fraction: float = .7, HiCS_parameters: str = "")\
+        -> str:
     """
     selects the dimension that is most suited for splitting from the dataset.
     :param dataset: the dataset to select the dimension from
     :param dim_to_shift: name of the dimension to be shifted
     :return: name of the dimension to be split
     """
-    spaces = read_HiCS_results(dataset=dataset, dim_to_shift=dim_to_shift)
+    spaces = read_HiCS_results(dataset=dataset, dim_to_shift=dim_to_shift, HiCS_parameters=HiCS_parameters)
 
-    hics_dims = get_HiCS(dataset=dataset, dim_to_shift=dim_to_shift, goodness_over_length=True, spaces=spaces)
+    hics_dims = get_HiCS(dataset=dataset, dim_to_shift=dim_to_shift, goodness_over_length=True, spaces=spaces,
+                         threshold_fraction=threshold_fraction)
     #excluding the dim_to_shift
     hics_dims = [dim for dim in hics_dims if dim != dim_to_shift]
     hics_dims = convert_column_names_to_indexes(dataset, hics_dims)
@@ -499,7 +502,12 @@ def recursive_splitting(dataset: dc.Data,
                         min_split_size: int,
                         remaining_splits: int,
                         q: float,
-                        visualize: bool = True) -> None:
+                        visualize: bool = True,
+                        nr_processes: int = 4,
+                        p_value: float = 0.05,
+                        threshold_fraction: float = 0.7,
+                        HiCS_parameters: str = ""
+                        ) -> None:
     """
     recursively splits a dataset in subsets.
     :param dataset: dataset to be split
@@ -518,14 +526,17 @@ def recursive_splitting(dataset: dc.Data,
     dataset.buffer_note(f"remaining_splits = {remaining_splits}")
     dataset.buffer_note(f"visualize = {visualize}")
     if remaining_splits > 0:
-        dim_to_split = find_dim_to_split(dataset=dataset, dim_to_shift=dim_to_shift)
+        dim_to_split = find_dim_to_split(dataset=dataset, dim_to_shift=dim_to_shift,
+                                         threshold_fraction=threshold_fraction, HiCS_parameters=HiCS_parameters)
 
         # if criteria for split are not met, None will be returned
         result = create_optimal_split(dataset=dataset,
                                       dim_to_shift=dim_to_shift,
                                       dim_to_split=dim_to_split,
                                       min_split_size=min_split_size,
-                                      q=q)
+                                      q=q,
+                                      nr_processes=nr_processes,
+                                      p_value=p_value)
 
         #only proceed, if result actually contains new datasets
         if result:
@@ -560,7 +571,12 @@ def create_binning_splits(dataset: dc.Data,
                           dim_to_shift: str,
                           q: float,
                           max_split_nr: int,
-                          visualize: bool = True) -> None:
+                          visualize: bool = True,
+                          nr_processes: int = 4,
+                          p_value: float = 0.05,
+                          threshold_fraction: float = 0.7,
+                          HiCS_parameters: str = ""
+                          ) -> None:
     """
     wrapper to start recursive splitting of the data
     :param dataset: dataset to be split
@@ -573,13 +589,18 @@ def create_binning_splits(dataset: dc.Data,
     """
     min_split_size = max(int(abs(len(dataset.data) * q)), 1)
     recursive_splitting(dataset=dataset, dim_to_shift=dim_to_shift, min_split_size=min_split_size,
-                        remaining_splits=max_split_nr, visualize=visualize, q=q)
+                        remaining_splits=max_split_nr, visualize=visualize, q=q, nr_processes=nr_processes,
+                        p_value=p_value, threshold_fraction=threshold_fraction, HiCS_parameters=HiCS_parameters)
 
 
-def data_binning(dataset: dc.Data, shifts: Dict[str, float], max_split_nr: int, visualize: bool = True) -> Dict[str, str]:
+def data_binning(dataset: dc.Data, shifts: Dict[str, float], max_split_nr: int, visualize: bool = True,
+                 nr_processes: int = 4, p_value: float = 0.05, threshold_fraction: float = 0.7,
+                          HiCS_parameters: str = "") -> Dict[str, str]:
     new_dict = {}
     for dim, q in shifts.items():
-        create_binning_splits(dataset=dataset, dim_to_shift=dim, q=q, max_split_nr=max_split_nr, visualize=visualize)
+        create_binning_splits(dataset=dataset, dim_to_shift=dim, q=q, max_split_nr=max_split_nr, visualize=visualize,
+                              nr_processes=nr_processes, p_value=p_value, threshold_fraction=threshold_fraction,
+                              HiCS_parameters=HiCS_parameters)
         new_dict[dim] = get_new_dataset_name(dataset=dataset, suffix="", dim_to_shift=dim, q=q)
     return new_dict
 

@@ -157,7 +157,7 @@ def visualize(dataset: dc.Data, trained_tree: tree.DecisionTreeClassifier, pred_
     visualize_tree(dataset, trained_tree, tree_pics_path)
 
 
-def run() -> None:
+def test() -> None:
     """
     runs the training process and visualizes results
     """
@@ -173,7 +173,7 @@ def run() -> None:
 
 
 if __name__ == "__main__":
-    run()
+    test()
     """members_ = [1000 for _ in range(6)]
     set_ = dc.MaybeActualDataSet(members_)
     set_.run_hics()

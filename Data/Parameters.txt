@@ -1,20 +1,20 @@
 DecisionTree:
-	max_depth
-	min_samples_leaf
+	max_depth=5
+	min_samples_leaf=5
 	
 
-CreateDataSplits
-	nr_processes
-	p-value for splits
-	threshold_fraction
-	max_split_nr
+CreateDataSplits:
+	nr_processes=4
+	p_value=0.05
+	threshold_fraction=0.7
+	max_split_nr=3
 
-dataCreation
-	HiCS_parameters
+dataCreation:
+	HiCS_parameters=
 	members
 
-main
+main:
 	quantiles
 
-visualization
+visualization:
     number_of_bins
