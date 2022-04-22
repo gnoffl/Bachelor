@@ -103,8 +103,8 @@ def recursive_QSM(curr_folder: str, curr_name: str, dim: str, q: float,
         pass
     elif count == 0:
         #if no further splits are present, end recursion (do QSM, save resulting dataset and result matrix)
-        result_matrix = recursion_end(curr_folder=curr_folder, dim=dim, q=q,
-                             subspace_list=subspace_list, trained_tree=trained_tree)
+        result_matrix = recursion_end(curr_folder=curr_folder, dim=dim, q=q, subspace_list=subspace_list,
+                                      trained_tree=trained_tree)
     else:
         raise dc.CustomError(f"{count} number of splits detected! Should be either 0 or 2!")
 
@@ -150,7 +150,8 @@ def run_from_file(quantiles: Dict[str, float], dataset: dc.MaybeActualDataSet):
 
 
 def QSM_on_binned_data(dataset: dc.MaybeActualDataSet, quantiles: Dict[str, float],
-                       start_folders: Dict[str, str], trained_tree: tree.DecisionTreeClassifier or None = None) -> None:
+                       start_folders: Dict[str, str], trained_tree: tree.DecisionTreeClassifier or None = None)\
+        -> pd.DataFrame:
     """
     runs recursive_QSM on the dataset for each dim/quantile pair in quantiles. The shifted splits will be combined into
     a full dataset, that is saved in the "Splits" folder of the dataset
@@ -159,11 +160,12 @@ def QSM_on_binned_data(dataset: dc.MaybeActualDataSet, quantiles: Dict[str, floa
     be shifted in the key-dimension
     :param start_folders: Dictionary with dimensions as keys and the path to a folder containing split datasets.
     :param trained_tree: tree to do predictions on the data in QSM
+    :return: result matrix of the QSM on the binned dataset
     """
     for dim, q in quantiles.items():
         start_folder = start_folders[dim]
         #subspace_list will contain a dataframe for each dataset that is not split further. Combining these Dataframes
-        # will yield a dataframe containing all the original data points, after shifting them seperately in their splits
+        # will yield a dataframe containing all the original data points, after shifting them separately in their splits
         subspace_list = []
         #start recursion
         result_matrix = recursive_QSM(curr_folder=start_folder, curr_name="", dim=dim, q=q,
@@ -172,13 +174,15 @@ def QSM_on_binned_data(dataset: dc.MaybeActualDataSet, quantiles: Dict[str, floa
         full_data = pd.concat(subspace_list)
         full_dataset = dc.MaybeActualDataSet.clone_meta_data(dataset)
         full_dataset.take_new_data(full_data)
-        full_dataset.extend_notes_by_one_line("this dataset contains the full data, that was shifted in binned subsets.")
+        full_dataset.extend_notes_by_one_line("this dataset contains the full data, that was shifted "
+                                              "in binned subsets.")
         full_dataset.extend_notes_by_one_line(f"Dimension {dim} was shifted by {q}.")
         full_dataset.end_paragraph_in_notes()
         full_dataset.save(start_folder)
 
         os.rename("local_change_matrix.csv", "binning_result_matrix.csv")
         visualize_QSM_on_binned_data(full_dataset, dim)
+        return result_matrix
 
 
 def run_vanilla_qsm(dataset: dc.Data, quantiles: Dict[str, float],
@@ -190,10 +194,8 @@ def run_vanilla_qsm(dataset: dc.Data, quantiles: Dict[str, float],
     be shifted in the key-dimension
     :param trained_tree: tree to do predictions on the data in QSM
     """
-    results = QSM.run_QSM_decisionTree(dataset=dataset,
-                             quantiles=quantiles,
-                             save_changes=True,
-                             trained_tree=trained_tree)
+    results = QSM.run_QSM_decisionTree(dataset=dataset, quantiles=quantiles, save_changes=True,
+                                       trained_tree=trained_tree)
     for dim, q in quantiles.items():
         #visualization
         if dim != "dim_04":
@@ -244,21 +246,31 @@ def visualize_QSM_on_binned_data(dataset: dc.Data, shifted_dim: str, common_dim:
 
 def compare_vanilla_split(quantiles: Dict[str, float], dataset: dc.MaybeActualDataSet, max_depth: int = 5,
                           min_samples_leaf: int = 5, nr_processes: int = 4, p_value: float = 0.05,
-                          threshold_fraction: float = 0.7, max_split_nr: int = 3, HiCS_parameters: str = "",
-                          goodness_over_length: bool = True) -> None:
+                          goodness_over_length: bool = True, threshold_fraction: float = 0.7,
+                          max_split_nr: int = 3, HiCS_parameters: str = "") -> None:
     """
     runs QSM on the full dataset as well as the binned data. result matrices are saved as well as visualizations of the
     resulting shifted data for each approach
     :param quantiles: Dictionary with dimensions as key and a corresponding quantile, by which the data is supposed to
     be shifted in the key-dimension
     :param dataset: dataset to run QSM on
+    :param max_depth: max depth of the decision tree
+    :param min_samples_leaf: minimum samples per leaf in the decision tree
+    :param nr_processes: determines the number of processes that are used to calculate the ks statistics
+    :param p_value: if the best split has a p-value higher than this, the dataset will not be split further
+    :param goodness_over_length: determines how the best HiCS is selected. If True, the subspace with the highest
+    contrast will be selected. If False, the number of dimensions will also play a role. (For details see get_HiCS)
+    :param threshold_fraction: determines the cutoff contrast value for "long" subspaces
+    :param max_split_nr: max count of further splits (max count of splits in general when manually calling the
+    function)
+    :param HiCS_parameters: further parameters to be added to HiCS
     """
     print("training decision tree..")
     trained_tree = cl.create_and_save_tree(dataset, pred_col_name="test", depth=max_depth,
                                            min_samples_leaf=min_samples_leaf)
     print("start binning of data..")
     start_folder_dict = cds.data_binning(dataset=dataset, shifts=quantiles, max_split_nr=max_split_nr, visualize=True,
-                                         nr_processes=nr_processes, p_value=p_value,
+                                         nr_processes=nr_processes, max_p_for_split=p_value,
                                          threshold_fraction=threshold_fraction, HiCS_parameters=HiCS_parameters,
                                          goodness_over_length=goodness_over_length)
     print("running QSM on full dataset..")
