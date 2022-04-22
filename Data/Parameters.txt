@@ -5,9 +5,10 @@ DecisionTree:
 
 CreateDataSplits:
 	nr_processes=4
-	p_value=0.05
-	threshold_fraction=0.7
+	p_value=.05
+	threshold_fraction=.7
 	max_split_nr=3
+	goodness_over_length=True
 
 dataCreation:
 	HiCS_parameters=

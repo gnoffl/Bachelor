@@ -14,8 +14,4 @@ def main(test_frame: pd.DataFrame):
 
 
 if __name__ == "__main__":
-    try:
-        i = int(12)
-        print("worked")
-    except ValueError:
-        print("failed")
+    print(bool(""))
