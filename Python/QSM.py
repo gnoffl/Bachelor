@@ -63,12 +63,13 @@ def linear_interpolation(x0: float, x1: float, y0: float, y1: float, x: float) -
     return m * x + b
 
 
-def get_value_at_shifted_quantile(quantile: float, shift: float, values: List[float], cum_frequencies: List[float]) -> float:
+def get_value_at_shifted_quantile(quantile: float, shift: float, values: List[float], cum_frequencies: List[float])\
+        -> float:
     """
-    Calculates the value of a distribution at a given quantile. The distribution is given in the form of two lists, which
-    contain all "measured" values, as well as their cumulative relative frequency. If the quantile, that is to be calculated
-    is not in the cumulative frequencies, the corresponding value will be interpolated assuming a linear dependence between
-    the next smaller and next larger value
+    Calculates the value of a distribution at a given quantile. The distribution is given in the form of two lists,
+    which contain all "measured" values, as well as their cumulative relative frequency. If the quantile, that is to be
+    calculated is not in the cumulative frequencies, the corresponding value will be interpolated assuming a linear
+    dependence between the next smaller and next larger value
     :param quantile: Original Quantile of the value
     :param shift: quantile the value is supposed to be shifted
     :param values: Ascendingly sorted list of all distinct values in the relevant dimension.
@@ -112,7 +113,8 @@ def get_shifted_value(value_to_shift: float, shift: float, values: List[float], 
     if len(indexes) != 1:
         raise dc.CustomError("Didnt find the value you were looking for!")
     index = indexes[0]
-    return get_value_at_shifted_quantile(quantile=cum_frequencies[index], shift=shift, values=values, cum_frequencies=cum_frequencies)
+    return get_value_at_shifted_quantile(quantile=cum_frequencies[index], shift=shift, values=values,
+                                         cum_frequencies=cum_frequencies)
 
 
 def qsm(model,  # Model to use for the evaluation
@@ -153,7 +155,9 @@ def qsm(model,  # Model to use for the evaluation
                                                                          cum_frequencies=cumulative_frequencies))
         new_class_name = f"pred_with_{new_dim_name}"
         data[new_class_name] = predict_fn(model, data, prediction_dims)
-        data_set.extend_notes_by_one_line(f"shifted column \"{dim}\" by {str(shift)}. Shifted column is \"{new_dim_name}\", corresponding predictions are in column \"{new_class_name}\"")
+        data_set.extend_notes_by_one_line(f"shifted column \"{dim}\" by {str(shift)}. Shifted column is "
+                                          f"\"{new_dim_name}\", corresponding predictions are in column "
+                                          f"\"{new_class_name}\"")
         results[dim] = vs.get_change_matrix(data, ("org_pred_classes_QSM", new_class_name))
     if save_changes:
         data_set.save()
@@ -209,7 +213,8 @@ def run_QSM_decisionTree(dataset: dc.Data, quantiles: Dict, save_changes: bool =
         values = values[prediction_dims]
         return trained_tree_.predict(values)
 
-    return qsm(model=trained_tree, data_set=dataset, quantiles=quantiles, predict_fn=predict_fn, save_changes=save_changes)
+    return qsm(model=trained_tree, data_set=dataset, quantiles=quantiles, predict_fn=predict_fn,
+               save_changes=save_changes)
 
 
 def visualize_QSM(base_dim: str, dim_before_shift: str, shift: float, data_path: str = "",
