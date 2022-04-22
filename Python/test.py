@@ -1,5 +1,6 @@
 import os.path
 import re
+import math
 
 import pandas as pd
 import dataCreation as dc
@@ -14,4 +15,7 @@ def main(test_frame: pd.DataFrame):
 
 
 if __name__ == "__main__":
-    print(bool(""))
+    length = 100
+    q = 0.119
+    min_split_size = max(int(abs(length * q)), 1)
+    print(type(math.ceil(0.11)))

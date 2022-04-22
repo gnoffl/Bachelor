@@ -5,6 +5,7 @@ import subprocess
 import classifier as cl
 import pandas as pd
 import concurrent.futures
+import math
 
 import dataCreation as dc
 import os
@@ -603,7 +604,7 @@ def data_binning(dataset: dc.Data, shifts: Dict[str, float], max_split_nr: int, 
     """
     new_dict = {}
     for dim, q in shifts.items():
-        min_split_size = max(int(abs(len(dataset.data) * q)), 1)
+        min_split_size = max(math.ceil(abs(len(dataset.data) * q)), 1)
         recursive_splitting(dataset=dataset, dim_to_shift=dim, min_split_size=min_split_size,
                             remaining_splits=max_split_nr, visualize=visualize, q=q, nr_processes=nr_processes,
                             max_p_for_split=max_p_for_split, threshold_fraction=threshold_fraction,
