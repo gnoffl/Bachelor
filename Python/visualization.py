@@ -24,7 +24,8 @@ colors = [(0, 0, 1, 0.9),
           ]
 
 
-def calculate_visualized_area(x_axis: List[float] or np.ndarray, y_axis: List[float] or np.ndarray) -> Tuple[float, float, float, float]:
+def calculate_visualized_area(x_axis: List[float] or np.ndarray, y_axis: List[float] or np.ndarray)\
+        -> Tuple[float, float, float, float]:
     """
     takes the values for 2 axes as input, and calculates the min and max for each dimension + a small padding, to use as
     limits for the dimensions during visualization
@@ -165,7 +166,8 @@ def compare_shift_2d(df: pd.DataFrame,
     :param class_columns: column names of the predicted classification of the data before and after the shift
     :param titles: titles for the created graphs. titles will be the name of the shifted column before and after shift,
     if this argument is omitted
-    :param path: path where graphics should be saved. Graphics will only be shown, not saved, if this argument is omitted
+    :param path: path where graphics should be saved. Graphics will only be shown, not saved, if this argument is
+    omitted
     """
     x_axis_min, x_axis_max, y_axis_min, y_axis_max = find_common_area(df[common_dim].values,
                                                                       df[dims_to_compare[0]].values,
@@ -185,8 +187,10 @@ def compare_shift_2d(df: pd.DataFrame,
         actual_path_0 = f"{actual_path}_0.png"
         actual_path_1 = f"{actual_path}_1.png"
 
-        visualize_2d(df=df, dims=(common_dim, dims_to_compare[0]), class_column=class_column_0, title=title_0, path=actual_path_0, visualized_area=visualized_area)
-        visualize_2d(df=df, dims=(common_dim, dims_to_compare[1]), class_column=class_column_1, title=title_1, path=actual_path_1, visualized_area=visualized_area)
+        visualize_2d(df=df, dims=(common_dim, dims_to_compare[0]), class_column=class_column_0, title=title_0,
+                     path=actual_path_0, visualized_area=visualized_area)
+        visualize_2d(df=df, dims=(common_dim, dims_to_compare[1]), class_column=class_column_1, title=title_1,
+                     path=actual_path_1, visualized_area=visualized_area)
     else:
         visualize_2d(df=df, dims=(common_dim, dims_to_compare[0]), class_column=class_column_0, title=title_0,
                      path=path, visualized_area=visualized_area)
@@ -255,7 +259,8 @@ def clear_temp(path_to_temp) -> None:
     removes files from given folder
     :param path_to_temp: path to folder
     """
-    files = [os.path.join(path_to_temp, file) for file in os.listdir(path_to_temp) if os.path.isfile(os.path.join(path_to_temp, file))]
+    files = [os.path.join(path_to_temp, file) for file in os.listdir(path_to_temp) if
+             os.path.isfile(os.path.join(path_to_temp, file))]
     for file in files:
         os.remove(file)
 
@@ -370,11 +375,11 @@ def get_cumulative_values(array: List[float]) -> Tuple[List[float], List[float]]
 
 def apply_constraints(constraints: Dict[str, List[Tuple[bool, float]]], df: pd.DataFrame) -> pd.DataFrame:
     """
-    applies constraints to a dataframe. Mins and Maxs for multiple dimensions can be used to limit the data that is shown.
-    Does change the given Dataframe
-    :param constraints: possible constraints for the data. The keys are columns of df, for which the constraints are to be applied.
-    For each key, a list of Tuples can be supplied. Within the Tuple, the bool value determines, if the int-value will be interpreted
-    as a maximum or a minimum value (True --> max, False --> min)
+    applies constraints to a dataframe. Mins and Maxs for multiple dimensions can be used to limit the data that is
+    shown. Does change the given Dataframe
+    :param constraints: possible constraints for the data. The keys are columns of df, for which the constraints are to
+    be applied. For each key, a list of Tuples can be supplied. Within the Tuple, the bool value determines, if the
+    int-value will be interpreted as a maximum or a minimum value (True --> max, False --> min)
     :param df: the dataframe the constraints are applied to
     :return: the changed dataframe
     """
@@ -398,10 +403,11 @@ def create_cumulative_plot(df: pd.DataFrame,
     plots 1d cumulative plot of data from df in direction of dim under the given constraints
     :param df: Data to be plotted
     :param dim: Dimension, along which the plot will be created
-    :param constraints: possible constraints for the data. The keys are columns of df, for which the constraints are to be applied.
-    For each key, a list of Tuples can be supplied. Within the Tuple, the bool value determines, if the int-value will be interpreted
-    as a maximum or a minimum value (True --> max, False --> min)
-    :param path_name: if given, the plot will be saved at this location (starting from Bachelor/DataCreation/). Plot will only be saved, not shown.
+    :param constraints: possible constraints for the data. The keys are columns of df, for which the constraints are to
+    be applied. For each key, a list of Tuples can be supplied. Within the Tuple, the bool value determines, if the
+    int-value will be interpreted as a maximum or a minimum value (True --> max, False --> min)
+    :param path_name: if given, the plot will be saved at this location (starting from Bachelor/DataCreation/). Plot
+    will only be saved, not shown.
     :param x_axis_label: Optional label for the x_axis. If omitted, label will be dim
     :param title: Title for the plot
     """
@@ -564,14 +570,13 @@ def get_change_matrix(data: pd.DataFrame, dims: Tuple[str, str]) -> pd.DataFrame
     """
     returns a matrix showing the migration between classes.
     :param data: data
-    :param dims: names of columns that represent dirrent classifications of the data
+    :param dims: names of columns that represent different classifications of the data
     :return: Migration Matrix
     """
     col1, col2 = dims
     present_classes = set(data[col1].values)
     present_classes = present_classes.union(set(data[col2].values))
     index = []
-    res_matrix = pd.DataFrame
 
     # initialize dictionary
     data_dict = {}
@@ -583,7 +588,7 @@ def get_change_matrix(data: pd.DataFrame, dims: Tuple[str, str]) -> pd.DataFrame
         #filter data for their value in first col
         original_class_data = data.loc[data[col1] == org_class]
         for new_class in present_classes:
-            #count occurences of the classes in the 2. column
+            #count occurrences of the classes in the 2. column
             count = original_class_data.loc[original_class_data[col2] == new_class].count()[col1]
             data_dict[new_class].append(count)
     res_matrix = pd.DataFrame(data_dict, index=index)
