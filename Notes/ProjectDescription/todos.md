@@ -15,15 +15,16 @@
 
 ## Logical progress
 
-* [ ] finish implementation __QSM__ (--> todos QSM.md)
-* [ ] remaining todos from Binning.md
-* [ ] plan progress for whole thesis
-* [ ] extract all tuning parameters into one file -> think about values
-* [ ] think about HiCS Parameters (read HiCS paper again)
-* [ ] iris Dataset
-* [ ] Soccer Dataset
-* [ ] NN classifier for Soccer
-* [ ] check all (optional) todos
+* [ ] add missing Documentation and notes                         1/2 day ()
+* [ ] remaining todos from Binning.md                             1 day   (-24.04.)
+* [ ] iris Dataset                                                5 days  (-01.05.)
+* [ ] Soccer Dataset                                              5 days  (-08.05.)
+* [ ] NN classifier for Soccer                                    5 days  (-15.05.)
+* [ ] optimize parameters                                         3 days  
+* [ ] think about HiCS Parameters (read HiCS paper again)         1 day
+* [ ] check all (optional) todos                                  2 days  (-22.05.)
+* [ ] Experiments                                                 ?
+* [ ] write thesis                                                5,5 - ? weeks (-01.07.)
 
 
 
@@ -43,3 +44,6 @@ needed)
 class_05 with any other class in dim_04)
 * [x] add some outputs, so a sense of progression is given
 * [x] implement execution of QSM on subsets of a given dataset
+* [x] finish implementation __QSM__ (--> todos QSM.md)
+* [x] extract all tuning parameters into one file
+* [x] plan progress for whole thesis

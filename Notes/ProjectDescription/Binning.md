@@ -8,10 +8,6 @@
 
 * [ ] Vernünftigen Tie-Breaker für ks-Werte mit gleichem p-Wert (spez. p=0) finden
 * [ ] min_split_size muss immer aufgerundet werden
-* [ ] Wert für p finden, bei dem kein split mehr gemacht wird
-* [ ] Wenn große Subspaces bevorzugt werden sollen: aktuell muss der längste Subspace 70% des
-Werts vom besten HiCS haben. Diese Zahl ist abstrakt gewählt und sollte überdacht werden. Wie genau
-werden die 70% definiert?
 
 #### Dokumentation
 

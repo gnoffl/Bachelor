@@ -18,12 +18,6 @@ rücken
 
 ### Optional Todos
 * [ ] Laden und Speichern mit pickle oder json oder so implementieren
-* [ ] Code für sekundäre Klassen kommentieren
-* [ ] **GeometricUniformData:** Dichte in Überschneidungsbereichen ist nicht konstant
-* [ ] **SimpleCorrelationData:** nicht die unverrauschten Originaldaten als Dimension benutzen,
-    sondern mit Originaldaten rechnen, aber nur verrauschte Dimensionen in Datensatz verwenden
-* [ ] **SimpleCorrelationData:** überlegen, ob die Dimensionen so gleichverteilt sind, oder ob auf polarkoordinaten
-gewechselt werden sollte (bei der Kreisvariante)
 
 
 ## Notizen

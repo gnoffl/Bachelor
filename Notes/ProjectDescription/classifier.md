@@ -9,14 +9,13 @@
 * [x] Implementierung der Datenklassen zu speichern und laden benutzen
 * [x] DicisionTrees speichern
 * [x] Änderungen hier notieren
-* [ ] __run__ methode finalisieren
+
+### Optional Todos
 * [ ] Trainingprozess anpassen 
     * [ ] Prediction alleine ist nicht sinnvoll
     * [ ] Trainieren sollte im Mittelpunkt stehen
     * [ ] Notizen müssen entsprechend angepasst werden
-
-### Optional Todos
-_Bisher keine optionalen Todos vorhanden._
+* [ ] Parameter für DecisionTree optimieren
 
 ## Notizen
 In diesem Skript wird ein DecisionTree auf den gegebenen Daten trainiert. Aktuell
