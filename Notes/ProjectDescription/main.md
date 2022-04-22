@@ -12,7 +12,7 @@ nothing atm
 * [x] Typing für Methoden einhalten
 * [x] Code kommentieren
 * [x] Dokumentation erstellen
-* [ ] Notizen erstellen
+* [x] Notizen erstellen
 * [x] Todos hier Füllen!
 * [x] Änderungsbereich einfügen
 * [x] run QSM on binned data
@@ -41,3 +41,10 @@ lässt. Die Ergebnisse werden alle Visualisiert, und die Ergebnisse gespeichert.
 
 
 ## Änderungen
+
+### run_from_file (21.04.22)
+Die Funktion _run_from_file_ gibt die Möglichkeit, alle Parameter, die in einem Durchlauf genutzt
+werden, aus einer Datei zu laden. Somit sind alle Parameter zentral zu steuern. Ausgenommen davon sind
+der Datensatz sowie die Dimension mit ihren shifts. Eine Kopie der Datei mit den Parametern wird in
+dem Ordner des Datensatzes abgelegt, sodass eine spätere Änderung der Datei die Daten nicht
+verschwinden lässt.

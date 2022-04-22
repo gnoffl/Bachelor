@@ -7,7 +7,6 @@
 #### Inhaltliche Änderungen
 
 * [ ] Vernünftigen Tie-Breaker für ks-Werte mit gleichem p-Wert (spez. p=0) finden
-* [ ] min_split_size muss immer aufgerundet werden
 
 #### Dokumentation
 
@@ -33,6 +32,7 @@
 * [x] test if datasets actually only have the data they are supposed to
 * [x] Code beschleunigen (dauert bei 1000 punkten pro Klasse viel zu lange, fühlt sich nicht
 nach linearem wachstum an)
+* [x] min_split_size muss immer aufgerundet werden
 
 ### Optional Todos
 * [ ] Suche nach bestem HiCS optimieren, indem nicht max-funktion auf dem sortierten HiCS-output
