@@ -1,11 +1,10 @@
 from __future__ import annotations
-from typing import List, Tuple, Dict
+from typing import List, Dict
 
 import sklearn.tree as tree
 
-import Python.visualization as vs
 import HiCS
-
+import visualization as vs
 import datetime
 import pandas as pd
 from abc import ABC, abstractmethod
@@ -35,9 +34,11 @@ def add_gaussian_noise(data: pd.Series, sd: float) -> pd.Series:
 
 def add_random_dims(data: pd.DataFrame, dim_names: List[str]) -> None:
     """
-    Adds new columns to the data containing uniformly distributed random values in a random range between -1000 and 1000.
+    Adds new columns to the data containing uniformly distributed random values in a random range between -1000 and
+    1000.
     :param data: The dataframe the new columns will be appended to
-    :param dim_names: The names of the columns to be generated. Length of dim_names determines how many new columns will be created
+    :param dim_names: The names of the columns to be generated. Length of dim_names determines how many new columns will
+    be created
     """
     length = len(data)
     for name in dim_names:
@@ -223,7 +224,8 @@ class Data(ABC):
         """
         Saves the "data" attribute without the "classes" column as a csv file in the folder for the description of the
         object or at a given path.
-        :param path: Path to a location where the csv is supposed to be saved, if not in the folder describing the object
+        :param path: Path to a location where the csv is supposed to be saved, if not in the folder describing the
+        object
         :return: the path to the file
         """
         if not path:
@@ -240,8 +242,8 @@ class Data(ABC):
 
     def add_notes_for_HiCS(self, notes: List[str], params: List[str]) -> None:
         """
-        adds notes for HiCS to a dataset object, depending on the parameters given for HiCS as well as possible additional
-        notes
+        adds notes for HiCS to a dataset object, depending on the parameters given for HiCS as well as possible
+        additional notes
         :param notes: additional notes to be saved
         :param params: parameters for HiCS
         """
@@ -275,14 +277,15 @@ class Data(ABC):
         csv_out = os.path.join(path, "HiCS_output.csv")
         return csv_out
 
-    def run_hics(self, csv_out: str = "", further_params: List[str] = None,
-                 notes: List[str] = "", silent: bool = True, csv_in: str = "",
-                 args_as_string: str = "") -> None:
+    def run_hics(self, csv_out: str = "", further_params: List[str] = None, args_as_string: str = "",
+                 notes: List[str] = "", silent: bool = True, csv_in: str = "") -> None:
         """
         runs HiCS for the Data object. First creates Info for the object using "create_class_info" and saves the input
         for HiCS into that folder. Output of Hics is also written into that folder, unless specified otherwise.
         :param csv_out: location and file name for output
         :param further_params: parameters for HiCS
+        :param args_as_string: parameters for HiCS, but as a single string instead of a list of strings (will be split
+        at spaces (" ")).
         :param notes: notes to be saved in the description of the Data set
         :param silent: determines whether HiCS generates progress information, which will be printed to the console
         :param csv_in: possible path to a file with input data for HiCS. If not given the Data will be generated
@@ -313,12 +316,12 @@ class MaybeActualDataSet(Data):
     For "dim_04" the values represent the low, middle and high values for the triangular random distribution
     """
     class_params = [
-        {"dim_00": (0,   0.8), "dim_01": (0,   0.8), "dim_02": (0,  0.8), "dim_03": (0,   0.8), "dim_04": (0,   1,   2)},
-        {"dim_00": (1.5, 0.8), "dim_01": (1.5, 0.8), "dim_02": (0,  0.8), "dim_03": (0,   0.8), "dim_04": (1,   2,   3)},
-        {"dim_00": (1.5, 0.8), "dim_01": (1.5, 0.8), "dim_02": (0,  0.8), "dim_03": (0,   0.8), "dim_04": (5,   6,   7)},
-        {"dim_00": (.5,  0.8), "dim_01": (0,   0.8), "dim_02": (2,  0.8), "dim_03": (0,   0.8), "dim_04": (5,   6,   7)},
-        {"dim_00": (-.5, 0.8), "dim_01": (1.5, 0.8), "dim_02": (1,  0.8), "dim_03": (1.5, 0.8), "dim_04": (5,   6,   7)},
-        {"dim_00": (-2,  0.8), "dim_01": (-2,  0.8), "dim_02": (-2, 0.8), "dim_03": (-2,  0.8), "dim_04": (3,   4,   5)}
+        {"dim_00": (0,   0.8), "dim_01": (0,   0.8), "dim_02": (0,  0.8), "dim_03": (0,   0.8), "dim_04": (0, 1, 2)},
+        {"dim_00": (1.5, 0.8), "dim_01": (1.5, 0.8), "dim_02": (0,  0.8), "dim_03": (0,   0.8), "dim_04": (1, 2, 3)},
+        {"dim_00": (1.5, 0.8), "dim_01": (1.5, 0.8), "dim_02": (0,  0.8), "dim_03": (0,   0.8), "dim_04": (5, 6, 7)},
+        {"dim_00": (.5,  0.8), "dim_01": (0,   0.8), "dim_02": (2,  0.8), "dim_03": (0,   0.8), "dim_04": (5, 6, 7)},
+        {"dim_00": (-.5, 0.8), "dim_01": (1.5, 0.8), "dim_02": (1,  0.8), "dim_03": (1.5, 0.8), "dim_04": (5, 6, 7)},
+        {"dim_00": (-2,  0.8), "dim_01": (-2,  0.8), "dim_02": (-2, 0.8), "dim_03": (-2,  0.8), "dim_04": (3, 4, 5)}
     ]
 
     parameters: Dict
@@ -522,7 +525,8 @@ class MaybeActualDataSet(Data):
 
 
 if __name__ == "__main__":
-    #MaybeActualDataSet.load("D:\\Gernot\\Programmieren\\Bachelor\\Python\\Experiments\\Data\\220131_125348_MaybeActualDataSet")
+    #MaybeActualDataSet.load(r"D:\Gernot\Programmieren\Bachelor\Python\
+    #Experiments\Data\220131_125348_MaybeActualDataSet")
     members_ = [10 for _ in range(6)]
     data1 = MaybeActualDataSet(members_)
     data1.run_hics(silent=False, args_as_string="-s")
@@ -543,8 +547,11 @@ if __name__ == "__main__":
     #vs.create_cumulative_plot(df["dim_00"].values)
     #vs.create_cumulative_plot(df, dim="dim_04", title="no constraints")
     #vs.create_cumulative_plot(df, dim="dim_04",
-    #                                     constraints={"dim_00": [(False, -.5), (True, 3.5)], "dim_01": [(False, -.5), (True, 3.5)], "dim_02": [(False, -2), (True, 2)], "dim_03": [(False, -2), (True, 2)]},
-    #                                     title="with constraints")
+    #                          constraints={"dim_00": [(False, -.5), (True, 3.5)],
+    #                                       "dim_01": [(False, -.5), (True, 3.5)],
+    #                                       "dim_02": [(False, -2), (True, 2)],
+    #                                       "dim_03": [(False, -2), (True, 2)]},
+    #                          title="with constraints")
     #vs.create_hist(df["dim_00"])
     #vs.create_hist(df["dim_04"])
     #vs.visualize_2d(df, ("dim_00", "dim_01"), class_column="classes")
