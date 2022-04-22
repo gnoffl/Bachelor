@@ -99,8 +99,10 @@ def split_dataset(data: pd.DataFrame, dataset: dc.Data, dim_to_split: str,
     data2 = data.iloc[split_index:, :]
 
     #naming of the datasets just takes the name of the parent dataset and appends "_0" or "_1"
-    dataset1 = dataset.clone_meta_data(get_new_dataset_name(dataset=dataset, suffix="0", dim_to_shift=dim_to_shift, q=q))
-    dataset2 = dataset.clone_meta_data(get_new_dataset_name(dataset=dataset, suffix="1", dim_to_shift=dim_to_shift, q=q))
+    dataset1 = dataset.clone_meta_data(get_new_dataset_name(dataset=dataset, suffix="0",
+                                                            dim_to_shift=dim_to_shift, q=q))
+    dataset2 = dataset.clone_meta_data(get_new_dataset_name(dataset=dataset, suffix="1",
+                                                            dim_to_shift=dim_to_shift, q=q))
     dataset1.take_new_data(data1)
     dataset2.take_new_data(data2)
 
@@ -139,25 +141,25 @@ def calculate_ks_tests(values: List[float], indices: List[int]) -> List[Tuple[in
     return results
 
 
-def create_sub_lists(nr_sublists: int, source_list: List) -> List[List]:
+def create_sub_lists(nr_sub_lists: int, source_list: List) -> List[List]:
     """
     splits a list into a list of sublists of roughly even length.
-    :param nr_sublists: number of sublists
+    :param nr_sub_lists: number of sublists
     :param source_list: list to split
     :return:
     """
     task_splits = []
 
     #only an estimate for the best length for the list, will always be rounded down.
-    task_len = int(len(source_list) / nr_sublists)
+    task_len = int(len(source_list) / nr_sub_lists)
 
-    for i in range(nr_sublists - 1):
+    for i in range(nr_sub_lists - 1):
         start = i * task_len
         end = (i + 1) * task_len
         task_splits.append(source_list[start:end])
     #last list will start at the end of the previous list and takes all remaining elements of the list. Length of this
     #list may be longer than the other lists.
-    task_splits.append(source_list[(nr_sublists - 1) * task_len:])
+    task_splits.append(source_list[(nr_sub_lists - 1) * task_len:])
     return task_splits
 
 
@@ -251,10 +253,9 @@ def create_test_statistics(dataset: dc.Data, dim_to_shift: str, min_split_size: 
 def find_optimal_split_index(ks_stat: List[stats.stats.KstestResult], max_p_for_split: float = .05) -> int:
     """
     selects the index from a List with results from kolmogorov Smirnov tests. Currently only selects the value with
-    the lowest p-value. If multiple values share the lowest p-value, the value with the highest D-value will be selected.
-    Tie-breakers for equal.
-    If the lowest p-value is greater than max_p_for_split, no valid index will be returned.
-    p-values should be validated.
+    the lowest p-value. If multiple values share the lowest p-value, the value with the highest D-value will be
+    selected.
+    If the lowest p-value is larger than max_p_for_split, no valid index will be returned.
     :param ks_stat: List of results from Kolmogorov Smirnov tests
     :param max_p_for_split: a split index will only be returned, if the best p-value is lower than this
     :return: index of best result
@@ -339,7 +340,8 @@ def convert_column_names_to_indexes(dataset: dc.Data, col_names: List[str]) -> L
     return [str(dataset.data_columns.index(col)) for col in col_names]
 
 
-def read_HiCS_results(dataset: dc.Data, dim_to_shift: str = "", HiCS_parameters: str = "") -> List[Tuple[float, List[str]]]:
+def read_HiCS_results(dataset: dc.Data, dim_to_shift: str = "", HiCS_parameters: str = "") \
+        -> List[Tuple[float, List[str]]]:
     """
     parses an output file from HiCS. Returns List of spaces with their respective contrast value.
     :param dataset: Dataset for which the HiCS output was generated
@@ -566,13 +568,15 @@ def recursive_splitting(dataset: dc.Data,
             #further split the resulting datasets
             recursive_splitting(dataset=split1, dim_to_shift=dim_to_shift, min_split_size=min_split_size,
                                 remaining_splits=remaining_splits - 1, q=q, visualize=visualize,
-                                nr_processes=nr_processes, max_p_for_split=max_p_for_split, threshold_fraction=threshold_fraction,
-                                HiCS_parameters=HiCS_parameters, goodness_over_length=goodness_over_length)
+                                nr_processes=nr_processes, max_p_for_split=max_p_for_split,
+                                threshold_fraction=threshold_fraction, HiCS_parameters=HiCS_parameters,
+                                goodness_over_length=goodness_over_length)
 
             recursive_splitting(dataset=split2, dim_to_shift=dim_to_shift, min_split_size=min_split_size,
                                 remaining_splits=remaining_splits - 1, q=q, visualize=visualize,
-                                nr_processes=nr_processes, max_p_for_split=max_p_for_split, threshold_fraction=threshold_fraction,
-                                HiCS_parameters=HiCS_parameters, goodness_over_length=goodness_over_length)
+                                nr_processes=nr_processes, max_p_for_split=max_p_for_split,
+                                threshold_fraction=threshold_fraction, HiCS_parameters=HiCS_parameters,
+                                goodness_over_length=goodness_over_length)
     else:
         dataset.buffer_note(f"data set not split further because maximum number of splits was reached!")
         #print("splitting terminated because max number of splits was reached!")
@@ -698,6 +702,3 @@ if __name__ == "__main__":
     #test_get_name()
     test()
     #main()
-    #test()
-    #main(data.path, dim_to_shift="dim_04", q=0.05)
-    #test()
