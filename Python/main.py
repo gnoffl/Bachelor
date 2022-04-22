@@ -130,7 +130,10 @@ def load_parameters():
                         try:
                             value = float(value)
                         except ValueError:
-                            pass
+                            if value == "True" or value == "true":
+                                value = True
+                            if value == "False" or value == "false":
+                                value = False
                     parameters[key] = value
     return parameters, param_path
 
@@ -241,7 +244,8 @@ def visualize_QSM_on_binned_data(dataset: dc.Data, shifted_dim: str, common_dim:
 
 def compare_vanilla_split(quantiles: Dict[str, float], dataset: dc.MaybeActualDataSet, max_depth: int = 5,
                           min_samples_leaf: int = 5, nr_processes: int = 4, p_value: float = 0.05,
-                          threshold_fraction: float = 0.7, max_split_nr: int = 3, HiCS_parameters: str = "") -> None:
+                          threshold_fraction: float = 0.7, max_split_nr: int = 3, HiCS_parameters: str = "",
+                          goodness_over_length: bool = True) -> None:
     """
     runs QSM on the full dataset as well as the binned data. result matrices are saved as well as visualizations of the
     resulting shifted data for each approach
@@ -255,7 +259,8 @@ def compare_vanilla_split(quantiles: Dict[str, float], dataset: dc.MaybeActualDa
     print("start binning of data..")
     start_folder_dict = cds.data_binning(dataset=dataset, shifts=quantiles, max_split_nr=max_split_nr, visualize=True,
                                          nr_processes=nr_processes, p_value=p_value,
-                                         threshold_fraction=threshold_fraction, HiCS_parameters=HiCS_parameters)
+                                         threshold_fraction=threshold_fraction, HiCS_parameters=HiCS_parameters,
+                                         goodness_over_length=goodness_over_length)
     print("running QSM on full dataset..")
     run_vanilla_qsm(dataset, quantiles, trained_tree)
     print("running QSM on split dataset..")
@@ -276,7 +281,13 @@ def main() -> None:
 
 
 def test():
-    run_from_file(dataset=dc.MaybeActualDataSet([1]), quantiles={})
+    quantiles = {
+        "dim_04": 0.1,
+        "dim_00": 0.05,
+        "dim_01": -0.2
+    }
+    members = [50 for _ in range(6)]
+    run_from_file(dataset=dc.MaybeActualDataSet(members), quantiles=quantiles)
 
 
 if __name__ == "__main__":
