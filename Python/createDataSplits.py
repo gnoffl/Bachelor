@@ -151,7 +151,7 @@ def create_sub_lists(nr_sub_lists: int, source_list: List) -> List[List]:
     task_splits = []
 
     #only an estimate for the best length for the list, will always be rounded down.
-    task_len = int(len(source_list) / nr_sub_lists)
+    task_len = round(len(source_list) / nr_sub_lists)
 
     for i in range(nr_sub_lists - 1):
         start = i * task_len
