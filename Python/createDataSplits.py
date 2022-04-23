@@ -28,6 +28,11 @@ def run_R_script(additional_arguments: List,
     print(x)
 
 
+def calculate_alpha(n, m, D):
+    exponent = -1 * (2 * (D**2) * n * m) / (n + m)
+    return 2 * math.exp(exponent)
+
+
 def create_folder_for_splits(dataset: dc.Data) -> str:
     """
     NOT USED
@@ -215,6 +220,7 @@ def create_test_statistics_parallel(dataset: dc.Data, dim_to_shift: str, min_spl
 def create_test_statistics(dataset: dc.Data, dim_to_shift: str, min_split_size: int, dim_to_split: str,
                            ordered_data: pd.DataFrame = None) -> List[Tuple[float, float]]:
     """
+    NOT USED ANYMORE
     creates the ks-test statistics for dataset. Data is sorted by dim_to_split and all allowed splits for the
     dim_to_shift are then compared using the ks-test. Results are returned in a list.
     :param dataset: the dataset to split
@@ -663,23 +669,13 @@ def test_create_test_statistics_parallel():
     """
     test function
     """
-    members = [1000 for _ in range(6)]
-    dataset = dc.MaybeActualDataSet(members)
-    #dataset = dc.MaybeActualDataSet.load(r"D:\Gernot\Programmieren\Bachelor\Data\220326_173809_MaybeActualDataSet")
+    #members = [100 for _ in range(6)]
+    #dataset = dc.MaybeActualDataSet(members)
+    dataset = dc.MaybeActualDataSet.load(r"D:\Gernot\Programmieren\Bachelor\Data\220423_135313_MaybeActualDataSet")
     #create_test_statistics(dataset, "dim_04", 10, "dim_00")
-    """print(create_test_statistics_parallel(dataset, "dim_04", 5, "dim_00"))
-    print(create_test_statistics(dataset, "dim_04", 5, "dim_00"))"""
-
-    for i in range(5):
-
-        start = time.perf_counter()
-
-        shifts = {"dim_04": 0.01}
-        data_binning(dataset=dataset, shifts=shifts, max_split_nr=1, visualize=False)
-
-
-        print(f"overall time: {time.perf_counter() - start}")
-        print("---------------------------\n")
+    stats_ = create_test_statistics_parallel(dataset, "dim_04", 40, "dim_00")
+    for i, stat in enumerate(stats_):
+        print(i, stat)
 
 
 def test_split_data():
@@ -696,9 +692,15 @@ def test_get_name():
     print(get_new_dataset_name(dataset, "", "dim_04", -0.5))
 
 
+def test_alpha():
+    n = 93
+    print(calculate_alpha(n, 600-n, 0.7153655277724757))
+
+
 if __name__ == "__main__":
     #test_split_data()
+    test_alpha()
     #test_create_test_statistics_parallel()
     #test_get_name()
-    test()
+    #test()
     #main()
