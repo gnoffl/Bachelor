@@ -17,9 +17,10 @@ gefunden worden sein, wenn es abhängigkeiten in anderen Dimensionen gibt?
 besonders ist? (D-Werte die größer und kleiner sind haben beide pvalues != 0)
  --> keine korrektur von a nötig --> verschiedene niveaus von a testen (0,05, 0,01)
 
-6. kann ich als tiebreaker für p = 0 die Formeln --> erstmal größtes D nutzen, evtl gucken,
-wie sich das mit n und m verhält
+6. kann ich als tiebreaker für p = 0 die Formeln 
 [hier](https://en.wikipedia.org/wiki/Kolmogorov%E2%80%93Smirnov_test) nutzen?\
+--> erstmal größtes D nutzen, evtl gucken,
+wie sich das mit n und m verhält
 ![erste Formel](Formel01.png) ![zweite Formel](Formel02.png)
 
 7. Laufzeit: parallelisieren?

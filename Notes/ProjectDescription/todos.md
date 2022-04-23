@@ -31,7 +31,7 @@
 
 * [x] Correct Data creation (--> todos in dataCreation.md)
 * [x] validate results from decision tree (how close classes actually are)
-* [x] make __HiCS implementation__ work
+* [x] make HiCS implementation work
 * [x] load and save data from data classes properly
 * [x] save tree and corresponding visualization
 * [x] make sure HiCS doesnt get to see more columns than its supposed to
@@ -43,7 +43,7 @@ needed)
 class_05 with any other class in dim_04)
 * [x] add some outputs, so a sense of progression is given
 * [x] implement execution of QSM on subsets of a given dataset
-* [x] finish implementation __QSM__ (--> todos QSM.md)
+* [x] finish implementation QSM
 * [x] extract all tuning parameters into one file
 * [x] plan progress for whole thesis
 * [x] add missing Documentation and notes
