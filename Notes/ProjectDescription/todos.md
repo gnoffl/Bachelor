@@ -15,7 +15,6 @@
 
 ## Logical progress
 
-* [ ] add missing Documentation and notes                         1/2 day ()
 * [ ] remaining todos from Binning.md                             1 day   (-24.04.)
 * [ ] iris Dataset                                                5 days  (-01.05.)
 * [ ] Soccer Dataset                                              5 days  (-08.05.)
@@ -47,3 +46,4 @@ class_05 with any other class in dim_04)
 * [x] finish implementation __QSM__ (--> todos QSM.md)
 * [x] extract all tuning parameters into one file
 * [x] plan progress for whole thesis
+* [x] add missing Documentation and notes
