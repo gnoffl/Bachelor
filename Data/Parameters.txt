@@ -9,6 +9,7 @@ CreateDataSplits:
 	p_value=.05
 	goodness_over_length=True
 	threshold_fraction=.7
+	tiebreaker fuer splits
 
 dataCreation:
 	HiCS_parameters=
