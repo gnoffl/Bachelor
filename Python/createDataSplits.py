@@ -28,8 +28,26 @@ def run_R_script(additional_arguments: List,
     print(x)
 
 
-def calculate_alpha(n, m, D):
-    exponent = -1 * (2 * (D**2) * n * m) / (n + m)
+def calculate_exponent(n: int, m: int, D: float) -> float:
+    """
+    calculates the exponent for the estimation of p for the ks test
+    :param n: number of data points in the first sample
+    :param m: number of data points in the second sample
+    :param D: D statistic from ks test
+    :return: calculated exponent
+    """
+    return -1 * (2 * (D**2) * n * m) / (n + m)
+
+
+def calculate_alpha(n: int, m: int, D: float):
+    """
+    calculate alpha for a given result from the ks test. using an approximation.
+    :param n: number of data points in the first sample
+    :param m: number of data points in the second sample
+    :param D: D statistic from ks test
+    :return: calculated alpha
+    """
+    exponent = calculate_exponent(n, m, D)
     return 2 * math.exp(exponent)
 
 
@@ -259,8 +277,9 @@ def create_test_statistics(dataset: dc.Data, dim_to_shift: str, min_split_size: 
 def find_optimal_split_index(ks_stat: List[stats.stats.KstestResult], max_p_for_split: float = .05) -> int:
     """
     selects the index from a List with results from kolmogorov Smirnov tests. Currently only selects the value with
-    the lowest p-value. If multiple values share the lowest p-value, the value with the highest D-value will be
-    selected.
+    the lowest p-value. If multiple values share the lowest p-value, the D value will be used to calculate approximate
+    an exponent for the calculation of p. Of the values with the lowest p, the one with the lowest exponent will be
+    chosen.
     If the lowest p-value is larger than max_p_for_split, no valid index will be returned.
     :param ks_stat: List of results from Kolmogorov Smirnov tests
     :param max_p_for_split: a split index will only be returned, if the best p-value is lower than this
@@ -270,10 +289,16 @@ def find_optimal_split_index(ks_stat: List[stats.stats.KstestResult], max_p_for_
     if min_p_elem[1] > max_p_for_split:
         #print(ks_stat)
         return -1
-    cand_list = [res for res in ks_stat if res[1] == min_p_elem[1]]
+    cand_list = [(res[0], i) for i, res in enumerate(ks_stat) if res[1] == min_p_elem[1]]
 
     # returns index of result with min p and max D, maybe think of other solution
-    return ks_stat.index(max(cand_list, key=lambda elem: elem[0]))
+    if len(cand_list) == 1:
+        return cand_list[0][1]
+    else:
+        result_tuple = min(cand_list, key=lambda elem: calculate_exponent(n=elem[1],
+                                                                          m=len(ks_stat) - elem[1],
+                                                                          D=elem[0]))
+        return result_tuple[1]
 
 
 def create_optimal_split(dataset: dc.Data, dim_to_shift: str, dim_to_split: str, min_split_size: int, q: float,
@@ -674,8 +699,9 @@ def test_create_test_statistics_parallel():
     dataset = dc.MaybeActualDataSet.load(r"D:\Gernot\Programmieren\Bachelor\Data\220423_135313_MaybeActualDataSet")
     #create_test_statistics(dataset, "dim_04", 10, "dim_00")
     stats_ = create_test_statistics_parallel(dataset, "dim_04", 40, "dim_00")
-    for i, stat in enumerate(stats_):
-        print(i, stat)
+    print(find_optimal_split_index(stats_))
+    """for i, stat in enumerate(stats_):
+        print(i, stat)"""
 
 
 def test_split_data():
@@ -693,8 +719,8 @@ def test_get_name():
 
 
 def test_alpha():
-    n = 93
-    print(calculate_alpha(n, 600-n, 0.7153655277724757))
+    n = 124
+    print(calculate_alpha(n, 600-n, 0.4269449715370019))
 
 
 if __name__ == "__main__":
