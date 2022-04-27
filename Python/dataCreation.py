@@ -75,14 +75,13 @@ class Data(ABC):
     members: List[int]
     path: str
     now: datetime.datetime
-    HiCS_dims: List[str]
     notes: str or None
     note_buffer: List[str]
 
-    def __init__(self, path: str = ""):
-        self.HiCS_dims = []
-        self.notes = None
+    def __init__(self, path: str, members: List[int] = None, notes: str = ""):
         self.note_buffer = []
+        self.notes = notes
+        self.members = members
         class_name = type(self).__name__
         now = datetime.datetime.now()
         self.now = now
@@ -102,12 +101,24 @@ class Data(ABC):
 
     @staticmethod
     @abstractmethod
-    def load(path: str) -> Data:
+    def load(path: str, **kwargs) -> Data:
         """
         loads a data set from a given path
         :param path: path to the data set
         :return: the loaded dataset object
         """
+        with open(os.path.join(path, "description.txt"), "r+") as f:
+            class_type = f.readline()
+            class_type = class_type.strip("\n").split(": ")[-1]
+
+        if class_type == "MaybeActualDataSet":
+            return MaybeActualDataSet.load(path, **kwargs)
+        elif class_type == "IrisDataSet":
+            return IrisDataSet.load(path)
+
+    @staticmethod
+    @abstractmethod
+    def get_dataset_name():
         pass
 
     @abstractmethod
@@ -156,6 +167,7 @@ class Data(ABC):
         writes the attributes and date for the object in the description file.
         :param file: file thats written in
         """
+        file.write(f"CLASS: {self.get_dataset_name()}\n")
         proper_date_time_string = self.now.strftime("%d.%m.%Y %H:%M:%S")
         file.write(f"CREATED: {proper_date_time_string}\nATTRIBUTES: \n")
         for k, v in vars(self).items():
@@ -332,13 +344,11 @@ class MaybeActualDataSet(Data):
         :param members: entries determine the number of data points per class
         :param notes: notes to be put in the description.txt file for the class
         """
-        super().__init__(path=path)
+        super().__init__(path=path, members=members, notes=notes)
         np.random.seed(42)
         self.parameters = {}
         for i, class_param in enumerate(self.class_params):
             self.parameters[f"class_{str(i).zfill(2)}"] = class_param
-        self.members = members
-        self.notes = notes
         self.create_data()
         add_random_dims(self.data, ["rand_00", "rand_01", "rand_02"])
         self.data_columns = [value for value in self.data.columns.values if value != "classes"]
@@ -410,15 +420,14 @@ class MaybeActualDataSet(Data):
                     result.parameters = dict_
                 if name == "data_columns":
                     result.data_columns = MaybeActualDataSet.read_list(value)
-                if name == "HiCS_dims":
-                    result.HiCS_dims = MaybeActualDataSet.read_list(value)
 
     @staticmethod
-    def load(path: str, ignore_validity_date: bool = False) -> MaybeActualDataSet:
+    def load(path: str, ignore_validity_date: bool = False, use_legacy_load: bool = False) -> MaybeActualDataSet:
         """
         loads a MaybeActualDataSet object from a saved location
         :param path: path to the save
         :param ignore_validity_date: flag to ignore, if the data was created with an older version of the code
+        :param use_legacy_load: indicates, whether the old method for loading should be used
         :return: a new MaybeActualDataSet object with the attributes set as described in the saved version
         """
         validity_date = datetime.datetime(2022, 2, 26, 13, 50, 0, 0)
@@ -426,6 +435,8 @@ class MaybeActualDataSet(Data):
         result = MaybeActualDataSet([1], save=False)
         result.data = pd.read_csv(os.path.join(path, "data.csv"))
         with open(os.path.join(path, "description.txt"), "r+") as f:
+            if not use_legacy_load:
+                first_line = f.readline()
             created_line = f.readline()
             created_line = created_line.strip("\n")
             content = f.read()
@@ -442,6 +453,11 @@ class MaybeActualDataSet(Data):
                 print("WARNING: DATA OLDER THAN VALIDITY DATE!!")
             else:
                 raise CustomError("Data older than validity date!")
+        #only checking for the first line after the check for the validity date, because old saves will definitely
+        # not have the correct first line, so the warning would be confusing
+        if not use_legacy_load:
+            if first_line != "CLASS: MaybeActualDataSet\n":
+                raise CustomError("Wrong method for loading this dataset!")
         result.now = now
         MaybeActualDataSet.set_attributes(paragraphs[0], result)
         return result
@@ -463,6 +479,10 @@ class MaybeActualDataSet(Data):
             dim = np.random.normal(center, standard_deviation, (members,))
             new_df[f"dim_{str(i).zfill(2)}"] = dim
         return new_df
+
+    @staticmethod
+    def get_dataset_name():
+        return "MaybeActualDataSet"
 
     def add_dim_04(self) -> None:
         """
@@ -524,12 +544,31 @@ class MaybeActualDataSet(Data):
         self.members = members
 
 
+class IrisDataSet(Data):
+
+    def __init__(self):
+        super().__init__()
+
+
+    @staticmethod
+    def load(path: str) -> Data:
+        pass
+
+    def clone_meta_data(self, path: str = "") -> Data:
+        pass
+
+    def take_new_data(self, data: pd.DataFrame) -> None:
+        pass
+
+
 if __name__ == "__main__":
     #MaybeActualDataSet.load(r"D:\Gernot\Programmieren\Bachelor\Python\
     #Experiments\Data\220131_125348_MaybeActualDataSet")
     members_ = [10 for _ in range(6)]
     data1 = MaybeActualDataSet(members_)
-    data1.run_hics(silent=False, args_as_string="-s")
+    data1 = Data.load(data1.path)
+    data1.save()
+    #data1.run_hics(silent=False, args_as_string="-s")
     #data.run_hics()
     #data = MaybeActualDataSet.load(data.path)
     #data.save()
