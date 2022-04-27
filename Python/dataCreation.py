@@ -2,6 +2,7 @@ from __future__ import annotations
 from typing import List, Dict
 
 import sklearn.tree as tree
+from sklearn.datasets import load_iris
 
 import HiCS
 import visualization as vs
@@ -77,6 +78,7 @@ class Data(ABC):
     now: datetime.datetime
     notes: str or None
     note_buffer: List[str]
+    class_names: List[str]
 
     def __init__(self, path: str, members: List[int] = None, notes: str = ""):
         self.note_buffer = []
@@ -115,11 +117,6 @@ class Data(ABC):
             return MaybeActualDataSet.load(path, **kwargs)
         elif class_type == "IrisDataSet":
             return IrisDataSet.load(path)
-
-    @staticmethod
-    @abstractmethod
-    def get_dataset_name():
-        pass
 
     @abstractmethod
     def clone_meta_data(self, path: str = "") -> Data:
@@ -167,7 +164,7 @@ class Data(ABC):
         writes the attributes and date for the object in the description file.
         :param file: file thats written in
         """
-        file.write(f"CLASS: {self.get_dataset_name()}\n")
+        file.write(f"CLASS: {type(self).__name__}\n")
         proper_date_time_string = self.now.strftime("%d.%m.%Y %H:%M:%S")
         file.write(f"CREATED: {proper_date_time_string}\nATTRIBUTES: \n")
         for k, v in vars(self).items():
@@ -274,6 +271,74 @@ class Data(ABC):
         self.save()
 
     @staticmethod
+    def set_attributes(attr_string: str, result: Data) -> None:
+        """
+        takes part of the description string and set the attributes found in that string for the process of loading a
+        MaybeActualDataSet object from disc
+        :param attr_string: part of the description file
+        :param result: the MaybeActualDataSet object, that is created
+        """
+        attributes = attr_string.split(" \n")
+        for attr in attributes:
+            attr = attr.lstrip()
+            index = attr.find(": ")
+            if index != -1:
+                name, value = attr[:index], attr[index + 2:]
+                if name == "notes":
+                    result.notes = value
+                if name == "members":
+                    value = value.strip("[] ")
+                    result.members = [int(member) for member in value.split(",")]
+                if name == "parameters":
+                    dict_ = Data.parse_parameters(value)
+                    result.parameters = dict_
+                if name == "data_columns":
+                    result.data_columns = Data.read_list(value)
+                if name == "class_names":
+                    result.class_names = Data.read_list(value)
+
+    @staticmethod
+    def read_list(list_string) -> List[str]:
+        list_string = list_string.strip("[] ")
+        list_string = list_string.replace(" ", "").replace("\'", "")
+        return [member for member in list_string.split(",") if member != ""]
+
+    @staticmethod
+    def parse_parameters(value: str) -> Dict:
+        value = value[1:-1]
+        result_dict = {}
+        class_index = 0
+        while class_index > -1:
+            class_index = value.find("}")
+            if class_index > -1:
+                curr_class = value[:class_index+1]
+                value = value[class_index+3:]
+            else:
+                curr_class = value
+            name_index = curr_class.find(": ")
+            class_name = curr_class[:name_index].strip("\'")
+            class_dict = curr_class[name_index+2:].strip("{}")
+            result_dict[class_name] = Data.parse_class_dict(class_dict)
+        return result_dict
+
+    @staticmethod
+    def parse_class_dict(class_dict: str) -> Dict:
+        res_dict = {}
+        pair_index = 0
+        while pair_index > -1:
+            pair_index = class_dict.find(")")
+            if pair_index > -1:
+                pair = class_dict[:pair_index+1]
+                class_dict = class_dict[pair_index+3:]
+            else:
+                break
+            dim_name = pair.split(": ")[0].strip("\'")
+            tuple_values = pair.split(": ")[1].strip("()").split(", ")
+            tuple_ = tuple([float(value) for value in tuple_values])
+            res_dict[dim_name] = tuple_
+        return res_dict
+
+    @staticmethod
     def create_csv_out(csv_in: str) -> str:
         """
         creates a path to save the output of HiCS, depending on the location of the input for HiCS
@@ -342,7 +407,9 @@ class MaybeActualDataSet(Data):
         """
         initializes the data class
         :param members: entries determine the number of data points per class
+        :param path: indicates where the files for this dataset should be saved
         :param notes: notes to be put in the description.txt file for the class
+        :param save: dataset will be saved after creation, when this argument is True. Won't be saved otherwise.
         """
         super().__init__(path=path, members=members, notes=notes)
         np.random.seed(42)
@@ -352,74 +419,10 @@ class MaybeActualDataSet(Data):
         self.create_data()
         add_random_dims(self.data, ["rand_00", "rand_01", "rand_02"])
         self.data_columns = [value for value in self.data.columns.values if value != "classes"]
+        self.class_names = ["class_00", "class_01", "class_02", "class_03", "class_04", "class_05",
+                            "rand_00", "rand_01", "rand_02"]
         if save:
             self.save()
-
-    @staticmethod
-    def parse_class_dict(class_dict: str) -> Dict:
-        res_dict = {}
-        pair_index = 0
-        while pair_index > -1:
-            pair_index = class_dict.find(")")
-            if pair_index > -1:
-                pair = class_dict[:pair_index+1]
-                class_dict = class_dict[pair_index+3:]
-            else:
-                break
-            dim_name = pair.split(": ")[0].strip("\'")
-            tuple_values = pair.split(": ")[1].strip("()").split(", ")
-            tuple_ = tuple([float(value) for value in tuple_values])
-            res_dict[dim_name] = tuple_
-        return res_dict
-
-    @staticmethod
-    def parse_parameters(value: str) -> Dict:
-        value = value[1:-1]
-        result_dict = {}
-        class_index = 0
-        while class_index > -1:
-            class_index = value.find("}")
-            if class_index > -1:
-                curr_class = value[:class_index+1]
-                value = value[class_index+3:]
-            else:
-                curr_class = value
-            name_index = curr_class.find(": ")
-            class_name = curr_class[:name_index].strip("\'")
-            class_dict = curr_class[name_index+2:].strip("{}")
-            result_dict[class_name] = MaybeActualDataSet.parse_class_dict(class_dict)
-        return result_dict
-
-    @staticmethod
-    def read_list(list_string) -> List[str]:
-        list_string = list_string.strip("[] ")
-        list_string = list_string.replace(" ", "").replace("\'", "")
-        return [member for member in list_string.split(",") if member != ""]
-
-    @staticmethod
-    def set_attributes(attr_string: str, result: MaybeActualDataSet) -> None:
-        """
-        takes part of the description string and set the attributes found in that string for the process of loading a
-        MaybeActualDataSet object from disc
-        :param attr_string: part of the description file
-        :param result: the MaybeActualDataSet object, that is created
-        """
-        attributes = attr_string.split(" \n")
-        for attr in attributes:
-            attr = attr.lstrip()
-            index = attr.find(": ")
-            if index != -1:
-                name, value = attr[:index], attr[index + 2:]
-                if name == "notes":
-                    result.notes = value
-                if name == "members":
-                    value = value.strip("[] ")
-                    result.members = [int(member) for member in value.split(",")]
-                if name == "parameters":
-                    dict_ = MaybeActualDataSet.parse_parameters(value)
-                    result.parameters = dict_
-                if name == "data_columns":
-                    result.data_columns = MaybeActualDataSet.read_list(value)
 
     @staticmethod
     def load(path: str, ignore_validity_date: bool = False, use_legacy_load: bool = False) -> MaybeActualDataSet:
@@ -430,7 +433,7 @@ class MaybeActualDataSet(Data):
         :param use_legacy_load: indicates, whether the old method for loading should be used
         :return: a new MaybeActualDataSet object with the attributes set as described in the saved version
         """
-        validity_date = datetime.datetime(2022, 2, 26, 13, 50, 0, 0)
+        validity_date = datetime.datetime(2022, 4, 27, 16, 30, 0, 0)
 
         result = MaybeActualDataSet([1], save=False)
         result.data = pd.read_csv(os.path.join(path, "data.csv"))
@@ -459,7 +462,7 @@ class MaybeActualDataSet(Data):
             if first_line != "CLASS: MaybeActualDataSet\n":
                 raise CustomError("Wrong method for loading this dataset!")
         result.now = now
-        MaybeActualDataSet.set_attributes(paragraphs[0], result)
+        Data.set_attributes(paragraphs[0], result)
         return result
 
     @staticmethod
@@ -479,10 +482,6 @@ class MaybeActualDataSet(Data):
             dim = np.random.normal(center, standard_deviation, (members,))
             new_df[f"dim_{str(i).zfill(2)}"] = dim
         return new_df
-
-    @staticmethod
-    def get_dataset_name():
-        return "MaybeActualDataSet"
 
     def add_dim_04(self) -> None:
         """
@@ -526,6 +525,7 @@ class MaybeActualDataSet(Data):
         result.end_paragraph_in_notes()
         result.now = self.now
         result.parameters = self.parameters
+        result.class_names = self.class_names
         return result
 
     def take_new_data(self, data: pd.DataFrame) -> None:
@@ -546,28 +546,108 @@ class MaybeActualDataSet(Data):
 
 class IrisDataSet(Data):
 
-    def __init__(self):
-        super().__init__()
+    def __init__(self, path: str = "", notes: str = "", save: bool = True, create_data: bool = True):
+        """
+        initializes the data class
+        :param path: indicates where the files for this dataset should be saved
+        :param notes: notes to be put in the description.txt file for the class
+        :param save: dataset will be saved after creation, when this argument is True. Won't be saved otherwise.
+        :param create_data: determines whether the dataset will contain the data from the iris dataset, or an empty
+        Dataframe
+        """
+        super().__init__(path=path, members=[50, 50, 50], notes=notes)
+        np.random.seed(42)
+        if create_data:
+            self.create_data()
+        else:
+            self.data = pd.DataFrame()
+        self.data_columns = [value for value in self.data.columns.values if value != "classes"]
+        if save:
+            self.save()
 
+    def create_data(self) -> None:
+        """
+        loads data from the iris dataset and saves it as the data attribute of the class. Also sets class_names.
+        """
+        bunch = load_iris(as_frame=True)
+        frame = bunch["frame"]
+        for i, col in enumerate(frame.columns.values):
+            frame.columns.values[i] = col.replace(" (cm)", "").replace(" ", "_")
+        frame.columns.values[-1] = "classes"
+        self.data = frame
+        self.class_names = list(bunch["target_names"])
 
     @staticmethod
-    def load(path: str) -> Data:
-        pass
+    def load(path: str, **kwargs) -> IrisDataSet:
+        """
+        loads a IrisDataSet object from a saved location
+        :param path: path to the save
+        :return: a new IrisDataSet object with the attributes set as described in the saved version
+        """
+        result = IrisDataSet(save=False)
+        with open(os.path.join(path, "description.txt"), "r+") as f:
+            first_line = f.readline()
+            created_line = f.readline()
+            created_line = created_line.strip("\n")
+            content = f.read()
 
-    def clone_meta_data(self, path: str = "") -> Data:
-        pass
+        if first_line != "CLASS: IrisDataSet\n":
+            raise CustomError("Wrong method for loading this dataset!")
+
+        paragraphs = content.split("\n\n")
+        if not created_line.startswith("CREATED: ") or not paragraphs[0].startswith("ATTRIBUTES: \n"):
+            raise CustomError("file not in expected format!")
+
+        result.data = pd.read_csv(os.path.join(path, "data.csv"))
+
+        result.path = path
+        now = get_date_from_string(created_line)
+        result.now = now
+        Data.set_attributes(paragraphs[0], result)
+        return result
+
+    def clone_meta_data(self, path: str = "") -> IrisDataSet:
+        """
+        creates a new IrisDataSet object with same metadata.
+        :param path: will be the path to create the new data at.
+        :return: new IrisDataSet object without meaningful Data
+        """
+        result = IrisDataSet(save=False, path=path, create_data=False)
+        result.extend_notes_by_one_line("this Dataset was created by duplicating metadata from another Dataset.")
+        result.end_paragraph_in_notes()
+        result.now = self.now
+        result.class_names = self.class_names
+        return result
 
     def take_new_data(self, data: pd.DataFrame) -> None:
-        pass
+        """
+        takes new Data for an IrisDataSet object and adjusts members attribute
+        :param data: new Data to take
+        """
+        self.data = data.copy(deep=True)
+        class_counts = data["classes"].value_counts()
+        members = []
+        for i in range(3):
+            try:
+                members.append(class_counts.at[i])
+            except KeyError:
+                members.append(0)
+        self.members = members
+
+
+def test():
+    for i in range(3):
+        print(i)
 
 
 if __name__ == "__main__":
     #MaybeActualDataSet.load(r"D:\Gernot\Programmieren\Bachelor\Python\
     #Experiments\Data\220131_125348_MaybeActualDataSet")
-    members_ = [10 for _ in range(6)]
-    data1 = MaybeActualDataSet(members_)
-    data1 = Data.load(data1.path)
-    data1.save()
+    #test()
+    #members_ = [10 for _ in range(6)]
+    #data1 = IrisDataSet()
+    data1 = Data.load(r"D:\Gernot\Programmieren\Bachelor\Data\220427_173646_IrisDataSet")
+    #data1.save()
     #data1.run_hics(silent=False, args_as_string="-s")
     #data.run_hics()
     #data = MaybeActualDataSet.load(data.path)
@@ -575,7 +655,7 @@ if __name__ == "__main__":
     #data = MaybeActualDataSet.load(data.path)
     #data.save()
 
-    #df = data1.data
+    df = data1.data
     #data.run_hics()
 
     #vs.visualize_2d(df, ("dim_00", "dim_01"), class_column="classes")
@@ -596,5 +676,6 @@ if __name__ == "__main__":
     #vs.visualize_2d(df, ("dim_00", "dim_01"), class_column="classes")
     #vs.visualize_2d(df, ("dim_00", "dim_04"), class_column="classes")
     #vs.visualize_3d(df, ("dim_00", "dim_01", "dim_04"), class_column="classes")
-    #vs.create_3d_gif(df=df, dims=("dim_00", "dim_01", "dim_04"), name="maybe_actual_data_updated", class_column="classes", steps=120, duration=33)
+    vs.create_3d_gif(df=df, dims=("sepal_length", "sepal_width", "petal_length"), name="iris",
+                     class_column="classes", steps=120, duration=33, class_names=data1.class_names)
 
