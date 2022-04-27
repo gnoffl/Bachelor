@@ -3,6 +3,13 @@
 ## Todos
 
 ### Important Todos
+* [ ] Typing überall einhalten
+
+### Optional Todos
+* [ ] Laden und Speichern mit pickle oder json oder so implementieren
+* [ ] __load_tree__ sollte zu __load_model__ werden
+
+### Done
 * [x] Code Kommentieren
 * [x] 1d Verteilung in dim_04 sollte kein Loch enthalten --> eine Klasse "neben" das Loch
 zwischen Klasse 1 und 2 legen
@@ -13,11 +20,9 @@ rücken
 * [x] Speichern von Objekt (auch in "Änderungen" vermerken)
 * [x] Laden von Objekt (Kommentare fehlen, Methode übersichtlicher machen)
 * [x] HiCS darf nur die korrekten Spalten sehen (keine die Klassen enthalten, nur daten)
-* [ ] __load_tree__ sollte zu __load_model__ werden
-* [ ] Typing überall einhalten
-
-### Optional Todos
-* [ ] Laden und Speichern mit pickle oder json oder so implementieren
+* [x] Iris Daten kommentieren
+* [x] Iris Daten dokumentieren
+* [x] Namen von classen für Daten korrekt darstellen
 
 
 ## Notizen
