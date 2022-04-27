@@ -73,7 +73,8 @@ def visualize_2d(df: pd.DataFrame,
                  class_column: str or None = None,
                  title: str = None,
                  path: str = None,
-                 visualized_area: Tuple[float, float, float, float] = None) -> None:
+                 visualized_area: Tuple[float, float, float, float] = None,
+                 class_names: List[str] = None) -> None:
     """
     Creates a 2d Image of the given data, showing the dimensions whose names are given in dims.
     :param df: Dataframe containing the data
@@ -83,6 +84,8 @@ def visualize_2d(df: pd.DataFrame,
     :param visualized_area: sets the limit of the x and y axes. order is x_min, x_max, y_min, y_max. If omitted, fitting
     values will be calculated based on the data.
     :param path: If path is given, the plot will not be shown but instead saved at the given location
+    :param class_names: List containing the names of the different classes. Should be used if the values in the classes
+    column of df are only numbers coding for the actual class names.
     """
     x_name, y_name = dims
     plt.figure(0, figsize=(8, 6))
@@ -115,7 +118,7 @@ def visualize_2d(df: pd.DataFrame,
                         df.loc[df[class_column] == clas, [y_name]],
                         color=colors[color_ind],
                         edgecolor="k",
-                        label=clas)
+                        label=get_label(clas=clas, class_names=class_names))
         plt.legend(bbox_to_anchor=(1.02, 1), loc="upper left", frameon=True)
     else:
         plt.scatter(df[x_name], df[y_name], cmap=plt.cm.Set1, edgecolor="k")
@@ -198,12 +201,33 @@ def compare_shift_2d(df: pd.DataFrame,
                      path=path, visualized_area=visualized_area)
 
 
+def get_label(clas: int or str, class_names: List[str]):
+    """
+    gets the class name for a given entry in a class column. List containing the names of the different classes. The
+    value clas is supposed to be an integer, or a string of an integer, that is used to return the class name at its
+    index in the class_names array. If the conversion doesn't work, or the index is out of bounds for the array, clas
+    will be returned
+    :param clas: value from class column
+    :param class_names: array with class names
+    :return: entry from class names, if conversion worked properly, otherwise clas.
+    """
+    if class_names is None:
+        return clas
+    else:
+        try:
+            index = int(clas)
+            return class_names[index]
+        except (ValueError, IndexError):
+            return clas
+
+
 def visualize_3d(df: pd.DataFrame,
                  dims: Tuple[str, str, str],
                  azim: int = 110,
                  elev: int = -150,
                  class_column: str or None = None,
-                 path: str = "") -> None:
+                 path: str = "",
+                 class_names: List[str] = None) -> None:
     """
     Creates a 3d Image of the given data, showing the dimensions whose names are given in dims.
     :param df: Dataframe containing the data
@@ -212,6 +236,8 @@ def visualize_3d(df: pd.DataFrame,
     :param elev: not sure about the definition, but changes rotation
     :param class_column: Name of the column that contains class names. Will be used for labeling the data
     :param path: If path is given, the plot will not be shown but instead saved at the given location
+    :param class_names: List containing the names of the different classes. Should be used if the values in the classes
+    column of df are only numbers coding for the actual class names.
     """
     x_name, y_name, z_name = dims
     fig = plt.figure(1, figsize=(8, 6))
@@ -226,9 +252,9 @@ def visualize_3d(df: pd.DataFrame,
                 df.loc[df[class_column] == clas, [x_name]],
                 df.loc[df[class_column] == clas, [y_name]],
                 df.loc[df[class_column] == clas, [z_name]],
-                c=colors[i],
+                color=colors[i],
                 edgecolor="k",
-                label=clas,
+                label=get_label(clas, class_names),
                 s=40,
             )
     else:
@@ -268,7 +294,7 @@ def clear_temp(path_to_temp) -> None:
 #todo: maybe keep images in memory instead of saving them to disc.
 #todo: maybe save as .mp4 or smth other than .gif
 def create_3d_gif(df: pd.DataFrame, dims: Tuple[str, str, str], name: str, class_column: str or None = None,
-                  steps: int = 36, duration: int = None) -> None:
+                  steps: int = 36, duration: int = None, class_names: List[str] = None) -> None:
     """
     creates a gif of the data with the given dims being the shown axes of the 3d plot
     :param df: Dataframe containing the data
@@ -277,6 +303,8 @@ def create_3d_gif(df: pd.DataFrame, dims: Tuple[str, str, str], name: str, class
     :param class_column: Column of df that contains class labels. Will be used to label classes in the plot.
     :param steps: Number of pictures per rotation of the data. The more steps, the more fluid the gif becomes
     :param duration: Milliseconds each frame is shown
+    :param class_names: List containing the names of the different classes. Should be used if the values in the classes
+    column of df are only numbers coding for the actual class names.
     """
     # keeps duration for the whole gif constant --> more fluid visual if steps is increased
     if not duration:
@@ -300,12 +328,12 @@ def create_3d_gif(df: pd.DataFrame, dims: Tuple[str, str, str], name: str, class
         # zero padding to avoid confusion in the order of files with different name lengths
         filename = f"{i:03d}"
         visualize_3d(df, dims, class_column=class_column, azim=stepsize * i, elev=-164,
-                     path=os.path.join(temp, f"{filename}.png"))
+                     path=os.path.join(temp, f"{filename}.png"), class_names=class_names)
     for i in range(steps):
         # zero padding to avoid confusion in the order of files with different name lengths
         filename = f"{i + steps:03d}"
         visualize_3d(df, dims, class_column=class_column, azim=(steps - 1) * stepsize, elev=stepsize * i - 164,
-                     path=os.path.join(temp, f"{filename}.png"))
+                     path=os.path.join(temp, f"{filename}.png"), class_names=class_names)
 
     files = [os.path.join(temp, file) for file in os.listdir(temp) if os.path.isfile(os.path.join(temp, file))]
     # bring files in the order they were created in
