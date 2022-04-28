@@ -3,8 +3,8 @@ import graphviz
 import os
 import pickle
 
-import Python.dataCreation as dc
-import Python.visualization as vs
+import dataCreation as dc
+import visualization as vs
 
 
 def load_tree(tree_path: str) -> tree.DecisionTreeClassifier:
@@ -153,7 +153,7 @@ def visualize(dataset: dc.Data, trained_tree: tree.DecisionTreeClassifier, pred_
         dim0, dim1, dim2 = "sepal_length", "sepal_width", "petal_length"
         dim3, dim4, dim5 = "petal_width", "sepal_length", "petal_width"
     else:
-        raise dc.CustomError("unknown Dataset type!")
+        raise dc.CustomError(f"unknown Dataset type: {type(dataset)}\nshould be: {type(dc.IrisDataSet())}")
     for pic in pics:
         if pic not in files_in_pics:
             make_pics = True
