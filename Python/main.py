@@ -21,7 +21,8 @@ def add_result_matrices(matrix1: pd.DataFrame, matrix2: pd.DataFrame) -> pd.Data
     """
     result_matrix = matrix1.add(other=matrix2, fill_value=0)
     #data type is automatically changed to float for some reason after adding the frames
-    return result_matrix.astype("int32")
+    #even though fill_value is given, NaN can occur sometimes, so it needs to be replaced
+    return result_matrix.fillna(0).astype("int32")
 
 
 def recursion_end(curr_folder: str, dim: str, q: float,
@@ -38,7 +39,7 @@ def recursion_end(curr_folder: str, dim: str, q: float,
     :param trained_tree: tree to do the predictions
     :return: the result matrix of the QSM
     """
-    dataset = dc.MaybeActualDataSet.load(curr_folder)
+    dataset = dc.Data.load(curr_folder)
     result = QSM.run_QSM_decisionTree(dataset=dataset,
                                       quantiles={dim: q},
                                       save_changes=True,
@@ -58,10 +59,18 @@ def recursion_end(curr_folder: str, dim: str, q: float,
     data[f"{dim}_org"] = org_dim_data
     subspace_list.append(data)
     #visualization with dim_04 is preferred
-    if dim != "dim_04":
-        QSM.visualize_QSM(base_dim="dim_04", dim_before_shift=dim, shift=q, dataset=dataset)
+    if isinstance(dataset, dc.MaybeActualDataSet):
+        pref_dim = "dim_04"
+        secnd_choice = "dim_00"
+    elif isinstance(dataset, dc.IrisDataSet):
+        pref_dim = "petal_length"
+        secnd_choice = "petal_width"
     else:
-        QSM.visualize_QSM(base_dim="dim_00", dim_before_shift=dim, shift=q, dataset=dataset)
+        raise dc.CustomError(f"class {type(dataset)} is unknown!")
+    if dim != pref_dim:
+        QSM.visualize_QSM(base_dim=pref_dim, dim_before_shift=dim, shift=q, dataset=dataset)
+    else:
+        QSM.visualize_QSM(base_dim=secnd_choice, dim_before_shift=dim, shift=q, dataset=dataset)
     matrix = result[dim]
     return matrix
 
@@ -114,6 +123,7 @@ def recursive_QSM(curr_folder: str, curr_name: str, dim: str, q: float,
 
 
 def load_parameters():
+    print("loading parameters..")
     path_here = os.path.dirname(__file__)
     param_path = os.path.join(path_here, "..", "Data", "Parameters.txt")
     parameters = {}
@@ -138,8 +148,9 @@ def load_parameters():
     return parameters, param_path
 
 
-def run_from_file(quantiles: Dict[str, float], dataset: dc.MaybeActualDataSet):
+def run_from_file(quantiles: Dict[str, float], dataset: dc.Data):
     params, par_path = load_parameters()
+    print("copying parameter file..")
     new_par_path = os.path.join(dataset.path, "Parameters.txt")
     shutil.copy2(par_path, new_par_path)
     dataset.extend_notes_by_one_line("Parameters for running the comparison between methods can be found in "
@@ -149,7 +160,7 @@ def run_from_file(quantiles: Dict[str, float], dataset: dc.MaybeActualDataSet):
 
 
 
-def QSM_on_binned_data(dataset: dc.MaybeActualDataSet, quantiles: Dict[str, float],
+def QSM_on_binned_data(dataset: dc.Data, quantiles: Dict[str, float],
                        start_folders: Dict[str, str], trained_tree: tree.DecisionTreeClassifier or None = None)\
         -> pd.DataFrame:
     """
@@ -172,7 +183,7 @@ def QSM_on_binned_data(dataset: dc.MaybeActualDataSet, quantiles: Dict[str, floa
                                       subspace_list=subspace_list, trained_tree=trained_tree)
         #create new dataset from the results of QSM on the splits
         full_data = pd.concat(subspace_list)
-        full_dataset = dc.MaybeActualDataSet.clone_meta_data(dataset)
+        full_dataset = dataset.clone_meta_data()
         full_dataset.take_new_data(full_data)
         full_dataset.extend_notes_by_one_line("this dataset contains the full data, that was shifted "
                                               "in binned subsets.")
@@ -180,7 +191,7 @@ def QSM_on_binned_data(dataset: dc.MaybeActualDataSet, quantiles: Dict[str, floa
         full_dataset.end_paragraph_in_notes()
         full_dataset.save(start_folder)
 
-        os.rename("local_change_matrix.csv", "binning_result_matrix.csv")
+        os.rename(os.path.join(start_folder, "local_change_matrix.csv"), os.path.join(start_folder, "binning_result_matrix.csv"))
         visualize_QSM_on_binned_data(full_dataset, dim)
         return result_matrix
 
@@ -254,7 +265,7 @@ def visualize_QSM_on_binned_data(dataset: dc.Data, shifted_dim: str, common_dim:
                         path=os.path.join(folder, "classes.png"))
 
 
-def compare_vanilla_split(quantiles: Dict[str, float], dataset: dc.MaybeActualDataSet, max_depth: int = 5,
+def compare_vanilla_split(quantiles: Dict[str, float], dataset: dc.Data, max_depth: int = 5,
                           min_samples_leaf: int = 5, nr_processes: int = 4, p_value: float = 0.05,
                           goodness_over_length: bool = True, threshold_fraction: float = 0.7,
                           max_split_nr: int = 3, HiCS_parameters: str = "") -> None:
@@ -303,13 +314,19 @@ def main() -> None:
 
 
 def test():
+    """
     quantiles = {
         "dim_04": 0.1,
         "dim_00": 0.05,
         "dim_01": -0.2
     }
-    members = [50 for _ in range(6)]
-    run_from_file(dataset=dc.MaybeActualDataSet(members), quantiles=quantiles)
+    members = [50 for _ in range(6)]"""
+    quantiles = {
+        "sepal_length": 0.1,
+        "petal_length": 0.05,
+        "petal_width": -0.2
+    }
+    run_from_file(dataset=dc.IrisDataSet(), quantiles=quantiles)
 
 
 def round_arr(arr: List[float]) -> None:
@@ -322,15 +339,26 @@ def add_arr(arr: List[float], summand) -> None:
         arr[i] = num + summand
 
 
-def test_iris():
-    dataset = dc.IrisDataSet()
+def test_iris_QSM():
+    dataset = dc.Data.load(r"D:\Gernot\Programmieren\Bachelor\Data\220428_195743_IrisDataSet")
+    quantiles = {
+        "sepal_length": 0.1,
+        "petal_length": 0.05,
+        "petal_width": -0.2
+    }
+    tree = cl.load_tree(os.path.join(r"D:\Gernot\Programmieren\Bachelor\Data\220428_195743_IrisDataSet", "tree_classifier.pkl"))
+    QSM_on_binned_data(dataset=dataset, start_folders={"petal_length": r"D:\Gernot\Programmieren\Bachelor\Data\220428_195743_IrisDataSet\Splits\petal_length_005",
+                                                       "petal_width": r"D:\Gernot\Programmieren\Bachelor\Data\220428_195743_IrisDataSet\Splits\petal_width_-02",
+                                                       "sepal_length": r"D:\Gernot\Programmieren\Bachelor\Data\220428_195743_IrisDataSet\Splits\sepal_length_01"},
+                       quantiles=quantiles, trained_tree=tree)
+    """dataset = dc.IrisDataSet()
     quantiles = {
         "sepal_length": 0.1,
         "petal_length": 0.05,
         "petal_width": -0.2
     }
     trained = cl.create_and_save_tree(dataset, pred_col_name="test")
-    run_vanilla_qsm(dataset=dataset, quantiles=quantiles, trained_tree=trained)
+    run_vanilla_qsm(dataset=dataset, quantiles=quantiles, trained_tree=trained)"""
     """dataset = dc.Data.load(r"D:\Gernot\Programmieren\Bachelor\Data\220428_142002_IrisDataSet")
     values, cumulative_frequencies = vs.get_cumulative_values(dataset.data["sepal_length"].values)
     val_shift, cum_shift = vs.get_cumulative_values(dataset.data["sepal_length_shifted_by_0.1"].values)
@@ -351,5 +379,6 @@ def test_iris():
 
 if __name__ == "__main__":
     #main()
-    test_iris()
+    test()
+    #test_iris_QSM()
     #example_vis()
