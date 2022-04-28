@@ -615,6 +615,7 @@ class IrisDataSet(Data):
         result.end_paragraph_in_notes()
         result.now = self.now
         result.class_names = self.class_names
+        result.data_columns = self.data_columns.copy()
         return result
 
     def take_new_data(self, data: pd.DataFrame) -> None:
