@@ -145,10 +145,13 @@ def visualize(dataset: dc.Data, trained_tree: tree.DecisionTreeClassifier, pred_
     files_in_pics = os.listdir(tree_pics_path)
     if isinstance(dataset, dc.MaybeActualDataSet):
         pics = ["00_04_org.png", "00_04_pred.png", "01_04_org.png", "01_04_pred.png", "02_03_org.png", "02_03_pred.png"]
+        dim0, dim1, dim2, dim3, dim4, dim5 = "dim_00", "dim_04", "dim_01", "dim_04", "dim_02", "dim_03"
     elif isinstance(dataset, dc.IrisDataSet):
         pics = ["sepal_length_width_org.png", "sepal_length_width_pred.png",
                 "petal_length_width_org.png", "petal_length_width_pred.png",
                 "sepal_length_petal_width_org.png", "sepal_length_petal_width_pred.png"]
+        dim0, dim1, dim2 = "sepal_length", "sepal_width", "petal_length"
+        dim3, dim4, dim5 = "petal_width", "sepal_length", "petal_width"
     else:
         raise dc.CustomError("unknown Dataset type!")
     for pic in pics:
@@ -157,11 +160,6 @@ def visualize(dataset: dc.Data, trained_tree: tree.DecisionTreeClassifier, pred_
             break
 
     if make_pics:
-        if isinstance(dataset, dc.MaybeActualDataSet):
-            dim0, dim1, dim2, dim3, dim4, dim5 = "dim_00", "dim_04", "dim_01", "dim_04", "dim_02", "dim_03"
-        elif isinstance(dataset, dc.IrisDataSet):
-            dim0, dim1, dim2 = "sepal_length", "sepal_width", "petal_length"
-            dim3, dim4, dim5 = "petal_width", "sepal_length", "petal_width"
         vs.visualize_2d(df=df, dims=(dim0, dim1), class_column="classes", title="original",
                         path=os.path.join(tree_pics_path, pics[0]), class_names=dataset.class_names)
         vs.visualize_2d(df=df, dims=(dim0, dim1), class_column=pred_col_name, title="predicted",
