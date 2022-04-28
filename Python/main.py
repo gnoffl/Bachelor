@@ -198,12 +198,22 @@ def run_vanilla_qsm(dataset: dc.Data, quantiles: Dict[str, float],
                                        trained_tree=trained_tree)
     for dim, q in quantiles.items():
         #visualization
-        if dim != "dim_04":
-            QSM.visualize_QSM(base_dim="dim_04", dim_before_shift=dim, shift=q, dataset=dataset,
-                              save_path=os.path.join(dataset.path, "pics", "QSM", "vanilla", dim))
+        if isinstance(dataset, dc.MaybeActualDataSet):
+            pref_dim = "dim_04"
+            secnd_choice = "dim_00"
+        elif isinstance(dataset, dc.IrisDataSet):
+            pref_dim = "petal_length"
+            secnd_choice = "petal_width"
         else:
-            QSM.visualize_QSM(base_dim="dim_00", dim_before_shift=dim, shift=q, dataset=dataset,
-                              save_path=os.path.join(dataset.path, "pics", "QSM", "vanilla", dim))
+            raise dc.CustomError(f"class {type(dataset)} is unknown!")
+        if dim != pref_dim:
+            QSM.visualize_QSM(base_dim=pref_dim, dim_before_shift=dim, shift=q, dataset=dataset,
+                              save_path=os.path.join(dataset.path, "pics", "QSM", "vanilla", dim),
+                              class_names=dataset.class_names)
+        else:
+            QSM.visualize_QSM(base_dim=secnd_choice, dim_before_shift=dim, shift=q, dataset=dataset,
+                              save_path=os.path.join(dataset.path, "pics", "QSM", "vanilla", dim),
+                              class_names=dataset.class_names)
 
         #save result matrix
         results_folder = os.path.join(dataset.path, "vanilla_results")
@@ -302,7 +312,44 @@ def test():
     run_from_file(dataset=dc.MaybeActualDataSet(members), quantiles=quantiles)
 
 
+def round_arr(arr: List[float]) -> None:
+    for i, num in enumerate(arr):
+        arr[i] = round(num, 3)
+
+
+def add_arr(arr: List[float], summand) -> None:
+    for i, num in enumerate(arr):
+        arr[i] = num + summand
+
+
+def test_iris():
+    dataset = dc.IrisDataSet()
+    quantiles = {
+        "sepal_length": 0.1,
+        "petal_length": 0.05,
+        "petal_width": -0.2
+    }
+    trained = cl.create_and_save_tree(dataset, pred_col_name="test")
+    run_vanilla_qsm(dataset=dataset, quantiles=quantiles, trained_tree=trained)
+    """dataset = dc.Data.load(r"D:\Gernot\Programmieren\Bachelor\Data\220428_142002_IrisDataSet")
+    values, cumulative_frequencies = vs.get_cumulative_values(dataset.data["sepal_length"].values)
+    val_shift, cum_shift = vs.get_cumulative_values(dataset.data["sepal_length_shifted_by_0.1"].values)
+    add_arr(values, 0.001)
+    add_arr(val_shift, 0.001)
+    add_arr(cumulative_frequencies, 0.001)
+    add_arr(cum_shift, 0.001)
+
+    round_arr(values)
+    round_arr(val_shift)
+    round_arr(cumulative_frequencies)
+    round_arr(cum_shift)
+    print(values)
+    print(cumulative_frequencies)
+    print(val_shift)
+    print(cum_shift)"""
+
+
 if __name__ == "__main__":
     #main()
-    test()
+    test_iris()
     #example_vis()
