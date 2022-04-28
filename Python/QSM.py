@@ -218,7 +218,22 @@ def run_QSM_decisionTree(dataset: dc.Data, quantiles: Dict, save_changes: bool =
 
 
 def visualize_QSM(base_dim: str, dim_before_shift: str, shift: float, data_path: str = "",
-                  dataset: dc.Data = None, save: bool = True, save_path: str = ""):
+                  dataset: dc.Data = None, save: bool = True, save_path: str = "", class_names: List[str] = None)\
+        -> None:
+    """
+    visualizes results of a QSM. Creates a cumulative plot of the data in the shifted dimension before and after shift.
+    Creates 2d visualization of the data with the shifted dimension and a the base_dim before and after shift.
+    :param base_dim: second dimension to be depicted in 2d visualizations
+    :param dim_before_shift: name of the dimension that was shifted
+    :param shift: quantile by which the data were shifted
+    :param data_path: path to where the dataset to be depicted is saved
+    :param dataset: dataset to be depicted
+    :param save: determines whether the pictures are shown or saved
+    :param save_path: path where the pictures are supposed to be shifted. If omitted, pictures will be saved under
+    /pics/QSM in the folder of the dataset
+    :param class_names: List containing the names of the different classes. Should be used if the values in the classes
+    column of df are only numbers coding for the actual class names.
+    """
     if not data_path and not dataset:
         raise dc.CustomError("one of the parameters path or dataset needs to be given!")
     if data_path and dataset:
@@ -234,14 +249,16 @@ def visualize_QSM(base_dim: str, dim_before_shift: str, shift: float, data_path:
                             common_dim=base_dim,
                             dims_to_compare=(dim_before_shift, dim_after_shift),
                             class_columns=("org_pred_classes_QSM", new_class_name),
-                            path=os.path.join(save_path, "compare_shift_2d.png"))
+                            path=os.path.join(save_path, "compare_shift_2d.png"),
+                            class_names=class_names)
         vs.compare_shift_cumulative(df=dataset.data, dims=(dim_before_shift, dim_after_shift),
                                     shift=shift, save_path=os.path.join(save_path, "compare_cumulative_shift.png"))
     else:
         vs.compare_shift_2d(df=dataset.data,
                             common_dim=base_dim,
                             dims_to_compare=(dim_before_shift, dim_after_shift),
-                            class_columns=("org_pred_classes_QSM", new_class_name))
+                            class_columns=("org_pred_classes_QSM", new_class_name),
+                            class_names=class_names)
         vs.compare_shift_cumulative(df=dataset.data, dims=(dim_before_shift, dim_after_shift), shift=shift)
 
 

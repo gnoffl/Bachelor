@@ -159,7 +159,8 @@ def compare_shift_2d(df: pd.DataFrame,
                      dims_to_compare: Tuple[str, str],
                      class_columns: Tuple[str, str] = None,
                      titles: Tuple[str, str] = None,
-                     path: str = None) -> None:
+                     path: str = None,
+                     class_names: List[str] = None) -> None:
     """
     method to compare data before and after shift induced by QSM. Will create two 2d visualizations of the Data, but
     but the x and y limits will be the same for both graphs.
@@ -171,6 +172,8 @@ def compare_shift_2d(df: pd.DataFrame,
     if this argument is omitted
     :param path: path where graphics should be saved. Graphics will only be shown, not saved, if this argument is
     omitted
+    :param class_names: List containing the names of the different classes. Should be used if the values in the classes
+    column of df are only numbers coding for the actual class names.
     """
     x_axis_min, x_axis_max, y_axis_min, y_axis_max = find_common_area(df[common_dim].values,
                                                                       df[dims_to_compare[0]].values,
@@ -189,16 +192,14 @@ def compare_shift_2d(df: pd.DataFrame,
         actual_path = path.split(".png")[0]
         actual_path_0 = f"{actual_path}_0.png"
         actual_path_1 = f"{actual_path}_1.png"
-
-        visualize_2d(df=df, dims=(common_dim, dims_to_compare[0]), class_column=class_column_0, title=title_0,
-                     path=actual_path_0, visualized_area=visualized_area)
-        visualize_2d(df=df, dims=(common_dim, dims_to_compare[1]), class_column=class_column_1, title=title_1,
-                     path=actual_path_1, visualized_area=visualized_area)
     else:
-        visualize_2d(df=df, dims=(common_dim, dims_to_compare[0]), class_column=class_column_0, title=title_0,
-                     path=path, visualized_area=visualized_area)
-        visualize_2d(df=df, dims=(common_dim, dims_to_compare[1]), class_column=class_column_1, title=title_1,
-                     path=path, visualized_area=visualized_area)
+        actual_path_0 = ""
+        actual_path_1 = ""
+
+    visualize_2d(df=df, dims=(common_dim, dims_to_compare[0]), class_column=class_column_0, title=title_0,
+                 path=actual_path_0, visualized_area=visualized_area, class_names=class_names)
+    visualize_2d(df=df, dims=(common_dim, dims_to_compare[1]), class_column=class_column_1, title=title_1,
+                 path=actual_path_1, visualized_area=visualized_area, class_names=class_names)
 
 
 def get_label(clas: int or str, class_names: List[str]):
