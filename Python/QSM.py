@@ -226,7 +226,7 @@ def visualize_QSM(base_dim: str, dim_before_shift: str, shift: float, data_path:
     dim_after_shift = f"{dim_before_shift}_shifted_by_{str(shift)}"
     new_class_name = f"pred_with_{dim_after_shift}"
     if not dataset:
-        dataset = dc.MaybeActualDataSet.load(data_path)
+        dataset = dc.Data.load(data_path)
     if save:
         if not save_path:
             save_path = os.path.join(dataset.path, "pics", "QSM")
@@ -247,18 +247,23 @@ def visualize_QSM(base_dim: str, dim_before_shift: str, shift: float, data_path:
 
 
 def main():
+    #quantiles = {
+    #    "dim_04": 0.1,
+    #    "dim_00": 0.05,
+    #    "dim_01": -0.2
+    #}
     quantiles = {
-        "dim_04": 0.1,
-        "dim_00": 0.05,
-        "dim_01": -0.2
+        "sepal_length": 0.1,
+        "petal_length": 0.05,
+        "petal_width": -0.2
     }
     #dataset = dc.MaybeActualDataSet.load(r"D:\Gernot\Programmieren\Bachelor\Data\220415_111316_MaybeActualDataSet")
-    dataset = dc.MaybeActualDataSet([5, 5, 5, 5, 5])
+    dataset = dc.IrisDataSet()
     cl.create_and_save_tree(dataset=dataset, visualize_tree_par=False)
     results = run_QSM_decisionTree(dataset=dataset,
                                    quantiles=quantiles,
                                    save_changes=False)
-    visualize_QSM(base_dim="dim_00", dim_before_shift="dim_04", shift=0.1, dataset=dataset, save=False)
+    visualize_QSM(base_dim="petal_length", dim_before_shift="petal_width", shift=-0.2, dataset=dataset, save=False)
     for dim, matrix in results.items():
         print(dim)
         print(matrix)
