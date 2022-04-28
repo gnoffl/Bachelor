@@ -17,6 +17,7 @@
 
 * [ ] iris Dataset                                                5 days  (-01.05.)
   * [x] create Iris Dataset in Datacreation
+  * [ ] add notes for IrisDataSet in datacreation.md
   * [ ] check for problems in the pipeline
   * [ ] fix problems in the pipeline
     * [x] make sure that qsm works (cumulated dists dont look the same)

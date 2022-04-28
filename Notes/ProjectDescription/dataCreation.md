@@ -8,6 +8,7 @@
 ### Optional Todos
 * [ ] Laden und Speichern mit pickle oder json oder so implementieren
 * [ ] __load_tree__ sollte zu __load_model__ werden
+* [ ] load_tree doesnt work when used on split of a dataset, because tree is saved in "root" dataset
 
 ### Done
 * [x] Code Kommentieren
