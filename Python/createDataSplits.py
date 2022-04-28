@@ -671,13 +671,19 @@ def test():
     """
     test function
     """
+    #quantiles = {
+    #    "dim_04": 0.1,
+    #    "dim_00": 0.05,
+    #    "dim_01": -0.2
+    #}
     quantiles = {
-        "dim_04": 0.1,
-        "dim_00": 0.05,
-        "dim_01": -0.2
+        "sepal_length": 0.1,
+        "petal_length": 0.05,
+        "petal_width": -0.2
     }
-    members = [50 for _ in range(6)]
-    dataset = dc.MaybeActualDataSet(members)
+    #members = [50 for _ in range(6)]
+    #dataset = dc.MaybeActualDataSet(members)
+    dataset = dc.IrisDataSet()
     print(data_binning(dataset, shifts=quantiles, max_split_nr=2, visualize=True))
 
 
@@ -725,8 +731,8 @@ def test_alpha():
 
 if __name__ == "__main__":
     #test_split_data()
-    test_alpha()
+    #test_alpha()
     #test_create_test_statistics_parallel()
     #test_get_name()
-    #test()
+    test()
     #main()
