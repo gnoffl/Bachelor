@@ -117,11 +117,12 @@ def visualize_tree(dataset: dc.Data, trained_tree: tree.DecisionTreeClassifier, 
         graph = graphviz.Source(content, filename="tree_visualization", directory=tree_pics_path)
         graph.render()
     # clean up unnecessary files
-    candidates = ["tree_visualization", "tree_visualization_data.gv"]
-    files = os.listdir(tree_pics_path)
-    for cand in candidates:
-        if cand in files:
-            os.remove(os.path.join(tree_pics_path, cand))
+    vis_path = os.path.join(tree_pics_path, "tree_visualization")
+    if os.path.isfile(vis_path):
+        os.remove(vis_path)
+    gv_path = os.path.join(dataset.path, "tree_visualization_data.gv")
+    if os.path.isfile(gv_path):
+        os.remove(gv_path)
 
 
 def visualize(dataset: dc.Data, trained_tree: tree.DecisionTreeClassifier, pred_col_name: str) -> None:
@@ -184,9 +185,10 @@ def test() -> None:
     #members = [1000 for _ in range(6)]
     #dataset = dc.MaybeActualDataSet(members)
     #dataset = dc.MaybeActualDataSet.load("D:\\Gernot\\Programmieren\\Bachelor\\Python\\Experiments\\Data\\220226_135403_MaybeActualDataSet")
+    dataset = dc.Data.load(r"D:\Gernot\Programmieren\Bachelor\Data\220428_124321_IrisDataSet")
     dataset = dc.IrisDataSet()
     create_and_save_tree(dataset, pred_col_name="pred_tree")
-    #dataset.run_hics()
+    dataset.run_hics()
     """dataset = dc.MaybeActualDataSet.load("D:\\Gernot\\Programmieren\\Bachelor\\Python\\Experiments\\Data\\220226_135403_MaybeActualDataSet")
     trained_tree = dataset.load_tree()"""
     #matrix = vs.get_change_matrix(data, ("classes", "predicted_classes"))
