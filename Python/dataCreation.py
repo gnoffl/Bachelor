@@ -571,9 +571,7 @@ class IrisDataSet(Data):
         """
         bunch = load_iris(as_frame=True)
         frame = bunch["frame"]
-        for i, col in enumerate(frame.columns.values):
-            frame.columns.values[i] = col.replace(" (cm)", "").replace(" ", "_")
-        frame.columns.values[-1] = "classes"
+        frame.columns = ["sepal_length", "sepal_width", "petal_length", "petal_width", "classes"]
         self.data = frame
         self.class_names = list(bunch["target_names"])
 
@@ -636,17 +634,20 @@ class IrisDataSet(Data):
 
 
 def test():
-    for i in range(3):
-        print(i)
+    set1 = IrisDataSet(save=False)
+    print(set1.data)
+    print(set1.data.describe())
+    print(set1.data["sepal_length"])
+    print(set1.data["classes"])
 
 
 if __name__ == "__main__":
     #MaybeActualDataSet.load(r"D:\Gernot\Programmieren\Bachelor\Python\
     #Experiments\Data\220131_125348_MaybeActualDataSet")
-    #test()
+    test()
     #members_ = [10 for _ in range(6)]
     #data1 = IrisDataSet()
-    data1 = Data.load(r"D:\Gernot\Programmieren\Bachelor\Data\220427_173646_IrisDataSet")
+    #data1 = Data.load(r"D:\Gernot\Programmieren\Bachelor\Data\220427_173646_IrisDataSet")
     #data1.save()
     #data1.run_hics(silent=False, args_as_string="-s")
     #data.run_hics()
@@ -655,7 +656,7 @@ if __name__ == "__main__":
     #data = MaybeActualDataSet.load(data.path)
     #data.save()
 
-    df = data1.data
+    #df = data1.data
     #data.run_hics()
 
     #vs.visualize_2d(df, ("dim_00", "dim_01"), class_column="classes")
@@ -676,6 +677,6 @@ if __name__ == "__main__":
     #vs.visualize_2d(df, ("dim_00", "dim_01"), class_column="classes")
     #vs.visualize_2d(df, ("dim_00", "dim_04"), class_column="classes")
     #vs.visualize_3d(df, ("dim_00", "dim_01", "dim_04"), class_column="classes")
-    vs.create_3d_gif(df=df, dims=("sepal_length", "sepal_width", "petal_length"), name="iris",
-                     class_column="classes", steps=120, duration=33, class_names=data1.class_names)
+    #vs.create_3d_gif(df=df, dims=("sepal_length", "sepal_width", "petal_length"), name="iris",
+    #                 class_column="classes", steps=120, duration=33, class_names=data1.class_names)
 
