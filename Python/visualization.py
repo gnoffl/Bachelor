@@ -373,10 +373,12 @@ def create_hist(series: pd.Series, number_of_bins: int = 20, x_label: str = "") 
     plt.show()
 
 
-def get_cumulative_values(array: List[float]) -> Tuple[List[float], List[float]]:
+def get_cumulative_values(array: List[float], fraction: bool = True) -> Tuple[List[float], List[float]]:
     """
     Calculates the cumulative frequencies of values in an Array.
     :param array: Values for which the cumulative distribution is supposed to be calculated
+    :param fraction: determines, whether the result will contain an array with the cumulative frequencies of the values
+    (if fraction == True), or if the indices of the last occurrence of the values in the array will be returned.
     :return: Array containing all unique values sorted. Array containing the frequency of values lower or equal to the
     value at the same index in the other array.
     """
@@ -398,7 +400,8 @@ def get_cumulative_values(array: List[float]) -> Tuple[List[float], List[float]]
     length = len(new_array)
     cum_frequencies.append(length)
 
-    cum_frequencies = [cf / length for cf in cum_frequencies]
+    if fraction:
+        cum_frequencies = [cf / length for cf in cum_frequencies]
     return values, cum_frequencies
 
 

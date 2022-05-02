@@ -219,7 +219,9 @@ def create_test_statistics_parallel(dataset: dc.Data, dim_to_shift: str, min_spl
     values = data[dim_to_shift].values
     #range here is important. need to avoid off-by-one errors (dataset, whose length is exactly  2 * min_split can still
     #be split in the middle)
-    tests_to_calculate = [i for i in range(min_split_size, len(data) - min_split_size + 1)]
+    _, tests_to_calculate = vs.get_cumulative_values(data[dim_to_split].values, fraction=False)
+    tests_to_calculate = [index for index in tests_to_calculate
+                          if min_split_size <= index <= (len(data) - min_split_size)]
     tasks = create_sub_lists(nr_processes, tests_to_calculate)
 
     #parallel execution of code to speed the process up.
@@ -687,6 +689,17 @@ def test():
     print(data_binning(dataset, shifts=quantiles, max_split_nr=2, visualize=True))
 
 
+def test_sub_lists():
+    create_test_statistics_parallel(dataset=dc.IrisDataSet(), dim_to_shift="sepal_length",
+                                    dim_to_split="petal_width", min_split_size=10)
+    """easy = [ 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20]
+    weird = [0, 1, 2, 3, 4, 4, 4, 4, 4, 4, 4,  4,  5,  6,  7,  7,  7,  7,  7,  7,  8]
+    print(vs.get_cumulative_values(easy, fraction=False))
+    print(vs.get_cumulative_values(weird, fraction=False))"""
+    #print("easy", create_sub_lists(4, easy))
+    #print("weird", create_sub_lists(4, weird))
+
+
 def test_get_hics():
     """
     test function
@@ -734,5 +747,5 @@ if __name__ == "__main__":
     #test_alpha()
     #test_create_test_statistics_parallel()
     #test_get_name()
-    test()
+    test_sub_lists()
     #main()

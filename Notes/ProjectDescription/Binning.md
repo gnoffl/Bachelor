@@ -33,6 +33,8 @@
 nach linearem wachstum an)
 * [x] min_split_size muss immer aufgerundet werden
 * [x] Vernünftigen Tie-Breaker für ks-Werte mit gleichem p-Wert (spez. p=0) finden
+* [x] main list should not be split into sublists between same values in dim_to_split
+* [x] don't create splits between same values in dim_to_split
 
 ### Optional Todos
 * [ ] Suche nach bestem HiCS optimieren, indem nicht max-funktion auf dem sortierten HiCS-output
