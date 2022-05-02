@@ -250,8 +250,7 @@ def visualize_QSM_on_binned_data(dataset: dc.Data, shifted_dim: str, common_dim:
     folder = os.path.join(dataset.path, "pics", "QSM_Binning")
     #compare how the final data bins lie compared to each other, and how they get shifted individually
     vs.compare_shift_2d(df=dataset.data, common_dim=common_dim, dims_to_compare=(f"{shifted_dim}_org", shifted_dim),
-                        class_columns=("source", "source"),
-                        path=os.path.join(folder, "source.png"))
+                        class_columns=("source", "source"), path=os.path.join(folder, "source.png"))
     #compare the predictions of the classifier on the original data to the predictions of the classifier on the shifted
     # data
     vs.compare_shift_2d(df=dataset.data, common_dim=common_dim, dims_to_compare=(f"{shifted_dim}_org", shifted_dim),
@@ -260,8 +259,7 @@ def visualize_QSM_on_binned_data(dataset: dc.Data, shifted_dim: str, common_dim:
     #see how the data is shifted by comparing the datapoints before and after the shift. displaed classes are the
     # original classes of the data points
     vs.compare_shift_2d(df=dataset.data, common_dim=common_dim, dims_to_compare=(f"{shifted_dim}_org", shifted_dim),
-                        class_columns=("classes", "classes"),
-                        path=os.path.join(folder, "classes.png"),
+                        class_columns=("classes", "classes"), path=os.path.join(folder, "classes.png"),
                         class_names=dataset.class_names)
 
 
