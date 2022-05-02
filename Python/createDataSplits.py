@@ -217,9 +217,11 @@ def create_test_statistics_parallel(dataset: dc.Data, dim_to_shift: str, min_spl
     #the results).
     ks_stat = [(0., 1.) for _ in range(len(data))]
     values = data[dim_to_shift].values
-    #range here is important. need to avoid off-by-one errors (dataset, whose length is exactly  2 * min_split can still
-    #be split in the middle)
+    #need to avoid splitting data between two points, that have the same value in the dim_to_split, therefore use the
+    # cumulation function from visualization to calculate the location of the unique values
     _, tests_to_calculate = vs.get_cumulative_values(data[dim_to_split].values, fraction=False)
+    #range here is important. need to avoid off-by-one errors (dataset, whose length is exactly  2 * min_split can still
+    # be split in the middle)
     tests_to_calculate = [index for index in tests_to_calculate
                           if min_split_size <= index <= (len(data) - min_split_size)]
     tasks = create_sub_lists(nr_processes, tests_to_calculate)
