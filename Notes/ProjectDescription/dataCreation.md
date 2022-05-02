@@ -82,6 +82,12 @@ den Wert -3 hat, was deutlich unter den Werten der anderen Klassen liegt. In Dim
 liegt sie genau auf Höhe des Lochs zwischen Klasse 01 und 02. 05 hat keine wirkliche
 Nachbarschaft mit den anderen Klassen, sollte aber eine herausforderung für QSM darstellen.
 
+### IrisDataSet
+Diese Klasse ist eine "Data" entsprechende Implementierung, die die Daten des bekannten
+Iris-Datensatzes enthält. Die Daten werden über _sklearn.datasets_ in einem DataFrame
+importiert. Weitere erforderliche Metadaten werden beim Initialisieren der Objekte
+erstellt. Alle abstrakten Methoden der Data Klasse sind implementiert.
+
 ## Änderungen
 ### Neue Klasse eingeführt (24.01.22)
 In bisherigen Daten war ein Loch zwischen class_01 und class_02. Das hat dazu geführt, dass
@@ -145,3 +151,14 @@ trägt.\
 _take_new_data_ erlaubt es, einen neuen Dataframe als Daten anzunehmen und relevante Attribute
 entsprechend anzupassen. Für MaybeActualDataSet ist dies vor allem das _members_ Attribut.\
 Beide Methoden wurden bisher nur für MaybeActualDataSet implementiert.
+
+### IrisDataSet zugefügt, refactoring (28.04.22)
+
+IrisDataSet wurde entsprechend der Vorgaben von Data implementiert. Daten aus sklearn.datasets.\
+Viele Methoden aus MaybeActualDataSet wurden nach Data verschoben (vor allem Methoden zum einlesen
+von gespeicherten Datensätzen).\
+Load Methode ist nun auch in Data implementiert. Die description.txt datei wurde um eine Zeile
+ergänzt. In der ersten Zeile wird nun die Klasse angegeben, zu der der Datensatz gehört. Wird
+load aus Data aufgerufen, wird zunächst die description datei geladen, und die Klasse des
+Datensatzes überprüft. Je nach Klasse wird dann die korrekte Implementierung von load aus einer
+der Tochterklassen aufgerufen.
