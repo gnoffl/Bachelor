@@ -162,7 +162,7 @@ def run_from_file(quantiles: Dict[str, float], dataset: dc.Data):
 
 def QSM_on_binned_data(dataset: dc.Data, quantiles: Dict[str, float],
                        start_folders: Dict[str, str], trained_tree: tree.DecisionTreeClassifier or None = None)\
-        -> pd.DataFrame:
+        -> None:
     """
     runs recursive_QSM on the dataset for each dim/quantile pair in quantiles. The shifted splits will be combined into
     a full dataset, that is saved in the "Splits" folder of the dataset
@@ -179,7 +179,7 @@ def QSM_on_binned_data(dataset: dc.Data, quantiles: Dict[str, float],
         # will yield a dataframe containing all the original data points, after shifting them separately in their splits
         subspace_list = []
         #start recursion
-        result_matrix = recursive_QSM(curr_folder=start_folder, curr_name="", dim=dim, q=q,
+        recursive_QSM(curr_folder=start_folder, curr_name="", dim=dim, q=q,
                                       subspace_list=subspace_list, trained_tree=trained_tree)
         #create new dataset from the results of QSM on the splits
         full_data = pd.concat(subspace_list)
@@ -193,7 +193,6 @@ def QSM_on_binned_data(dataset: dc.Data, quantiles: Dict[str, float],
 
         os.rename(os.path.join(start_folder, "local_change_matrix.csv"), os.path.join(start_folder, "binning_result_matrix.csv"))
         visualize_QSM_on_binned_data(full_dataset, dim)
-        return result_matrix
 
 
 def run_vanilla_qsm(dataset: dc.Data, quantiles: Dict[str, float],
@@ -256,13 +255,14 @@ def visualize_QSM_on_binned_data(dataset: dc.Data, shifted_dim: str, common_dim:
     #compare the predictions of the classifier on the original data to the predictions of the classifier on the shifted
     # data
     vs.compare_shift_2d(df=dataset.data, common_dim=common_dim, dims_to_compare=(f"{shifted_dim}_org", shifted_dim),
-                        class_columns=("pred_classes", "org_pred"),
-                        path=os.path.join(folder, "predictions.png"))
+                        class_columns=("pred_classes", "org_pred"), path=os.path.join(folder, "predictions.png"),
+                        class_names=dataset.class_names)
     #see how the data is shifted by comparing the datapoints before and after the shift. displaed classes are the
     # original classes of the data points
     vs.compare_shift_2d(df=dataset.data, common_dim=common_dim, dims_to_compare=(f"{shifted_dim}_org", shifted_dim),
                         class_columns=("classes", "classes"),
-                        path=os.path.join(folder, "classes.png"))
+                        path=os.path.join(folder, "classes.png"),
+                        class_names=dataset.class_names)
 
 
 def compare_vanilla_split(quantiles: Dict[str, float], dataset: dc.Data, max_depth: int = 5,
