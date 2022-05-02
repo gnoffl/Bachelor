@@ -445,8 +445,8 @@ def get_HiCS(dataset: dc.Data,
     max_val_elem = max(spaces, key=lambda elem: elem[0])
 
     if goodness_over_length:
-        dataset.HiCS_dims = convert_indexes_to_column_names(dataset=dataset, indexes=max_val_elem[1])
-        return dataset.HiCS_dims
+        HiCS_dims = convert_indexes_to_column_names(dataset=dataset, indexes=max_val_elem[1])
+        return HiCS_dims
 
     max_val = max_val_elem[0]
     min_val = min(spaces, key=lambda elem: elem[0])[0]
@@ -462,11 +462,11 @@ def get_HiCS(dataset: dc.Data,
         curr_max = max(curr_spaces, key=lambda elem: elem[0])
         curr_max_val = curr_max[0]
         if curr_max_val > threshold:
-            dataset.HiCS_dims = convert_indexes_to_column_names(dataset=dataset, indexes=curr_max[1])
-            return dataset.HiCS_dims
+            HiCS_dims = convert_indexes_to_column_names(dataset=dataset, indexes=curr_max[1])
+            return HiCS_dims
 
-    dataset.HiCS_dims = convert_indexes_to_column_names(dataset=dataset, indexes=max_val_elem[1])
-    return dataset.HiCS_dims
+    HiCS_dims = convert_indexes_to_column_names(dataset=dataset, indexes=max_val_elem[1])
+    return HiCS_dims
 
 
 def find_dim_to_split(dataset: dc.Data, dim_to_shift: str, goodness_over_length: bool = True,
