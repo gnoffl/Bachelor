@@ -15,13 +15,6 @@
 
 ## Logical progress
 
-* [ ] iris Dataset                                                5 days  (-01.05.)
-  * [x] create Iris Dataset in Datacreation
-  * [x] add notes for IrisDataSet in datacreation.md
-  * [ ] check for problems in the pipeline
-  * [ ] fix problems in the pipeline
-    * [x] make sure that qsm works (cumulated dists dont look the same)
-* [x] fix splitting of data (dont split between 2 points with the same value)
 * [ ] Soccer Dataset                                              5 days  (-08.05.)
 * [ ] NN classifier for Soccer                                    5 days  (-15.05.)
 * [ ] optimize parameters                                         3 days  
@@ -53,3 +46,10 @@ class_05 with any other class in dim_04)
 * [x] plan progress for whole thesis
 * [x] add missing Documentation and notes
 * [x] remaining todos from Binning.md
+* [x] iris Dataset
+  * [x] create Iris Dataset in Datacreation
+  * [x] add notes for IrisDataSet in datacreation.md
+  * [x] check for problems in the pipeline
+  * [x] fix problems in the pipeline
+* [x] make sure that qsm works (cumulated dists dont look the same)
+* [x] fix splitting of data (dont split between 2 points with the same value)
