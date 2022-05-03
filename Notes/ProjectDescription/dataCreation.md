@@ -4,10 +4,6 @@
 
 ### Important Todos
 * [ ] Typing überall einhalten
-* [ ] Dokumentation SoccerDataSet
-  * [ ] kommentieren
-  * [ ] dokumentieren
-  * [ ] notizen
 
 ### Optional Todos
 * [ ] Laden und Speichern mit pickle oder json oder so implementieren
@@ -34,6 +30,7 @@ rücken
   * [x] Libero entfernen
   * [x] mit NaNs dealen
 * [x] parse_params soll nicht static sein --> sollte warning beheben
+* [x] Dokumentation SoccerDataSet
 
 
 ## Notizen
