@@ -98,6 +98,12 @@ Iris-Datensatzes enthält. Die Daten werden über _sklearn.datasets_ in einem Da
 importiert. Weitere erforderliche Metadaten werden beim Initialisieren der Objekte
 erstellt. Alle abstrakten Methoden der Data Klasse sind implementiert.
 
+### SoccerDataSet
+Diese Klasse ist eine "Data" entsprechende Implementierung, die Leistungsdaten von
+Fußballspieler Fußballspielern in verschiedenen Saisons enthält, sowie deren Position
+auf dem Spielfeld. Der Datensatz wird genutzt, um aus den Leistungsdaten die
+Position vorher zu sagen.
+
 ## Änderungen
 ### Neue Klasse eingeführt (24.01.22)
 In bisherigen Daten war ein Loch zwischen class_01 und class_02. Das hat dazu geführt, dass
