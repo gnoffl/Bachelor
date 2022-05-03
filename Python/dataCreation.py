@@ -14,9 +14,6 @@ import os
 import pickle
 
 
-path_to_data = "/Python/Experiments/Data"
-
-
 class CustomError(Exception):
     pass
 
@@ -117,6 +114,10 @@ class Data(ABC):
             return MaybeActualDataSet.load(path, **kwargs)
         elif class_type == "IrisDataSet":
             return IrisDataSet.load(path)
+        elif class_type == "SoccerDataSet":
+            return SoccerDataSet.load(path)
+        else:
+            raise CustomError("No method found for loading this Dataset!")
 
     @abstractmethod
     def clone_meta_data(self, path: str = "") -> Data:
@@ -385,6 +386,15 @@ class Data(ABC):
             self.add_notes_for_HiCS(notes=notes, params=params)
 
 
+    def parse_params(self, paragraphs, path: str, created_line: str = "") -> None:
+        self.data = pd.read_csv(os.path.join(path, "data.csv"))
+        self.path = path
+        if created_line:
+            now = get_date_from_string(created_line)
+            self.now = now
+        Data.set_attributes(paragraphs[0], self)
+
+
 class MaybeActualDataSet(Data):
 
     """
@@ -436,7 +446,6 @@ class MaybeActualDataSet(Data):
         validity_date = datetime.datetime(2022, 4, 27, 16, 30, 0, 0)
 
         result = MaybeActualDataSet([1], save=False)
-        result.data = pd.read_csv(os.path.join(path, "data.csv"))
         with open(os.path.join(path, "description.txt"), "r+") as f:
             if not use_legacy_load:
                 first_line = f.readline()
@@ -448,7 +457,6 @@ class MaybeActualDataSet(Data):
         if not created_line.startswith("CREATED: ") or not paragraphs[0].startswith("ATTRIBUTES: \n"):
             raise CustomError("file not in expected format!")
 
-        result.path = path
         now = get_date_from_string(created_line)
         # makes sure, that no "old" data is loaded without a warning or accidentally
         if now < validity_date:
@@ -461,8 +469,9 @@ class MaybeActualDataSet(Data):
         if not use_legacy_load:
             if first_line != "CLASS: MaybeActualDataSet\n":
                 raise CustomError("Wrong method for loading this dataset!")
+
         result.now = now
-        Data.set_attributes(paragraphs[0], result)
+        result.parse_params(paragraphs=paragraphs, path=path)
         return result
 
     @staticmethod
@@ -595,13 +604,7 @@ class IrisDataSet(Data):
         paragraphs = content.split("\n\n")
         if not created_line.startswith("CREATED: ") or not paragraphs[0].startswith("ATTRIBUTES: \n"):
             raise CustomError("file not in expected format!")
-
-        result.data = pd.read_csv(os.path.join(path, "data.csv"))
-
-        result.path = path
-        now = get_date_from_string(created_line)
-        result.now = now
-        Data.set_attributes(paragraphs[0], result)
+        result.parse_params(created_line=created_line, paragraphs=paragraphs, path=path)
         return result
 
     def clone_meta_data(self, path: str = "") -> IrisDataSet:
@@ -634,12 +637,101 @@ class IrisDataSet(Data):
         self.members = members
 
 
+class SoccerDataSet(Data):
+
+    def __init__(self, path: str = "", notes: str = "", save: bool = True, create_data: bool = True):
+        super().__init__(path=path, notes=notes)
+        np.random.seed(42)
+        self.class_names = ['Torwart', 'Innenverteidiger', 'Aussenverteidiger', 'Defensives Mittelfeld',
+                            'Zentrales Mittelfeld', 'Mittelfeld Aussen', 'Offensives Mittelfeld', 'Mittelstuermer',
+                            'Fluegelspieler']
+
+        if create_data:
+            self.create_data()
+        else:
+            self.data = pd.DataFrame()
+        self.data_columns = [value for value in self.data.columns.values if value != "classes"]
+        self.update_members()
+        if save:
+            self.save()
+
+    def create_data(self):
+        frame = pd.read_csv(os.path.join(os.path.dirname(__file__), "..", "data_per_game_excel.csv"),
+                            encoding="utf-8", sep=";")
+        frame = frame[["ps_Pass", "Passprozente", "ps_Zweikampf", "Zweikampfprozente", "ps_Fouls", "ps_Gefoult",
+                       "ps_Laufweite", "ps_Abseits", "ps_Assists", "ps_Fusstore", "ps_Kopftore", "Hauptposition_adj"]]
+        frame.rename(columns={"Hauptposition_adj": "classes"}, inplace=True)
+        pairs = {'Mittelfeld Au�en': "Mittelfeld Aussen",
+                 'Fl�gelspieler': 'Fluegelspieler',
+                 'Au�enverteidiger': 'Aussenverteidiger',
+                 'Mittelstürmer': 'Mittelstuermer'}
+        for old, new in pairs.items():
+            frame.replace(old, new, inplace=True)
+        frame = frame.loc[frame["classes"] != "Libero"]
+        frame.dropna(inplace=True)
+        self.data = frame
+
+    def clone_meta_data(self, path: str = "") -> SoccerDataSet:
+        """
+        creates a new SoccerDataSet object with same metadata.
+        :param path: will be the path to create the new data at.
+        :return: new IrisDataSet object without meaningful Data
+        """
+        result = SoccerDataSet(save=False, path=path, create_data=False)
+        result.extend_notes_by_one_line("this Dataset was created by duplicating metadata from another Dataset.")
+        result.end_paragraph_in_notes()
+        result.now = self.now
+        result.data_columns = self.data_columns.copy()
+        return result
+
+    def take_new_data(self, data: pd.DataFrame) -> None:
+        """
+        takes new Data for an SoccerDataSet object and adjusts members attribute
+        :param data: new Data to take
+        """
+        self.data = data.copy(deep=True)
+        self.update_members()
+
+    def update_members(self):
+        class_counts = self.data["classes"].value_counts()
+        members = []
+
+        for i in self.class_names:
+            try:
+                members.append(class_counts.at[i])
+            except KeyError:
+                members.append(0)
+        self.members = members
+
+    @staticmethod
+    def load(path: str, **kwargs) -> SoccerDataSet:
+        """
+        loads a SoccerDataSet object from a saved location
+        :param path: path to the save
+        :return: a new SoccerDataSet object with the attributes set as described in the saved version
+        """
+        result = SoccerDataSet(save=False)
+        with open(os.path.join(path, "description.txt"), "r+") as f:
+            first_line = f.readline()
+            created_line = f.readline()
+            created_line = created_line.strip("\n")
+            content = f.read()
+
+        if first_line != "CLASS: SoccerDataSet\n":
+            raise CustomError("Wrong method for loading this dataset!")
+
+        paragraphs = content.split("\n\n")
+        if not created_line.startswith("CREATED: ") or not paragraphs[0].startswith("ATTRIBUTES: \n"):
+            raise CustomError("file not in expected format!")
+
+        result.parse_params(paragraphs=paragraphs, created_line=created_line, path=path)
+
+        return result
+
+
 def test():
-    set1 = IrisDataSet(save=False)
-    print(set1.data)
-    print(set1.data.describe())
-    print(set1.data["sepal_length"])
-    print(set1.data["classes"])
+    set1 = SoccerDataSet(save=False)
+    print(set1.data.count())
 
 
 if __name__ == "__main__":
