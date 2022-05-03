@@ -386,7 +386,13 @@ class Data(ABC):
             self.add_notes_for_HiCS(notes=notes, params=params)
 
 
-    def parse_params(self, paragraphs, path: str, created_line: str = "") -> None:
+    def parse_params(self, paragraphs: List[str], path: str, created_line: str = "") -> None:
+        """
+        parses List of strings from loading a dataset into the attribute they represent
+        :param paragraphs: List of strings representing attributes of the Dataset
+        :param path: path for the Data Object
+        :param created_line: string that represents the time the dataset was created. Is used for the "now" attribute
+        """
         self.data = pd.read_csv(os.path.join(path, "data.csv"))
         self.path = path
         if created_line:
@@ -640,6 +646,14 @@ class IrisDataSet(Data):
 class SoccerDataSet(Data):
 
     def __init__(self, path: str = "", notes: str = "", save: bool = True, create_data: bool = True):
+        """
+        initializes the data class
+        :param path: indicates where the files for this dataset should be saved
+        :param notes: notes to be put in the description.txt file for the class
+        :param save: dataset will be saved after creation, when this argument is True. Won't be saved otherwise.
+        :param create_data: determines whether the dataset will contain the data from the iris dataset, or an empty
+        Dataframe
+        """
         super().__init__(path=path, notes=notes)
         np.random.seed(42)
         self.class_names = ['Torwart', 'Innenverteidiger', 'Aussenverteidiger', 'Defensives Mittelfeld',
@@ -655,20 +669,28 @@ class SoccerDataSet(Data):
         if save:
             self.save()
 
-    def create_data(self):
+    def create_data(self) -> None:
+        """
+        creates the data for the SoccerDataSet, by reading it in from a file
+        """
         frame = pd.read_csv(os.path.join(os.path.dirname(__file__), "..", "data_per_game_excel.csv"),
                             encoding="utf-8", sep=";")
+        #drop unnecessary columns
         frame = frame[["ps_Pass", "Passprozente", "ps_Zweikampf", "Zweikampfprozente", "ps_Fouls", "ps_Gefoult",
                        "ps_Laufweite", "ps_Abseits", "ps_Assists", "ps_Fusstore", "ps_Kopftore", "Hauptposition_adj"]]
         frame.rename(columns={"Hauptposition_adj": "classes"}, inplace=True)
+
+        #remove the libero lines (only 2 lines in the dataset) as well as rows with NaNs
+        frame = frame.loc[frame["classes"] != "Libero"]
+        frame.dropna(inplace=True)
+
+        #rename values, that were not loaded properly
         pairs = {'Mittelfeld Au�en': "Mittelfeld Aussen",
                  'Fl�gelspieler': 'Fluegelspieler',
                  'Au�enverteidiger': 'Aussenverteidiger',
                  'Mittelstürmer': 'Mittelstuermer'}
         for old, new in pairs.items():
             frame.replace(old, new, inplace=True)
-        frame = frame.loc[frame["classes"] != "Libero"]
-        frame.dropna(inplace=True)
         self.data = frame
 
     def clone_meta_data(self, path: str = "") -> SoccerDataSet:
@@ -692,10 +714,13 @@ class SoccerDataSet(Data):
         self.data = data.copy(deep=True)
         self.update_members()
 
-    def update_members(self):
+    def update_members(self) -> None:
+        """
+        updates the members attribute of self
+        """
         class_counts = self.data["classes"].value_counts()
         members = []
-
+        #class_names is just a list of the possible values of "classes" in this case
         for i in self.class_names:
             try:
                 members.append(class_counts.at[i])
@@ -717,6 +742,7 @@ class SoccerDataSet(Data):
             created_line = created_line.strip("\n")
             content = f.read()
 
+        #check if the dataset to load fits the class
         if first_line != "CLASS: SoccerDataSet\n":
             raise CustomError("Wrong method for loading this dataset!")
 
@@ -725,7 +751,6 @@ class SoccerDataSet(Data):
             raise CustomError("file not in expected format!")
 
         result.parse_params(paragraphs=paragraphs, created_line=created_line, path=path)
-
         return result
 
 
