@@ -759,6 +759,7 @@ def test():
     for i, dim1 in enumerate(set1.data_columns):
         for j, dim2 in enumerate(set1.data_columns):
             vs.visualize_2d(set1.data, (dim1, dim2), "classes", path=f"{dim1}_{dim2}.png")
+            print(f"{i}{j}")
 
 
 if __name__ == "__main__":
