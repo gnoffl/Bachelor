@@ -146,32 +146,35 @@ def visualize(dataset: dc.Data, trained_tree: tree.DecisionTreeClassifier, pred_
     if isinstance(dataset, dc.MaybeActualDataSet):
         pics = ["00_04_org.png", "00_04_pred.png", "01_04_org.png", "01_04_pred.png", "02_03_org.png", "02_03_pred.png"]
         dim0, dim1, dim2, dim3, dim4, dim5 = "dim_00", "dim_04", "dim_01", "dim_04", "dim_02", "dim_03"
+        dims = [(dim0, dim1), (dim2, dim3), (dim4, dim5)]
     elif isinstance(dataset, dc.IrisDataSet):
         pics = ["sepal_length_width_org.png", "sepal_length_width_pred.png",
                 "petal_length_width_org.png", "petal_length_width_pred.png",
                 "sepal_length_petal_width_org.png", "sepal_length_petal_width_pred.png"]
         dim0, dim1, dim2 = "sepal_length", "sepal_width", "petal_length"
         dim3, dim4, dim5 = "petal_width", "sepal_length", "petal_width"
+        dims = [(dim0, dim1), (dim2, dim3), (dim4, dim5)]
+    elif isinstance(dataset, dc.SoccerDataSet):
+        pics = ["gefoult_laufweite_org.png", "gefoult_laufweite_pred.png",
+                "pass_laufweite_org.png", "pass_laufweite_pred.png",
+                "pass_zweikampfprozente_org.png", "pass_zweikampfprozente_pred.png"]
+        dim0, dim1, dim2 = "ps_Gefoult", "ps_Laufweite", "ps_Pass"
+        dim3, dim4, dim5 = "ps_Laufweite", "ps_Pass", "Zweikampfprozente"
+        dims = [(dim0, dim1), (dim2, dim3), (dim4, dim5)]
     else:
-        raise dc.CustomError(f"unknown Dataset type: {type(dataset)}\nshould be: {type(dc.IrisDataSet())}")
+        raise dc.CustomError(f"unknown Dataset type: {type(dataset)}")
     for pic in pics:
         if pic not in files_in_pics:
             make_pics = True
             break
 
     if make_pics:
-        vs.visualize_2d(df=df, dims=(dim0, dim1), class_column="classes", title="original",
-                        path=os.path.join(tree_pics_path, pics[0]), class_names=dataset.class_names)
-        vs.visualize_2d(df=df, dims=(dim0, dim1), class_column=pred_col_name, title="predicted",
-                        path=os.path.join(tree_pics_path, pics[1]), class_names=dataset.class_names)
-        vs.visualize_2d(df=df, dims=(dim2, dim3), class_column="classes", title="original",
-                        path=os.path.join(tree_pics_path, pics[2]), class_names=dataset.class_names)
-        vs.visualize_2d(df=df, dims=(dim2, dim3), class_column=pred_col_name, title="predicted",
-                        path=os.path.join(tree_pics_path, pics[3]), class_names=dataset.class_names)
-        vs.visualize_2d(df=df, dims=(dim4, dim5), class_column="classes", title="original",
-                        path=os.path.join(tree_pics_path, pics[4]), class_names=dataset.class_names)
-        vs.visualize_2d(df=df, dims=(dim4, dim5), class_column=pred_col_name, title="predicted",
-                        path=os.path.join(tree_pics_path, pics[5]), class_names=dataset.class_names)
+        for i, pair in enumerate(dims):
+            vs.visualize_2d(df=df, dims=(pair[0], pair[1]), class_column="classes", title="original",
+                            path=os.path.join(tree_pics_path, pics[2*i]), class_names=dataset.class_names)
+            vs.visualize_2d(df=df, dims=(pair[0], pair[1]), class_column=pred_col_name, title="predicted",
+                            path=os.path.join(tree_pics_path, pics[(2*i) + 1]), class_names=dataset.class_names)
+
     #visualization of the decision tree
     visualize_tree(dataset, trained_tree, tree_pics_path)
 
@@ -185,8 +188,9 @@ def test() -> None:
     #dataset = dc.MaybeActualDataSet.load("D:\\Gernot\\Programmieren\\Bachelor\\Python\\Experiments\\Data\\220226_135403_MaybeActualDataSet")
     #dataset = dc.Data.load(r"D:\Gernot\Programmieren\Bachelor\Data\220428_124321_IrisDataSet")
     dataset = dc.SoccerDataSet()
-    create_and_save_tree(dataset, pred_col_name="pred_tree")
-    dataset.run_hics()
+    tree_ = create_and_save_tree(dataset, pred_col_name="pred_tree", visualize_tree_par=False)
+    print(tree_)
+    #dataset.run_hics()
     """dataset = dc.MaybeActualDataSet.load("D:\\Gernot\\Programmieren\\Bachelor\\Python\\Experiments\\Data\\220226_135403_MaybeActualDataSet")
     trained_tree = dataset.load_tree()"""
     #matrix = vs.get_change_matrix(data, ("classes", "predicted_classes"))
