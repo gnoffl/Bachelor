@@ -756,7 +756,9 @@ class SoccerDataSet(Data):
 
 def test():
     set1 = SoccerDataSet(save=False)
-    print(set1.data.count())
+    for i, dim1 in enumerate(set1.data_columns):
+        for j, dim2 in enumerate(set1.data_columns):
+            vs.visualize_2d(set1.data, (dim1, dim2), "classes", path=f"{dim1}_{dim2}.png")
 
 
 if __name__ == "__main__":
@@ -764,7 +766,7 @@ if __name__ == "__main__":
     #Experiments\Data\220131_125348_MaybeActualDataSet")
     test()
     #members_ = [10 for _ in range(6)]
-    #data1 = IrisDataSet()
+    #data1 = SoccerDataSet(save=False)
     #data1 = Data.load(r"D:\Gernot\Programmieren\Bachelor\Data\220427_173646_IrisDataSet")
     #data1.save()
     #data1.run_hics(silent=False, args_as_string="-s")
@@ -795,6 +797,12 @@ if __name__ == "__main__":
     #vs.visualize_2d(df, ("dim_00", "dim_01"), class_column="classes")
     #vs.visualize_2d(df, ("dim_00", "dim_04"), class_column="classes")
     #vs.visualize_3d(df, ("dim_00", "dim_01", "dim_04"), class_column="classes")
-    #vs.create_3d_gif(df=df, dims=("sepal_length", "sepal_width", "petal_length"), name="iris",
-    #                 class_column="classes", steps=120, duration=33, class_names=data1.class_names)
+    """vs.create_3d_gif(df=df, dims=("ps_Pass", "Passprozente", "ps_Zweikampf"), name="soccer1",
+                     class_column="classes", steps=30)
+    vs.create_3d_gif(df=df, dims=("Zweikampfprozente", "ps_Fouls", "ps_Gefoult"), name="soccer2",
+                     class_column="classes", steps=30)
+    vs.create_3d_gif(df=df, dims=("ps_Laufweite", "ps_Abseits", "ps_Assists"), name="soccer3",
+                     class_column="classes", steps=30)
+    vs.create_3d_gif(df=df, dims=("ps_Pass", "ps_Fusstore", "ps_Kopftore"), name="soccer4",
+                     class_column="classes", steps=30)"""
 

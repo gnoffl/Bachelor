@@ -183,8 +183,8 @@ def test() -> None:
     #members = [1000 for _ in range(6)]
     #dataset = dc.MaybeActualDataSet(members)
     #dataset = dc.MaybeActualDataSet.load("D:\\Gernot\\Programmieren\\Bachelor\\Python\\Experiments\\Data\\220226_135403_MaybeActualDataSet")
-    dataset = dc.Data.load(r"D:\Gernot\Programmieren\Bachelor\Data\220428_124321_IrisDataSet")
-    dataset = dc.IrisDataSet()
+    #dataset = dc.Data.load(r"D:\Gernot\Programmieren\Bachelor\Data\220428_124321_IrisDataSet")
+    dataset = dc.SoccerDataSet()
     create_and_save_tree(dataset, pred_col_name="pred_tree")
     dataset.run_hics()
     """dataset = dc.MaybeActualDataSet.load("D:\\Gernot\\Programmieren\\Bachelor\\Python\\Experiments\\Data\\220226_135403_MaybeActualDataSet")

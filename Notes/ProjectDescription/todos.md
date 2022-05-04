@@ -16,6 +16,11 @@
 ## Logical progress
 
 * [ ] Soccer Dataset                                              5 days  (-08.05.)
+  * [x] create Soccer Dataset in Datacreation
+  * [x] add notes for SoccerDataSet in datacreation.md
+  * [ ] check for problems in the pipeline
+  * [ ] fix problems in the pipeline
+  * [ ] __optional:__ make colors in visualization consistent
 * [ ] NN classifier for Soccer                                    5 days  (-15.05.)
 * [ ] optimize parameters                                         3 days  
 * [ ] think about HiCS Parameters (read HiCS paper again)         1 day
