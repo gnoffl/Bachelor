@@ -113,7 +113,10 @@ def visualize_2d(df: pd.DataFrame,
                     raise ValueError
                 color_ind = int(clas)
             except ValueError:
-                color_ind = i
+                try:
+                    color_ind = class_names.index(clas)
+                except ValueError:
+                    color_ind = i
             plt.scatter(df.loc[df[class_column] == clas, [x_name]],
                         df.loc[df[class_column] == clas, [y_name]],
                         color=colors[color_ind],
