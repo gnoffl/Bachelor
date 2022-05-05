@@ -270,17 +270,22 @@ def main():
     #    "dim_01": -0.2
     #}
     quantiles = {
-        "sepal_length": 0.1,
-        "petal_length": 0.05,
-        "petal_width": -0.2
+        "ps_Laufweite": 0.1,
+        "Passprozente": 0.05,
+        "ps_Fouls": -0.2
     }
     #dataset = dc.MaybeActualDataSet.load(r"D:\Gernot\Programmieren\Bachelor\Data\220415_111316_MaybeActualDataSet")
-    dataset = dc.IrisDataSet()
+    dataset = dc.SoccerDataSet()
     cl.create_and_save_tree(dataset=dataset, visualize_tree_par=False)
     results = run_QSM_decisionTree(dataset=dataset,
                                    quantiles=quantiles,
                                    save_changes=False)
-    visualize_QSM(base_dim="petal_length", dim_before_shift="petal_width", shift=-0.2, dataset=dataset, save=False)
+    visualize_QSM(base_dim="ps_Pass", dim_before_shift="ps_Laufweite", shift=0.1, dataset=dataset, save=False,
+                  class_names=dataset.class_names)
+    visualize_QSM(base_dim="ps_Pass", dim_before_shift="Passprozente", shift=0.05, dataset=dataset, save=False,
+                  class_names=dataset.class_names)
+    visualize_QSM(base_dim="ps_Pass", dim_before_shift="ps_Fouls", shift=-0.2, dataset=dataset, save=False,
+                  class_names=dataset.class_names)
     for dim, matrix in results.items():
         print(dim)
         print(matrix)

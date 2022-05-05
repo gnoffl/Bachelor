@@ -188,9 +188,9 @@ def test() -> None:
     #dataset = dc.MaybeActualDataSet.load("D:\\Gernot\\Programmieren\\Bachelor\\Python\\Experiments\\Data\\220226_135403_MaybeActualDataSet")
     #dataset = dc.Data.load(r"D:\Gernot\Programmieren\Bachelor\Data\220428_124321_IrisDataSet")
     dataset = dc.SoccerDataSet()
-    tree_ = create_and_save_tree(dataset, pred_col_name="pred_tree", visualize_tree_par=False)
-    print(tree_)
-    #dataset.run_hics()
+    create_and_save_tree(dataset, pred_col_name="pred_tree")
+    #print(tree_)
+    dataset.run_hics()
     """dataset = dc.MaybeActualDataSet.load("D:\\Gernot\\Programmieren\\Bachelor\\Python\\Experiments\\Data\\220226_135403_MaybeActualDataSet")
     trained_tree = dataset.load_tree()"""
     #matrix = vs.get_change_matrix(data, ("classes", "predicted_classes"))
