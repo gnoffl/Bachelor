@@ -657,14 +657,14 @@ def main():
     """
     test function
     """
-    members = [100 for _ in range(6)]
-    _data = dc.MaybeActualDataSet(members, save=True)
+    #members = [100 for _ in range(6)]
+    _data = dc.SoccerDataSet()
 
     #_data = dc.MaybeActualDataSet.load(r"D:\Gernot\Programmieren\Bachelor\Data\220328_142537_MaybeActualDataSet")
     #dim_to_split = find_dim_to_split(_data, "dim_04")
     #print(dim_to_split)
     remaining_splits = 2
-    quantiles = {"dim_04": -0.05}
+    quantiles = {"ps_Laufweite": -0.05}
     data_binning(dataset=_data, shifts=quantiles, max_split_nr=remaining_splits, visualize=True)
     #dims = get_HiCS(dataset=_data, dim_to_shift="dim_04", goodness_over_length=False)
     #_data.HiCS_dims = dims
@@ -749,5 +749,5 @@ if __name__ == "__main__":
     #test_alpha()
     #test_create_test_statistics_parallel()
     #test_get_name()
-    test_sub_lists()
-    #main()
+    #test_sub_lists()
+    main()
