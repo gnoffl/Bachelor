@@ -1,4 +1,6 @@
 from __future__ import annotations
+
+import subprocess
 from typing import List, Dict
 
 import sklearn.tree as tree
@@ -230,47 +232,6 @@ class Data(ABC):
         #data has to be updated/saved either way
         self.data.to_csv(os.path.join(path, "data.csv"), index=False)
 
-    def save_data_for_hics(self, path: str = "") -> str:
-        """
-        Saves the "data" attribute without the "classes" column as a csv file in the folder for the description of the
-        object or at a given path.
-        :param path: Path to a location where the csv is supposed to be saved, if not in the folder describing the
-        object
-        :return: the path to the file
-        """
-        if not path:
-            self.save()
-            path = self.path
-        #no reason to overwrite old data for HiCS
-        if "HiCS_Input_Data.csv" not in os.listdir(path):
-            data_for_hics = self.data[self.data_columns]
-            file_path = os.path.join(path, "HiCS_Input_Data.csv")
-            #HiCS program expects a csv file with ";" as delimiter. index column is not useful
-            data_for_hics.to_csv(file_path, sep=";", index=False)
-            return file_path
-        return os.path.join(path, "HiCS_Input_Data.csv")
-
-    def add_notes_for_HiCS(self, notes: List[str], params: List[str]) -> None:
-        """
-        adds notes for HiCS to a dataset object, depending on the parameters given for HiCS as well as possible
-        additional notes
-        :param notes: additional notes to be saved
-        :param params: parameters for HiCS
-        """
-        self.extend_notes_by_one_line("Notes for HiCS:")
-        for note in notes:
-            self.extend_notes_by_one_line(note)
-        self.extend_notes_by_one_line("Parameters:")
-        string: str = ""
-        for i, param in enumerate(params):
-            if i % 2 == 0:
-                string = param
-            else:
-                string += f" {param}"
-                self.extend_notes_by_one_line(string)
-        self.end_paragraph_in_notes()
-        self.save()
-
     @staticmethod
     def set_attributes(attr_string: str, result: Data) -> None:
         """
@@ -355,6 +316,47 @@ class Data(ABC):
         csv_out = os.path.join(path, "HiCS_output.csv")
         return csv_out
 
+    def save_data_for_hics(self, path: str = "") -> str:
+        """
+        Saves the "data" attribute without the "classes" column as a csv file in the folder for the description of the
+        object or at a given path.
+        :param path: Path to a location where the csv is supposed to be saved, if not in the folder describing the
+        object
+        :return: the path to the file
+        """
+        if not path:
+            self.save()
+            path = self.path
+        #no reason to overwrite old data for HiCS
+        if "HiCS_Input_Data.csv" not in os.listdir(path):
+            data_for_hics = self.data[self.data_columns]
+            file_path = os.path.join(path, "HiCS_Input_Data.csv")
+            #HiCS program expects a csv file with ";" as delimiter. index column is not useful
+            data_for_hics.to_csv(file_path, sep=";", index=False)
+            return file_path
+        return os.path.join(path, "HiCS_Input_Data.csv")
+
+    def add_notes_for_HiCS(self, notes: List[str], params: List[str]) -> None:
+        """
+        adds notes for HiCS to a dataset object, depending on the parameters given for HiCS as well as possible
+        additional notes
+        :param notes: additional notes to be saved
+        :param params: parameters for HiCS
+        """
+        self.extend_notes_by_one_line("Notes for HiCS:")
+        for note in notes:
+            self.extend_notes_by_one_line(note)
+        self.extend_notes_by_one_line("Parameters:")
+        string: str = ""
+        for i, param in enumerate(params):
+            if i % 2 == 0:
+                string = param
+            else:
+                string += f" {param}"
+                self.extend_notes_by_one_line(string)
+        self.end_paragraph_in_notes()
+        self.save()
+
     def run_hics(self, csv_out: str = "", further_params: List[str] = None, args_as_string: str = "",
                  notes: List[str] = "", silent: bool = True, csv_in: str = "") -> None:
         """
@@ -385,6 +387,17 @@ class Data(ABC):
             HiCS.run_HiCS(params + args_list)
             self.add_notes_for_HiCS(notes=notes, params=params)
 
+    def get_contrast(self, dimensions: List[int], further_params: List[str] = None,
+                     silent: bool = True, csv_in: str = "") -> float:
+        if further_params is None:
+            further_params = []
+        if not csv_in:
+            csv_in = self.save_data_for_hics()
+        arguments = ["--csvIn", f"{csv_in}", "--hasHeader", "true"]
+        if silent:
+            arguments.extend(["-s"])
+        params = arguments + further_params
+        return HiCS.get_contrast(dimensions=dimensions, params=params, silent=silent)
 
     def parse_params(self, paragraphs: List[str], path: str, created_line: str = "") -> None:
         """
@@ -662,10 +675,10 @@ class SoccerDataSet(Data):
 
         if create_data:
             self.create_data()
+            self.update_members()
         else:
             self.data = pd.DataFrame()
         self.data_columns = [value for value in self.data.columns.values if value != "classes"]
-        self.update_members()
         if save:
             self.save()
 
@@ -755,11 +768,9 @@ class SoccerDataSet(Data):
 
 
 def test():
-    set1 = SoccerDataSet(save=False)
-    for i, dim1 in enumerate(set1.data_columns):
-        for j, dim2 in enumerate(set1.data_columns):
-            vs.visualize_2d(set1.data, (dim1, dim2), "classes", path=f"{dim1}_{dim2}.png")
-            print(f"{i}{j}")
+    set1 = SoccerDataSet()
+    set1.run_hics()
+    print(set1.get_contrast([0, 1, 2, 3, 4], silent=False))
 
 
 if __name__ == "__main__":
