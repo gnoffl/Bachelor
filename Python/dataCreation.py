@@ -325,7 +325,8 @@ class Data(ABC):
         :return: the path to the file
         """
         if not path:
-            self.save()
+            if not os.path.isdir(self.path):
+                self.save()
             path = self.path
         #no reason to overwrite old data for HiCS
         if "HiCS_Input_Data.csv" not in os.listdir(path):
@@ -387,7 +388,7 @@ class Data(ABC):
             HiCS.run_HiCS(params + args_list)
             self.add_notes_for_HiCS(notes=notes, params=params)
 
-    def get_contrast(self, dimensions: List[int], further_params: List[str] = None,
+    def get_contrast(self, dimensions: List[str], further_params: List[str] = None,
                      silent: bool = True, csv_in: str = "") -> float:
         if further_params is None:
             further_params = []
