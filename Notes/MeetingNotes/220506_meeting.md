@@ -8,6 +8,8 @@ die ks-test Implementierung ausgibt. Abweichungen sind trz deutlich. --> Weil es
    1. theoretischer Hintergrund
    2. Umfang
    3. etc
+3. Probleme mit HiCS --> spearman korrelation zwischen 2 dimensionen genommen
+4. tiefe von Tree bei SoccerDataSet anpassen?
 
 
 

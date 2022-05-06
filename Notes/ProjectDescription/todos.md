@@ -15,12 +15,6 @@
 
 ## Logical progress
 
-* [ ] Soccer Dataset                                              5 days  (-08.05.)
-  * [x] create Soccer Dataset in Datacreation
-  * [x] add notes for SoccerDataSet in datacreation.md
-  * [ ] check for problems in the pipeline
-  * [ ] fix problems in the pipeline
-  * [ ] __optional:__ make colors in visualization consistent
 * [ ] NN classifier for Soccer                                    5 days  (-15.05.)
 * [ ] optimize parameters                                         3 days  
 * [ ] think about HiCS Parameters (read HiCS paper again)         1 day
@@ -57,4 +51,11 @@ class_05 with any other class in dim_04)
   * [x] check for problems in the pipeline
   * [x] fix problems in the pipeline
 * [x] make sure that qsm works (cumulated dists dont look the same)
-* [x] fix splitting of data (dont split between 2 points with the same value)
+* [x] fix splitting of data (dont split between 2 points with the same value)* [x] Soccer Dataset
+* [x] create Soccer Dataset in Datacreation
+  * [x] add notes for SoccerDataSet in datacreation.md
+  * [x] check for problems in the pipeline
+  * [x] fix problems in the pipeline
+    * [x] HiCS doesnt calculate all 2d Subspaces --> calculate them directly
+      * [x] direct calculation somehow gives different results from normal calculation in list
+  * [x] __optional:__ make colors in visualization consistent
