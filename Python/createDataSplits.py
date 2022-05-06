@@ -403,7 +403,7 @@ def read_HiCS_results(dataset: dc.Data, dim_to_shift: str = "", HiCS_parameters:
             val, dims = line.split("; ")
             dims = dims.split(";")
             # if no dim_to_shift is given, all subspaces will be returned
-            if not dim_to_shift or index_str in dims:
+            if (not dim_to_shift) or (index_str in dims):
                 spaces.append((float(val), dims))
             line = f.readline().strip()
     return spaces
@@ -471,6 +471,26 @@ def get_HiCS(dataset: dc.Data,
     return HiCS_dims
 
 
+def get_best_2d_subspace(HiCS_dims: List[str], dim_to_shift: str, dataset: dc.Data) -> str:
+    """
+    tests a set of dimensions for their spearman correlation with a given dim_to_shift for a dataset and returns the
+    dimension with the highest correlation
+    :param HiCS_dims: dims to test
+    :param dim_to_shift: dimension to shift
+    :param dataset: the dataset
+    :return: the dimension, that has the highest correlation to the dim_to_shift out of the candidates in HiCS_dims
+    """
+    max_val = float("-inf")
+    best_dim = HiCS_dims[0]
+    for dim in HiCS_dims:
+        result = stats.spearmanr(dataset.data[dim], dataset.data[dim_to_shift])
+        result = abs(result[0])
+        if result > max_val:
+            best_dim = dim
+            max_val = result
+    return best_dim
+
+
 def find_dim_to_split(dataset: dc.Data, dim_to_shift: str, goodness_over_length: bool = True,
                       threshold_fraction: float = .7, HiCS_parameters: str = "") -> str:
     """
@@ -489,7 +509,10 @@ def find_dim_to_split(dataset: dc.Data, dim_to_shift: str, goodness_over_length:
                          spaces=spaces, threshold_fraction=threshold_fraction)
     #excluding the dim_to_shift
     hics_dims = [dim for dim in hics_dims if dim != dim_to_shift]
+
+    """
     hics_dims = convert_column_names_to_indexes(dataset, hics_dims)
+
 
     #selecting the dim, that is part of the datasets best HiCS and has the highest contrast value in a pair with the
     # dim_to_shift
@@ -505,7 +528,9 @@ def find_dim_to_split(dataset: dc.Data, dim_to_shift: str, goodness_over_length:
     elif dim_1 == dim_to_shift_index_str:
         return dataset.data_columns[int(dim_0)]
     else:
-        raise dc.CustomError("dim_to_shift was not in pair!")
+        raise dc.CustomError("dim_to_shift was not in pair!")"""
+
+    return get_best_2d_subspace(HiCS_dims=hics_dims, dim_to_shift=dim_to_shift, dataset=dataset)
 
 
 def create_and_save_visualizations_for_splits(dataset: dc.Data, dim_to_shift: str, dim_to_split: str,
@@ -657,14 +682,14 @@ def main():
     """
     test function
     """
-    #members = [100 for _ in range(6)]
-    _data = dc.SoccerDataSet()
+    members = [100 for _ in range(6)]
+    _data = dc.MaybeActualDataSet(members)
 
     #_data = dc.MaybeActualDataSet.load(r"D:\Gernot\Programmieren\Bachelor\Data\220328_142537_MaybeActualDataSet")
     #dim_to_split = find_dim_to_split(_data, "dim_04")
     #print(dim_to_split)
     remaining_splits = 2
-    quantiles = {"ps_Laufweite": -0.05}
+    quantiles = {"dim_00": -0.05}
     data_binning(dataset=_data, shifts=quantiles, max_split_nr=remaining_splits, visualize=True)
     #dims = get_HiCS(dataset=_data, dim_to_shift="dim_04", goodness_over_length=False)
     #_data.HiCS_dims = dims
@@ -680,15 +705,20 @@ def test():
     #    "dim_00": 0.05,
     #    "dim_01": -0.2
     #}
-    quantiles = {
-        "sepal_length": 0.1,
-        "petal_length": 0.05,
-        "petal_width": -0.2
-    }
+    #quantiles = {
+    #    "sepal_length": 0.1,
+    #    "petal_length": 0.05,
+    #    "petal_width": -0.2
+    #}
     #members = [50 for _ in range(6)]
     #dataset = dc.MaybeActualDataSet(members)
-    dataset = dc.IrisDataSet()
-    print(data_binning(dataset, shifts=quantiles, max_split_nr=2, visualize=True))
+    dataset = dc.SoccerDataSet(save=False)
+    print(stats.spearmanr(dataset.data["ps_Laufweite"], dataset.data["ps_Pass"])[0])
+
+
+def test_find_dim_to_split():
+    dataset = dc.Data.load(r"D:\Gernot\Programmieren\Bachelor\Data\220505_225855_SoccerDataSet")
+    print(find_dim_to_split(dataset=dataset, dim_to_shift="ps_Laufweite", silent=False, goodness_over_length=False))
 
 
 def test_sub_lists():
@@ -750,4 +780,6 @@ if __name__ == "__main__":
     #test_create_test_statistics_parallel()
     #test_get_name()
     #test_sub_lists()
+    #test()
     main()
+    #test_find_dim_to_split()
