@@ -13,9 +13,8 @@ def run_HiCS(params: List[str] = None) -> None:
     subprocess.run([command] + params)
 
 
-def get_contrast(dimensions: List[int], params: List[str] = None, silent: bool = True) -> float:
+def get_contrast(dimensions: List[str], params: List[str] = None, silent: bool = True) -> float:
     path_here = os.path.dirname(__file__)
-    dimensions = [str(dim) for dim in dimensions]
     dims = ",".join(dimensions)
     params.append("--onlySubspace")
     params.append(dims)
