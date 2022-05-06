@@ -355,6 +355,9 @@ class Data(ABC):
             else:
                 string += f" {param}"
                 self.extend_notes_by_one_line(string)
+                string = ""
+        if string:
+            self.extend_notes_by_one_line(string)
         self.end_paragraph_in_notes()
         self.save()
 
@@ -375,16 +378,17 @@ class Data(ABC):
             further_params = []
         if not csv_in:
             csv_in = self.save_data_for_hics()
-        if "HiCS_output.csv" not in os.listdir(self.path):
-            if not csv_out:
-                csv_out = self.create_csv_out(csv_in)
-            arguments = ["--csvIn", f"{csv_in}", "--csvOut", f"{csv_out}", "--hasHeader", "true"]
-            if silent:
-                arguments.extend(["-s"])
+        if not csv_out:
+            csv_out = self.create_csv_out(csv_in)
+        if not os.path.isfile(csv_out):
+            arguments = ["--csvOut", f"{csv_out}", "--hasHeader", "true", "--numCandidates", "5000",
+                         "--maxOutputSpaces", "5000", "--csvIn", f"{csv_in}"]
             params = arguments + further_params
             args_list = []
             if args_as_string:
                 args_list = args_as_string.split(" ")
+            if silent:
+                params.extend(["-s"])
             HiCS.run_HiCS(params + args_list)
             self.add_notes_for_HiCS(notes=notes, params=params)
 
@@ -770,8 +774,7 @@ class SoccerDataSet(Data):
 
 def test():
     set1 = SoccerDataSet()
-    set1.run_hics()
-    print(set1.get_contrast([0, 1, 2, 3, 4], silent=False))
+    set1.run_hics(further_params=["--maxOutputSpaces", "5000"], silent=False)
 
 
 if __name__ == "__main__":
