@@ -25,6 +25,26 @@ def add_result_matrices(matrix1: pd.DataFrame, matrix2: pd.DataFrame) -> pd.Data
     return result_matrix.fillna(0).astype("int32")
 
 
+def get_pref_dims(dataset: dc.Data):
+    """
+    gets the dimensions, that are preferably depicted for different dataset types
+    :param dataset: dataset to get the dimensions for
+    :return: tuple of first and second choice for dimensions to depict
+    """
+    if isinstance(dataset, dc.MaybeActualDataSet):
+        pref_dim = "dim_04"
+        secnd_choice = "dim_00"
+    elif isinstance(dataset, dc.IrisDataSet):
+        pref_dim = "petal_length"
+        secnd_choice = "petal_width"
+    elif isinstance(dataset, dc.SoccerDataSet):
+        pref_dim = "Zweikampfprozente"
+        secnd_choice = "ps_Pass"
+    else:
+        raise dc.CustomError(f"class {type(dataset)} is unknown!")
+    return pref_dim, secnd_choice
+
+
 def recursion_end(curr_folder: str, dim: str, q: float,
                   subspace_list: List[pd.DataFrame], trained_tree: tree.DecisionTreeClassifier) -> pd.DataFrame:
     """
@@ -59,14 +79,7 @@ def recursion_end(curr_folder: str, dim: str, q: float,
     data[f"{dim}_org"] = org_dim_data
     subspace_list.append(data)
     #visualization with dim_04 is preferred
-    if isinstance(dataset, dc.MaybeActualDataSet):
-        pref_dim = "dim_04"
-        secnd_choice = "dim_00"
-    elif isinstance(dataset, dc.IrisDataSet):
-        pref_dim = "petal_length"
-        secnd_choice = "petal_width"
-    else:
-        raise dc.CustomError(f"class {type(dataset)} is unknown!")
+    pref_dim, secnd_choice = get_pref_dims(dataset)
     if dim != pref_dim:
         QSM.visualize_QSM(base_dim=pref_dim, dim_before_shift=dim, shift=q, dataset=dataset)
     else:
@@ -208,14 +221,7 @@ def run_vanilla_qsm(dataset: dc.Data, quantiles: Dict[str, float],
                                        trained_tree=trained_tree)
     for dim, q in quantiles.items():
         #visualization
-        if isinstance(dataset, dc.MaybeActualDataSet):
-            pref_dim = "dim_04"
-            secnd_choice = "dim_00"
-        elif isinstance(dataset, dc.IrisDataSet):
-            pref_dim = "petal_length"
-            secnd_choice = "petal_width"
-        else:
-            raise dc.CustomError(f"class {type(dataset)} is unknown!")
+        pref_dim, secnd_choice = get_pref_dims(dataset)
         if dim != pref_dim:
             QSM.visualize_QSM(base_dim=pref_dim, dim_before_shift=dim, shift=q, dataset=dataset,
                               save_path=os.path.join(dataset.path, "pics", "QSM", "vanilla", dim),
@@ -320,11 +326,10 @@ def test():
     }
     members = [50 for _ in range(6)]"""
     quantiles = {
-        "sepal_length": 0.1,
-        "petal_length": 0.05,
-        "petal_width": -0.2
+        "ps_Laufweite": 0.1,
+        "Passprozente": -0.05
     }
-    run_from_file(dataset=dc.IrisDataSet(), quantiles=quantiles)
+    run_from_file(dataset=dc.SoccerDataSet(), quantiles=quantiles)
 
 
 def round_arr(arr: List[float]) -> None:
