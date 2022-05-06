@@ -509,8 +509,6 @@ def find_dim_to_split(dataset: dc.Data, dim_to_shift: str, goodness_over_length:
                          spaces=spaces, threshold_fraction=threshold_fraction)
     #excluding the dim_to_shift
     hics_dims = [dim for dim in hics_dims if dim != dim_to_shift]
-
-    """
     hics_dims = convert_column_names_to_indexes(dataset, hics_dims)
 
 
@@ -528,9 +526,7 @@ def find_dim_to_split(dataset: dc.Data, dim_to_shift: str, goodness_over_length:
     elif dim_1 == dim_to_shift_index_str:
         return dataset.data_columns[int(dim_0)]
     else:
-        raise dc.CustomError("dim_to_shift was not in pair!")"""
-
-    return get_best_2d_subspace(HiCS_dims=hics_dims, dim_to_shift=dim_to_shift, dataset=dataset)
+        raise dc.CustomError("dim_to_shift was not in pair!")
 
 
 def create_and_save_visualizations_for_splits(dataset: dc.Data, dim_to_shift: str, dim_to_split: str,
@@ -682,14 +678,18 @@ def main():
     """
     test function
     """
-    members = [100 for _ in range(6)]
-    _data = dc.MaybeActualDataSet(members)
+    #members = [100 for _ in range(6)]
+    _data = dc.SoccerDataSet()
 
     #_data = dc.MaybeActualDataSet.load(r"D:\Gernot\Programmieren\Bachelor\Data\220328_142537_MaybeActualDataSet")
     #dim_to_split = find_dim_to_split(_data, "dim_04")
     #print(dim_to_split)
     remaining_splits = 2
-    quantiles = {"dim_00": -0.05}
+    #quantiles = {"dim_00": -0.05}
+    quantiles = {
+        "ps_Laufweite": 0.1,
+        "Passprozente": -0.05
+    }
     data_binning(dataset=_data, shifts=quantiles, max_split_nr=remaining_splits, visualize=True)
     #dims = get_HiCS(dataset=_data, dim_to_shift="dim_04", goodness_over_length=False)
     #_data.HiCS_dims = dims
@@ -717,8 +717,8 @@ def test():
 
 
 def test_find_dim_to_split():
-    dataset = dc.Data.load(r"D:\Gernot\Programmieren\Bachelor\Data\220505_225855_SoccerDataSet")
-    print(find_dim_to_split(dataset=dataset, dim_to_shift="ps_Laufweite", silent=False, goodness_over_length=False))
+    dataset = dc.Data.load(r"D:\Gernot\Programmieren\Bachelor\Data\220506_155909_SoccerDataSet")
+    print(find_dim_to_split(dataset=dataset, dim_to_shift="ps_Laufweite", goodness_over_length=False))
 
 
 def test_sub_lists():
