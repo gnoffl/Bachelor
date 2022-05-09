@@ -2,7 +2,7 @@ import os.path
 from typing import List, Dict, Tuple
 import pandas as pd
 
-import Python.classifier as cl
+import Python.treeClassifier as tcl
 import Python.dataCreation as dc
 import Python.visualization as vs
 from collections.abc import Callable
@@ -276,7 +276,7 @@ def main():
     }
     #dataset = dc.MaybeActualDataSet.load(r"D:\Gernot\Programmieren\Bachelor\Data\220415_111316_MaybeActualDataSet")
     dataset = dc.SoccerDataSet()
-    cl.create_and_save_tree(dataset=dataset, visualize_tree_par=False)
+    tcl.create_and_save_tree(dataset=dataset, visualize_tree_par=False)
     results = run_QSM_decisionTree(dataset=dataset,
                                    quantiles=quantiles,
                                    save_changes=False)

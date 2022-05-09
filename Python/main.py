@@ -7,7 +7,7 @@ import sklearn.tree as tree
 
 import dataCreation as dc
 import visualization as vs
-import classifier as cl
+import treeClassifier as tcl
 import QSM
 import createDataSplits as cds
 
@@ -291,8 +291,8 @@ def compare_vanilla_split(quantiles: Dict[str, float], dataset: dc.Data, max_dep
     :param HiCS_parameters: further parameters to be added to HiCS
     """
     print("training decision tree..")
-    trained_tree = cl.create_and_save_tree(dataset, pred_col_name="test", depth=max_depth,
-                                           min_samples_leaf=min_samples_leaf)
+    trained_tree = tcl.create_and_save_tree(dataset, pred_col_name="test", depth=max_depth,
+                                            min_samples_leaf=min_samples_leaf)
     print("start binning of data..")
     start_folder_dict = cds.data_binning(dataset=dataset, shifts=quantiles, max_split_nr=max_split_nr, visualize=True,
                                          nr_processes=nr_processes, max_p_for_split=p_value,
@@ -349,7 +349,7 @@ def test_iris_QSM():
         "petal_length": 0.05,
         "petal_width": -0.2
     }
-    tree = cl.load_tree(os.path.join(r"D:\Gernot\Programmieren\Bachelor\Data\220428_195743_IrisDataSet", "tree_classifier.pkl"))
+    tree = tcl.load_tree(os.path.join(r"D:\Gernot\Programmieren\Bachelor\Data\220428_195743_IrisDataSet", "tree_classifier.pkl"))
     QSM_on_binned_data(dataset=dataset, start_folders={"petal_length": r"D:\Gernot\Programmieren\Bachelor\Data\220428_195743_IrisDataSet\Splits\petal_length_005",
                                                        "petal_width": r"D:\Gernot\Programmieren\Bachelor\Data\220428_195743_IrisDataSet\Splits\petal_width_-02",
                                                        "sepal_length": r"D:\Gernot\Programmieren\Bachelor\Data\220428_195743_IrisDataSet\Splits\sepal_length_01"},
