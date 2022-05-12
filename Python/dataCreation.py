@@ -1,10 +1,14 @@
 from __future__ import annotations
 
 import subprocess
-from typing import List, Dict
+from typing import List, Dict, Tuple
 
 import sklearn.tree as tree
 from sklearn.datasets import load_iris
+from sklearn.model_selection import train_test_split
+
+from torch.utils.data import Dataset
+import torch
 
 import HiCS
 import visualization as vs
@@ -67,7 +71,7 @@ def get_date_from_string(created_line: str):
     return now
 
 
-class Data(ABC):
+class Data(ABC, Dataset):
     data: pd.DataFrame
 
     #names of the columns, that contain data (not classes or predicted classes etc)
@@ -78,6 +82,8 @@ class Data(ABC):
     notes: str or None
     note_buffer: List[str]
     class_names: List[str]
+    target_tensor: torch.Tensor or None
+    data_tensor: torch.Tensor or None
 
     def __init__(self, path: str, members: List[int] = None, notes: str = ""):
         self.note_buffer = []
@@ -87,6 +93,8 @@ class Data(ABC):
         now = datetime.datetime.now()
         self.now = now
         now_string = now.strftime("%y%m%d_%H%M%S")
+        self.target_tensor = None
+        self.data_tensor = None
         if not path:
             path = os.path.join(os.path.dirname(__file__), "..", "Data", f"{now_string}_{class_name}")
         self.path = path
@@ -418,9 +426,52 @@ class Data(ABC):
             self.now = now
         Data.set_attributes(paragraphs[0], self)
 
+    def get_test_training_split(self, test_fraction: float = 0.2) -> Tuple[Data, Data]:
+        """
+        splits the data from the dataset into two new datasets, that contain random datapoints.
+        :param test_fraction: Fraction of values, that will be assigned to the new test_set. The remainder of the data
+        will be in the training_set
+        :return: the two new datasets
+        """
+        training_set = self.clone_meta_data()
+        test_set = self.clone_meta_data()
+        training, test_ = train_test_split(self.data, test_size=test_fraction)
+        training_set.take_new_data(training)
+        test_set.take_new_data(test_)
+        return training_set, test_set
+
+    def create_tensors(self) -> None:
+        """
+        creates tensors, that are necessary for using a neural Network classification
+        """
+        frame = self.data.copy()
+        self.target_tensor = torch.Tensor([self.class_names.index(clas) for clas in frame["classes"]])
+        for col in frame.columns:
+            if col != "classes":
+                frame[col] = frame[col] / max(frame[col].values)
+        self.data_tensor = torch.Tensor(frame[self.data_columns].values)
+
+    def __len__(self) -> int:
+        """
+        returns the length of the tensor representing the data
+        :return: length of the tensor
+        """
+        if self.target_tensor is None or self.data_tensor is None:
+            self.create_tensors()
+        return len(self.target_tensor)
+
+    def __getitem__(self, idx: int):
+        """
+        returns an item from the tensor at the given index
+        :param idx: index
+        :return: Tuple of data values and target value
+        """
+        if self.target_tensor is None:
+            self.create_tensors()
+        return self.data_tensor[idx], self.target_tensor[idx]
+
 
 class MaybeActualDataSet(Data):
-
     """
     Parameters for the distribution of the classes in the different dimensions. for "dim_00" to "dim_03" the first
     value is the mean und the second value is the stadard deviation of a random Gauss distribution.
