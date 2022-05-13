@@ -7,7 +7,7 @@ import sklearn.tree as tree
 
 import dataCreation as dc
 import visualization as vs
-import treeClassifier as tcl
+import Classifier as tcl
 import QSM
 import createDataSplits as cds
 
@@ -63,7 +63,7 @@ def recursion_end(curr_folder: str, dim: str, q: float,
     result = QSM.run_QSM_decisionTree(dataset=dataset,
                                       quantiles={dim: q},
                                       save_changes=True,
-                                      trained_tree=trained_tree)
+                                      trained_model=trained_tree)
     new_dim_name = f"{dim}_shifted_by_{str(q)}"
     new_class_name = f"pred_with_{new_dim_name}"
     data = dataset.data.copy(deep=True)
@@ -218,7 +218,7 @@ def run_vanilla_qsm(dataset: dc.Data, quantiles: Dict[str, float],
     :param trained_tree: tree to do predictions on the data in QSM
     """
     results = QSM.run_QSM_decisionTree(dataset=dataset, quantiles=quantiles, save_changes=True,
-                                       trained_tree=trained_tree)
+                                       trained_model=trained_tree)
     for dim, q in quantiles.items():
         #visualization
         pref_dim, secnd_choice = get_pref_dims(dataset)

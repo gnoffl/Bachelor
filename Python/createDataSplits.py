@@ -2,7 +2,7 @@ import re
 import time
 from typing import List, Tuple, Dict
 import subprocess
-import treeClassifier as tcl
+import Classifier as tcl
 import pandas as pd
 import concurrent.futures
 import math
