@@ -7,7 +7,7 @@ import sklearn.tree as tree
 
 import dataCreation as dc
 import visualization as vs
-import Classifier as tcl
+import Classifier as cl
 import QSM
 import createDataSplits as cds
 
@@ -60,10 +60,10 @@ def recursion_end(curr_folder: str, dim: str, q: float,
     :return: the result matrix of the QSM
     """
     dataset = dc.Data.load(curr_folder)
-    result = QSM.run_QSM_decisionTree(dataset=dataset,
-                                      quantiles={dim: q},
-                                      save_changes=True,
-                                      trained_model=trained_tree)
+    result = QSM.run_QSM(dataset=dataset,
+                         quantiles={dim: q},
+                         save_changes=True,
+                         trained_model=trained_tree)
     new_dim_name = f"{dim}_shifted_by_{str(q)}"
     new_class_name = f"pred_with_{new_dim_name}"
     data = dataset.data.copy(deep=True)
@@ -209,16 +209,16 @@ def QSM_on_binned_data(dataset: dc.Data, quantiles: Dict[str, float],
 
 
 def run_vanilla_qsm(dataset: dc.Data, quantiles: Dict[str, float],
-                    trained_tree: tree.DecisionTreeClassifier or None = None) -> None:
+                    model: cl.Classifier = None) -> None:
     """
     runs the standard QSM on the given dataset. Results are visualized and the result matrix is saved.
     :param dataset: dataset to run QSM on
     :param quantiles: Dictionary with dimensions as key and a corresponding quantile, by which the data is supposed to
     be shifted in the key-dimension
-    :param trained_tree: tree to do predictions on the data in QSM
+    :param model: model to do predictions on the data in QSM
     """
-    results = QSM.run_QSM_decisionTree(dataset=dataset, quantiles=quantiles, save_changes=True,
-                                       trained_model=trained_tree)
+    results = QSM.run_QSM(dataset=dataset, quantiles=quantiles, save_changes=True,
+                          trained_model=model)
     for dim, q in quantiles.items():
         #visualization
         pref_dim, secnd_choice = get_pref_dims(dataset)
@@ -291,18 +291,18 @@ def compare_vanilla_split(quantiles: Dict[str, float], dataset: dc.Data, max_dep
     :param HiCS_parameters: further parameters to be added to HiCS
     """
     print("training decision tree..")
-    trained_tree = tcl.create_and_save_tree(dataset, pred_col_name="test", depth=max_depth,
-                                            min_samples_leaf=min_samples_leaf)
+    model = cl.TreeClassifier(dataset, depth=max_depth, min_samples_leaf=min_samples_leaf)
+    tree_pics_path = model.visualize_predictions(dataset=dataset, pred_col_name="test")
+    model.visualize_tree(dataset=dataset, tree_pics_path=tree_pics_path)
     print("start binning of data..")
     start_folder_dict = cds.data_binning(dataset=dataset, shifts=quantiles, max_split_nr=max_split_nr, visualize=True,
                                          nr_processes=nr_processes, max_p_for_split=p_value,
                                          threshold_fraction=threshold_fraction, HiCS_parameters=HiCS_parameters,
                                          goodness_over_length=goodness_over_length)
     print("running QSM on full dataset..")
-    run_vanilla_qsm(dataset, quantiles, trained_tree)
+    run_vanilla_qsm(dataset=dataset, quantiles=quantiles, model=model)
     print("running QSM on split dataset..")
-    QSM_on_binned_data(dataset=dataset, quantiles=quantiles, start_folders=start_folder_dict, trained_tree=trained_tree)
-
+    QSM_on_binned_data(dataset=dataset, quantiles=quantiles, start_folders=start_folder_dict, trained_tree=model)
 
 
 def main() -> None:
@@ -318,18 +318,22 @@ def main() -> None:
 
 
 def test():
-    """
     quantiles = {
         "dim_04": 0.1,
         "dim_00": 0.05,
         "dim_01": -0.2
     }
-    members = [50 for _ in range(6)]"""
-    quantiles = {
+    members = [20 for _ in range(6)]
+    """quantiles = {
         "ps_Laufweite": 0.1,
         "Passprozente": -0.05
     }
-    run_from_file(dataset=dc.SoccerDataSet(), quantiles=quantiles)
+    quantiles = {
+        "sepal_length": 0.1,
+        "petal_length": 0.05,
+        "petal_width": -0.2
+    }"""
+    run_from_file(dataset=dc.MaybeActualDataSet(members), quantiles=quantiles)
 
 
 def round_arr(arr: List[float]) -> None:
@@ -349,7 +353,7 @@ def test_iris_QSM():
         "petal_length": 0.05,
         "petal_width": -0.2
     }
-    tree = tcl.load_tree(os.path.join(r"D:\Gernot\Programmieren\Bachelor\Data\220428_195743_IrisDataSet", "tree_classifier.pkl"))
+    tree = cl.load_tree(os.path.join(r"D:\Gernot\Programmieren\Bachelor\Data\220428_195743_IrisDataSet", "tree_classifier.pkl"))
     QSM_on_binned_data(dataset=dataset, start_folders={"petal_length": r"D:\Gernot\Programmieren\Bachelor\Data\220428_195743_IrisDataSet\Splits\petal_length_005",
                                                        "petal_width": r"D:\Gernot\Programmieren\Bachelor\Data\220428_195743_IrisDataSet\Splits\petal_width_-02",
                                                        "sepal_length": r"D:\Gernot\Programmieren\Bachelor\Data\220428_195743_IrisDataSet\Splits\sepal_length_01"},

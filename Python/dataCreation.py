@@ -609,13 +609,19 @@ class MaybeActualDataSet(Data):
         :param data: new Data to take
         """
         self.data = data.copy(deep=True)
-        class_counts = data["classes"].value_counts()
         members = []
-        for i in range(len(self.class_params)):
-            try:
-                members.append(class_counts.at[i])
-            except KeyError:
-                members.append(0)
+        try:
+            class_counts = data["classes"].value_counts()
+        except KeyError:
+            class_counts = None
+        if class_counts is None:
+            members = [0 for i in self.class_names]
+        else:
+            for i in range(len(self.class_names)):
+                try:
+                    members.append(class_counts.at[i])
+                except KeyError:
+                    members.append(0)
         self.members = members
 
 
@@ -693,13 +699,19 @@ class IrisDataSet(Data):
         :param data: new Data to take
         """
         self.data = data.copy(deep=True)
-        class_counts = data["classes"].value_counts()
         members = []
-        for i in range(3):
-            try:
-                members.append(class_counts.at[i])
-            except KeyError:
-                members.append(0)
+        try:
+            class_counts = data["classes"].value_counts()
+        except KeyError:
+            class_counts = None
+        if class_counts is None:
+            members = [0 for i in self.class_names]
+        else:
+            for i in range(len(self.class_names)):
+                try:
+                    members.append(class_counts.at[i])
+                except KeyError:
+                    members.append(0)
         self.members = members
 
 
