@@ -39,10 +39,10 @@ def train_decision_tree(dataset: dc.Data, max_depth=5, min_samples_leaf=5) -> tr
     return decision_tree
 
 
-def predict_classes(trained_tree: tree.DecisionTreeClassifier, dataset: dc.Data, pred_col_name: str) -> None:
+def predict_classes(trained_model: tree.DecisionTreeClassifier, dataset: dc.Data, pred_col_name: str) -> None:
     """
     uses a trained decision tree to predict the classes of the given data
-    :param trained_tree: the trained decision tree
+    :param trained_model: the trained decision tree
     :param dataset: the data
     :param pred_col_name: name for the column, in which the predicted classes will be stored
     """
@@ -50,7 +50,7 @@ def predict_classes(trained_tree: tree.DecisionTreeClassifier, dataset: dc.Data,
     if pred_col_name in data.columns:
         raise dc.CustomError("Column already exists!")
     values = data[dataset.data_columns]
-    results = trained_tree.predict(values)
+    results = trained_model.predict(values)
     data[pred_col_name] = results
 
 
@@ -86,9 +86,12 @@ def create_and_save_tree(dataset: dc.Data,
     if visualize_tree_par:
         if not pred_col_name:
             raise dc.CustomError("pred_col_name wasnt given, so predicting is not possible! Pictures can not be generated!")
-        predict_classes(trained_tree=trained_tree, dataset=dataset, pred_col_name=pred_col_name)
+        predict_classes(trained_model=trained_tree, dataset=dataset, pred_col_name=pred_col_name)
         dataset.extend_notes_by_one_line(f"Predicted classes using Decision Tree in column \"{pred_col_name}\".")
-        visualize(dataset=dataset, trained_tree=trained_tree, pred_col_name=pred_col_name)
+        tree_pics_path = vs.visualize_model_predictions(dataset=dataset, trained_tree=trained_tree, pred_col_name=pred_col_name)
+
+        #visualization of the decision tree
+        visualize_tree(dataset, trained_tree, tree_pics_path)
 
     dataset.end_paragraph_in_notes()
     dataset.save(notes=notes)
@@ -123,60 +126,6 @@ def visualize_tree(dataset: dc.Data, trained_tree: tree.DecisionTreeClassifier, 
     gv_path = os.path.join(dataset.path, "tree_visualization_data.gv")
     if os.path.isfile(gv_path):
         os.remove(gv_path)
-
-
-def visualize(dataset: dc.Data, trained_tree: tree.DecisionTreeClassifier, pred_col_name: str) -> None:
-    """
-    visualizes data (original vs predicted) as multiple 2d pictures as well as the tree as a diagram
-    :param dataset: data to be visualized
-    :param trained_tree: the trained tree
-    :param pred_col_name: name, where the predicted classes are stored
-    """
-    df = dataset.data
-    pics_path = os.path.join(dataset.path, "pics")
-    if not os.path.isdir(pics_path):
-        os.mkdir(pics_path)
-    tree_pics_path = os.path.join(pics_path, "Decision_Tree")
-    if not os.path.isdir(tree_pics_path):
-        os.mkdir(tree_pics_path)
-
-    #check if all pictures are already in the folder:
-    make_pics = False
-    files_in_pics = os.listdir(tree_pics_path)
-    if isinstance(dataset, dc.MaybeActualDataSet):
-        pics = ["00_04_org.png", "00_04_pred.png", "01_04_org.png", "01_04_pred.png", "02_03_org.png", "02_03_pred.png"]
-        dim0, dim1, dim2, dim3, dim4, dim5 = "dim_00", "dim_04", "dim_01", "dim_04", "dim_02", "dim_03"
-        dims = [(dim0, dim1), (dim2, dim3), (dim4, dim5)]
-    elif isinstance(dataset, dc.IrisDataSet):
-        pics = ["sepal_length_width_org.png", "sepal_length_width_pred.png",
-                "petal_length_width_org.png", "petal_length_width_pred.png",
-                "sepal_length_petal_width_org.png", "sepal_length_petal_width_pred.png"]
-        dim0, dim1, dim2 = "sepal_length", "sepal_width", "petal_length"
-        dim3, dim4, dim5 = "petal_width", "sepal_length", "petal_width"
-        dims = [(dim0, dim1), (dim2, dim3), (dim4, dim5)]
-    elif isinstance(dataset, dc.SoccerDataSet):
-        pics = ["gefoult_laufweite_org.png", "gefoult_laufweite_pred.png",
-                "pass_laufweite_org.png", "pass_laufweite_pred.png",
-                "pass_zweikampfprozente_org.png", "pass_zweikampfprozente_pred.png"]
-        dim0, dim1, dim2 = "ps_Gefoult", "ps_Laufweite", "ps_Pass"
-        dim3, dim4, dim5 = "ps_Laufweite", "ps_Pass", "Zweikampfprozente"
-        dims = [(dim0, dim1), (dim2, dim3), (dim4, dim5)]
-    else:
-        raise dc.CustomError(f"unknown Dataset type: {type(dataset)}")
-    for pic in pics:
-        if pic not in files_in_pics:
-            make_pics = True
-            break
-
-    if make_pics:
-        for i, pair in enumerate(dims):
-            vs.visualize_2d(df=df, dims=(pair[0], pair[1]), class_column="classes", title="original",
-                            path=os.path.join(tree_pics_path, pics[2*i]), class_names=dataset.class_names)
-            vs.visualize_2d(df=df, dims=(pair[0], pair[1]), class_column=pred_col_name, title="predicted",
-                            path=os.path.join(tree_pics_path, pics[(2*i) + 1]), class_names=dataset.class_names)
-
-    #visualization of the decision tree
-    visualize_tree(dataset, trained_tree, tree_pics_path)
 
 
 def test() -> None:
