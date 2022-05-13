@@ -2,11 +2,10 @@ import os.path
 from typing import List, Dict, Tuple
 import pandas as pd
 
-import Python.treeClassifier as tcl
+import Python.Classifier as cl
 import Python.dataCreation as dc
 import Python.visualization as vs
 from collections.abc import Callable
-import sklearn.tree as tree
 
 
 def binary_search(arr: List[float], val: float, limits: Tuple[int, int] = None) -> List[int]:
@@ -137,9 +136,8 @@ def qsm(model,  # Model to use for the evaluation
     :returns: Dictionary with the resulting change matrices. Key is the original dimension, value is the dataframe
     containing the matrix
     """
-    pred_classes = predict_fn(model, data_set.data, data_set.data_columns)
-    data = data_set.data
-    data["org_pred_classes_QSM"] = pred_classes
+    pred_classes = predict_fn(model, data_set, data_set.data_columns)
+    data_set.data["org_pred_classes_QSM"] = pred_classes
     data_set.extend_notes_by_one_line("notes for QSM:")
     data_set.extend_notes_by_one_line(f"prediction on the original data in column \"org_pred_classes_QSM\"")
     results = {}
@@ -148,72 +146,76 @@ def qsm(model,  # Model to use for the evaluation
         prediction_dims = data_set.data_columns[:]
         prediction_dims.remove(dim)
         prediction_dims.append(new_dim_name)
-        values, cumulative_frequencies = vs.get_cumulative_values(data[dim].values)
-        data[new_dim_name] = data[dim].apply(lambda x: get_shifted_value(value_to_shift=x,
-                                                                         shift=shift,
-                                                                         values=values,
-                                                                         cum_frequencies=cumulative_frequencies))
+        values, cumulative_frequencies = vs.get_cumulative_values(data_set.data[dim].values)
+        data_set.data[new_dim_name] = data_set.data[dim].apply(lambda x: get_shifted_value(value_to_shift=x,
+                                                                                         shift=shift,
+                                                                                         values=values,
+                                                                                         cum_frequencies=cumulative_frequencies))
         new_class_name = f"pred_with_{new_dim_name}"
-        data[new_class_name] = predict_fn(model, data, prediction_dims)
+        data_set.data[new_class_name] = predict_fn(model, data_set, prediction_dims)
         data_set.extend_notes_by_one_line(f"shifted column \"{dim}\" by {str(shift)}. Shifted column is "
                                           f"\"{new_dim_name}\", corresponding predictions are in column "
                                           f"\"{new_class_name}\"")
-        results[dim] = vs.get_change_matrix(data, ("org_pred_classes_QSM", new_class_name))
+        results[dim] = vs.get_change_matrix(data_set.data, ("org_pred_classes_QSM", new_class_name))
     if save_changes:
         data_set.save()
     return results
 
 
+def get_prediction_dataset(dataset, dims) -> dc.Data:
+    # DecisionTree needs to get a dataframe that only contains columns, that were present when the tree was trained,
+    # and the columns also need to be in the same order as when the tree was trained.
+    # If a new dimension is in the given dimensions for the prediction, this dimension has to be identified, and it
+    # has to be renamed to the name of the missing dimension
+    prediction_dims = dataset.data_columns
+    prediction_dims_set = set(prediction_dims)
+    dims_set = set(dims)
+    missing_dim_for_pred = prediction_dims_set - dims_set
+    new_dim_name = dims_set - prediction_dims_set
+    if len(missing_dim_for_pred) == 1 and len(new_dim_name) == 1:
+        values = dataset.data[dims]
+        cols = values.columns.values
+        cols[dims.index(list(new_dim_name)[0])] = list(missing_dim_for_pred)[0]
+    elif len(missing_dim_for_pred) == 0 and len(new_dim_name) == 0:
+        values = dataset.data[dims]
+    else:
+        raise dc.CustomError("number of differing columns is unexpected!")
+    values = values[prediction_dims]
+    result = dataset.clone_meta_data()
+    result.take_new_data(values)
+    return result
+
+
 def run_QSM_decisionTree(dataset: dc.Data, quantiles: Dict, save_changes: bool = True,
-                         trained_tree: tree.DecisionTreeClassifier = None) -> Dict[str, pd.DataFrame]:
+                         trained_model: cl.Classifier = None) -> Dict[str, pd.DataFrame]:
     """
     runs QSM on a given Dataset, that has a trained DecisionTree
     :param dataset: the dataset to run qsm on
     :param quantiles: list of tuples with the name of the dimension that is to be shifted and the value the dimension
     is to be shifted (value between 0 and 1)
     :param save_changes: determines if the changes in the dataset are to be saved
-    :param trained_tree: tree that will be used to make predictions in qsm. if none is given, Tree will be loaded from
+    :param trained_model: tree that will be used to make predictions in qsm. if none is given, Tree will be loaded from
     the dataset.
     :returns: Dictionary with the resulting change matrices. Key is the original dimension, value is the dataframe
     containing the matrix
     """
-    if not trained_tree:
-        trained_tree = dataset.load_tree()
+    if not trained_model:
+        trained_model = cl.Classifier.load_classifier(dataset)
 
-    def predict_fn(trained_tree_: tree.DecisionTreeClassifier, data: pd.DataFrame, dims: List[str]) -> List[int]:
+    def predict_fn(trained_model_: cl.Classifier, data_set: dc.Data, dims: List[str]) -> List[int]:
         """
         prediction function for trained decision Trees on set of given dimensions of a data set
-        :param trained_tree_: the trained Decision Tree
-        :param data: the Data
+        :param trained_model_: the trained Decision Tree
+        :param data_set: dataset containing the data
         :param dims: List of dimension names, that are to be used for the classification. Can vary in up to one spot
         from the names of the columns the decision tree was originally trained on
         :return: List of the predicted classes
         """
 
-        # DecisionTree needs to get a dataframe that only contains columns, that were present when the tree was trained,
-        # and the columns also need to be in the same order as when the tree was trained.
-        # If a new dimension is in the given dimensions for the prediction, this dimension has to be identified, and it
-        # has to be renamed to the name of the missing dimension
-        prediction_dims = dataset.data_columns
-        prediction_dims_set = set(prediction_dims)
-        dims_set = set(dims)
+        prediction_dataset = get_prediction_dataset(data_set, dims)
+        return trained_model_.predict(prediction_dataset)
 
-        missing_dim_for_pred = prediction_dims_set - dims_set
-        new_dim_name = dims_set - prediction_dims_set
-
-        if len(missing_dim_for_pred) == 1 and len(new_dim_name) == 1:
-            values = data[dims]
-            cols = values.columns.values
-            cols[dims.index(list(new_dim_name)[0])] = list(missing_dim_for_pred)[0]
-        elif len(missing_dim_for_pred) == 0 and len(new_dim_name) == 0:
-            values = data[dims]
-        else:
-            raise dc.CustomError("number of differing columns is unexpected!")
-
-        values = values[prediction_dims]
-        return trained_tree_.predict(values)
-
-    return qsm(model=trained_tree, data_set=dataset, quantiles=quantiles, predict_fn=predict_fn,
+    return qsm(model=trained_model, data_set=dataset, quantiles=quantiles, predict_fn=predict_fn,
                save_changes=save_changes)
 
 
@@ -234,13 +236,13 @@ def visualize_QSM(base_dim: str, dim_before_shift: str, shift: float, data_path:
     :param class_names: List containing the names of the different classes. Should be used if the values in the classes
     column of df are only numbers coding for the actual class names.
     """
-    if not data_path and not dataset:
+    if not data_path and dataset is None:
         raise dc.CustomError("one of the parameters path or dataset needs to be given!")
     if data_path and dataset:
         raise dc.CustomError("only one of the parameters path or dataset must be given!")
     dim_after_shift = f"{dim_before_shift}_shifted_by_{str(shift)}"
     new_class_name = f"pred_with_{dim_after_shift}"
-    if not dataset:
+    if dataset is None:
         dataset = dc.Data.load(data_path)
     if save:
         if not save_path:
@@ -275,17 +277,15 @@ def main():
         "ps_Fouls": -0.2
     }
     #dataset = dc.MaybeActualDataSet.load(r"D:\Gernot\Programmieren\Bachelor\Data\220415_111316_MaybeActualDataSet")
-    dataset = dc.SoccerDataSet()
-    tcl.create_and_save_tree(dataset=dataset, visualize_tree_par=False)
-    results = run_QSM_decisionTree(dataset=dataset,
-                                   quantiles=quantiles,
-                                   save_changes=False)
-    visualize_QSM(base_dim="ps_Pass", dim_before_shift="ps_Laufweite", shift=0.1, dataset=dataset, save=False,
-                  class_names=dataset.class_names)
-    visualize_QSM(base_dim="ps_Pass", dim_before_shift="Passprozente", shift=0.05, dataset=dataset, save=False,
-                  class_names=dataset.class_names)
-    visualize_QSM(base_dim="ps_Pass", dim_before_shift="ps_Fouls", shift=-0.2, dataset=dataset, save=False,
-                  class_names=dataset.class_names)
+    d = dc.SoccerDataSet()
+    tree = cl.TreeClassifier(dataset=d)
+    results = run_QSM_decisionTree(dataset=d, quantiles=quantiles, save_changes=False, trained_model=tree)
+    #visualize_QSM(base_dim="ps_Pass", dim_before_shift="ps_Laufweite", shift=0.1, dataset=d,
+    #              class_names=d.class_names)
+    visualize_QSM(base_dim="ps_Pass", dim_before_shift="Passprozente", shift=0.05, dataset=d,
+                  class_names=d.class_names)
+    #visualize_QSM(base_dim="ps_Pass", dim_before_shift="ps_Fouls", shift=-0.2, dataset=d,
+    #              class_names=d.class_names)
     for dim, matrix in results.items():
         print(dim)
         print(matrix)
