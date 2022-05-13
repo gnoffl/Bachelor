@@ -482,7 +482,7 @@ def create_save_path(path):
             os.mkdir(curr_path)
 
 
-def visualize_model_predictions(dataset: dc.Data, trained_tree: tree.DecisionTreeClassifier, pred_col_name: str) -> str:
+def visualize_model_predictions(dataset: dc.Data, pred_col_name: str) -> str:
     """
     visualizes data (original vs predicted) as multiple 2d pictures as well as the tree as a diagram
     :param dataset: data to be visualized
