@@ -11,7 +11,7 @@ from torch.utils.data import Dataset
 import torch
 
 import HiCS
-import visualization as vs
+#import visualization as vs
 import datetime
 import pandas as pd
 from abc import ABC, abstractmethod
@@ -98,15 +98,6 @@ class Data(ABC, Dataset):
         if not path:
             path = os.path.join(os.path.dirname(__file__), "..", "Data", f"{now_string}_{class_name}")
         self.path = path
-
-    def load_tree(self) -> tree.DecisionTreeClassifier:
-        tree_path = os.path.join(self.path, "tree_classifier.pkl")
-        if os.path.isfile(tree_path):
-            with open(tree_path, "rb") as f:
-                decision_tree = pickle.load(f)
-            return decision_tree
-        else:
-            raise CustomError("No Tree was saved, so no tree can be loaded!")
 
     @staticmethod
     @abstractmethod
@@ -787,14 +778,21 @@ class SoccerDataSet(Data):
         """
         updates the members attribute of self
         """
-        class_counts = self.data["classes"].value_counts()
         members = []
-        #class_names is just a list of the possible values of "classes" in this case
-        for i in self.class_names:
-            try:
-                members.append(class_counts.at[i])
-            except KeyError:
-                members.append(0)
+        try:
+            class_counts = self.data["classes"].value_counts()
+        except KeyError:
+            class_counts = None
+
+        if class_counts is None:
+            members = [0 for i in self.class_names]
+        else:
+            #class_names is just a list of the possible values of "classes" in this case
+            for i in self.class_names:
+                try:
+                    members.append(class_counts.at[i])
+                except KeyError:
+                    members.append(0)
         self.members = members
 
     @staticmethod
