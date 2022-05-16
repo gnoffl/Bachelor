@@ -278,8 +278,8 @@ def main():
     }
     #dataset = dc.MaybeActualDataSet.load(r"D:\Gernot\Programmieren\Bachelor\Data\220415_111316_MaybeActualDataSet")
     d = dc.SoccerDataSet()
-    tree = cl.TreeClassifier(dataset=d)
-    results = run_QSM(dataset=d, quantiles=quantiles, save_changes=False, trained_model=tree)
+    tree = cl.NNClassifier(dataset=d, num_epochs=50)
+    results = run_QSM(dataset=d, quantiles=quantiles, save_changes=True, trained_model=tree)
     #visualize_QSM(base_dim="ps_Pass", dim_before_shift="ps_Laufweite", shift=0.1, dataset=d,
     #              class_names=d.class_names)
     visualize_QSM(base_dim="ps_Pass", dim_before_shift="Passprozente", shift=0.05, dataset=d,
