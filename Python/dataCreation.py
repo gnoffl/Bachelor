@@ -261,7 +261,7 @@ class Data(ABC, Dataset):
     @staticmethod
     def read_list(list_string) -> List[str]:
         list_string = list_string.strip("[] ")
-        list_string = list_string.replace(" ", "").replace("\'", "")
+        list_string = list_string.replace(", ", ",").replace("\'", "")
         return [member for member in list_string.split(",") if member != ""]
 
     @staticmethod
@@ -436,10 +436,13 @@ class Data(ABC, Dataset):
         creates tensors, that are necessary for using a neural Network classification
         """
         frame = self.data.copy()
-        self.target_tensor = torch.Tensor([self.class_names.index(clas) for clas in frame["classes"]])
-        for col in frame.columns:
+        try:
+            self.target_tensor = torch.Tensor([self.class_names.index(clas) for clas in frame["classes"]])
+        except (KeyError, ValueError):
+            self.target_tensor = torch.zeros(len(self.data))
+        """for col in frame.columns:
             if col != "classes":
-                frame[col] = frame[col] / max(frame[col].values)
+                frame[col] = frame[col] / max(frame[col].values)"""
         self.data_tensor = torch.Tensor(frame[self.data_columns].values)
 
     def __len__(self) -> int:
@@ -717,7 +720,8 @@ class IrisDataSet(Data):
 
 class SoccerDataSet(Data):
 
-    def __init__(self, path: str = "", notes: str = "", save: bool = True, create_data: bool = True):
+    def __init__(self, path: str = "", notes: str = "", save: bool = True, create_data: bool = True,
+                 small: bool = False):
         """
         initializes the data class
         :param path: indicates where the files for this dataset should be saved
@@ -733,7 +737,7 @@ class SoccerDataSet(Data):
                             'Fluegelspieler']
 
         if create_data:
-            self.create_data()
+            self.create_data(small)
             self.update_members()
         else:
             self.data = pd.DataFrame()
@@ -741,7 +745,7 @@ class SoccerDataSet(Data):
         if save:
             self.save()
 
-    def create_data(self) -> None:
+    def create_data(self, small: bool = False) -> None:
         """
         creates the data for the SoccerDataSet, by reading it in from a file
         """
@@ -763,6 +767,8 @@ class SoccerDataSet(Data):
                  'Mittelstürmer': 'Mittelstuermer'}
         for old, new in pairs.items():
             frame.replace(old, new, inplace=True)
+        if small:
+            frame, _ = train_test_split(frame, test_size=0.5)
         self.data = frame
 
     def clone_meta_data(self, path: str = "") -> SoccerDataSet:
