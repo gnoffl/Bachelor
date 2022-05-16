@@ -46,7 +46,7 @@ def get_pref_dims(dataset: dc.Data):
 
 
 def recursion_end(curr_folder: str, dim: str, q: float,
-                  subspace_list: List[pd.DataFrame], trained_tree: tree.DecisionTreeClassifier) -> pd.DataFrame:
+                  subspace_list: List[pd.DataFrame], trained_model: cl.Classifier) -> pd.DataFrame:
     """
     Runs QSM on the dataset in the current folder. Results are visualized. The resulting data as well as the original
     values will be appended to a list of dataframes, in order to combine them again to a full dataset after shifting on
@@ -56,14 +56,14 @@ def recursion_end(curr_folder: str, dim: str, q: float,
     :param q: quantile the data is supposed to be shifted
     :param subspace_list: in this list the resulting datasets from QSM on the data splits will be saved as dataframes to
     combine them later
-    :param trained_tree: tree to do the predictions
+    :param trained_model: model to do the predictions
     :return: the result matrix of the QSM
     """
     dataset = dc.Data.load(curr_folder)
     result = QSM.run_QSM(dataset=dataset,
                          quantiles={dim: q},
                          save_changes=True,
-                         trained_model=trained_tree)
+                         trained_model=trained_model)
     new_dim_name = f"{dim}_shifted_by_{str(q)}"
     new_class_name = f"pred_with_{new_dim_name}"
     data = dataset.data.copy(deep=True)
@@ -89,7 +89,7 @@ def recursion_end(curr_folder: str, dim: str, q: float,
 
 
 def recursive_QSM(curr_folder: str, curr_name: str, dim: str, q: float,
-                  subspace_list: List[pd.DataFrame], trained_tree: tree.DecisionTreeClassifier) -> pd.DataFrame:
+                  subspace_list: List[pd.DataFrame], trained_model: cl.Classifier) -> pd.DataFrame:
     """
     checks if the curr_folder contains data splits. if so, the function is recursively called on the splits. If no
     further splits are present, recursion_end will be called, to do QSM and handle the results
@@ -98,7 +98,7 @@ def recursive_QSM(curr_folder: str, curr_name: str, dim: str, q: float,
     :param dim: dimension to shift in QSM
     :param q: quantile to shift the data by
     :param subspace_list: list that contains the resulting data frames of the splits that were already shifted in QSM
-    :param trained_tree: trained decision tree, to predict do predictions on the data
+    :param trained_model: trained decision model, to predict do predictions on the data
     :return: result matrix, that contains the sum of the result matrices from the QSMs executed on the data splits that
     are in the current folder
     """
@@ -118,7 +118,7 @@ def recursive_QSM(curr_folder: str, curr_name: str, dim: str, q: float,
             #next layer of recursion
             count += 1
             curr_res = recursive_QSM(curr_folder=next_folder, curr_name=next_name, dim=dim, q=q,
-                                     subspace_list=subspace_list, trained_tree=trained_tree)
+                                     subspace_list=subspace_list, trained_model=trained_model)
             result_matrix = add_result_matrices(result_matrix, curr_res)
 
     if count == 2:
@@ -126,7 +126,7 @@ def recursive_QSM(curr_folder: str, curr_name: str, dim: str, q: float,
     elif count == 0:
         #if no further splits are present, end recursion (do QSM, save resulting dataset and result matrix)
         result_matrix = recursion_end(curr_folder=curr_folder, dim=dim, q=q, subspace_list=subspace_list,
-                                      trained_tree=trained_tree)
+                                      trained_model=trained_model)
     else:
         raise dc.CustomError(f"{count} number of splits detected! Should be either 0 or 2!")
 
@@ -172,9 +172,8 @@ def run_from_file(quantiles: Dict[str, float], dataset: dc.Data):
     compare_vanilla_split(quantiles=quantiles, dataset=dataset, **params)
 
 
-
 def QSM_on_binned_data(dataset: dc.Data, quantiles: Dict[str, float],
-                       start_folders: Dict[str, str], trained_tree: tree.DecisionTreeClassifier or None = None)\
+                       start_folders: Dict[str, str], trained_model: cl.Classifier or None = None)\
         -> None:
     """
     runs recursive_QSM on the dataset for each dim/quantile pair in quantiles. The shifted splits will be combined into
@@ -183,7 +182,7 @@ def QSM_on_binned_data(dataset: dc.Data, quantiles: Dict[str, float],
     :param quantiles: Dictionary with dimensions as key and a corresponding quantile, by which the data is supposed to
     be shifted in the key-dimension
     :param start_folders: Dictionary with dimensions as keys and the path to a folder containing split datasets.
-    :param trained_tree: tree to do predictions on the data in QSM
+    :param trained_model: model to do predictions on the data in QSM
     :return: result matrix of the QSM on the binned dataset
     """
     for dim, q in quantiles.items():
@@ -193,7 +192,7 @@ def QSM_on_binned_data(dataset: dc.Data, quantiles: Dict[str, float],
         subspace_list = []
         #start recursion
         recursive_QSM(curr_folder=start_folder, curr_name="", dim=dim, q=q,
-                                      subspace_list=subspace_list, trained_tree=trained_tree)
+                      subspace_list=subspace_list, trained_model=trained_model)
         #create new dataset from the results of QSM on the splits
         full_data = pd.concat(subspace_list)
         full_dataset = dataset.clone_meta_data()
@@ -256,7 +255,8 @@ def visualize_QSM_on_binned_data(dataset: dc.Data, shifted_dim: str, common_dim:
     folder = os.path.join(dataset.path, "pics", "QSM_Binning")
     #compare how the final data bins lie compared to each other, and how they get shifted individually
     vs.compare_shift_2d(df=dataset.data, common_dim=common_dim, dims_to_compare=(f"{shifted_dim}_org", shifted_dim),
-                        class_columns=("source", "source"), path=os.path.join(folder, "source.png"))
+                        class_columns=("source", "source"), path=os.path.join(folder, "source.png"),
+                        class_names=dataset.class_names)
     #compare the predictions of the classifier on the original data to the predictions of the classifier on the shifted
     # data
     vs.compare_shift_2d(df=dataset.data, common_dim=common_dim, dims_to_compare=(f"{shifted_dim}_org", shifted_dim),
@@ -272,7 +272,8 @@ def visualize_QSM_on_binned_data(dataset: dc.Data, shifted_dim: str, common_dim:
 def compare_vanilla_split(quantiles: Dict[str, float], dataset: dc.Data, max_depth: int = 5,
                           min_samples_leaf: int = 5, nr_processes: int = 4, p_value: float = 0.05,
                           goodness_over_length: bool = True, threshold_fraction: float = 0.7,
-                          max_split_nr: int = 3, HiCS_parameters: str = "") -> None:
+                          max_split_nr: int = 3, HiCS_parameters: str = "", tree: bool = True, lr: float = 0.001,
+                          num_epochs: int = 3, batch_size: int = 64, shuffle: bool = True) -> None:
     """
     runs QSM on the full dataset as well as the binned data. result matrices are saved as well as visualizations of the
     resulting shifted data for each approach
@@ -290,10 +291,15 @@ def compare_vanilla_split(quantiles: Dict[str, float], dataset: dc.Data, max_dep
     function)
     :param HiCS_parameters: further parameters to be added to HiCS
     """
-    print("training decision tree..")
-    model = cl.TreeClassifier(dataset, depth=max_depth, min_samples_leaf=min_samples_leaf)
-    tree_pics_path = model.visualize_predictions(dataset=dataset, pred_col_name="test")
-    model.visualize_tree(dataset=dataset, tree_pics_path=tree_pics_path)
+    if tree:
+        print("training decision tree..")
+        model = cl.TreeClassifier(dataset, depth=max_depth, min_samples_leaf=min_samples_leaf)
+        tree_pics_path = model.visualize_predictions(dataset=dataset, pred_col_name="test")
+        model.visualize_tree(dataset=dataset, tree_pics_path=tree_pics_path)
+    else:
+        print("training neural net..")
+        model = cl.NNClassifier(dataset, lr=lr, num_epochs=num_epochs, batch_size=batch_size, shuffle=shuffle)
+        model.visualize_predictions(dataset=dataset, pred_col_name="test")
     print("start binning of data..")
     start_folder_dict = cds.data_binning(dataset=dataset, shifts=quantiles, max_split_nr=max_split_nr, visualize=True,
                                          nr_processes=nr_processes, max_p_for_split=p_value,
@@ -302,7 +308,7 @@ def compare_vanilla_split(quantiles: Dict[str, float], dataset: dc.Data, max_dep
     print("running QSM on full dataset..")
     run_vanilla_qsm(dataset=dataset, quantiles=quantiles, model=model)
     print("running QSM on split dataset..")
-    QSM_on_binned_data(dataset=dataset, quantiles=quantiles, start_folders=start_folder_dict, trained_tree=model)
+    QSM_on_binned_data(dataset=dataset, quantiles=quantiles, start_folders=start_folder_dict, trained_model=model)
 
 
 def main() -> None:
@@ -318,22 +324,24 @@ def main() -> None:
 
 
 def test():
-    quantiles = {
+    """quantiles = {
         "dim_04": 0.1,
         "dim_00": 0.05,
         "dim_01": -0.2
     }
     members = [20 for _ in range(6)]
-    """quantiles = {
+    """
+    quantiles = {
         "ps_Laufweite": 0.1,
         "Passprozente": -0.05
     }
+    """
     quantiles = {
         "sepal_length": 0.1,
         "petal_length": 0.05,
         "petal_width": -0.2
     }"""
-    run_from_file(dataset=dc.MaybeActualDataSet(members), quantiles=quantiles)
+    run_from_file(dataset=dc.SoccerDataSet(small=False), quantiles=quantiles)
 
 
 def round_arr(arr: List[float]) -> None:
@@ -357,7 +365,7 @@ def test_iris_QSM():
     QSM_on_binned_data(dataset=dataset, start_folders={"petal_length": r"D:\Gernot\Programmieren\Bachelor\Data\220428_195743_IrisDataSet\Splits\petal_length_005",
                                                        "petal_width": r"D:\Gernot\Programmieren\Bachelor\Data\220428_195743_IrisDataSet\Splits\petal_width_-02",
                                                        "sepal_length": r"D:\Gernot\Programmieren\Bachelor\Data\220428_195743_IrisDataSet\Splits\sepal_length_01"},
-                       quantiles=quantiles, trained_tree=tree)
+                       quantiles=quantiles, trained_model=tree)
     """dataset = dc.IrisDataSet()
     quantiles = {
         "sepal_length": 0.1,
@@ -384,8 +392,33 @@ def test_iris_QSM():
     print(cum_shift)"""
 
 
+def count_pred_members():
+    dataset = dc.Data.load(r"C:\Users\gerno\Programmieren\Bachelor\Data\220515_103949_SoccerDataSet\Splits\ps_Laufweite_01")
+    classes = dataset.data["classes"]
+    dataset.data = dataset.data[dataset.data_columns]
+    dataset.data["classes"] = classes
+    """print(dataset.data["org_pred"].value_counts())
+    print("----------------")
+    print(dataset.data["org_pred_classes_QSM"].value_counts())"""
+    model = cl.NNClassifier(dataset, num_epochs=100)
+    print(model.predict(dataset))
+    print(model.predict(dataset))
+    small_test = dataset.clone_meta_data()
+    small_test.take_new_data(dataset.data.iloc[:100])
+    print(model.predict(small_test))
+    print(model.predict(small_test))
+
+
+def test_vis():
+    dataset = dc.Data.load(r"C:\Users\gerno\Programmieren\Bachelor\Data\220515_114937_SoccerDataSet\Splits\ps_Laufweite_01\1\1_1")
+    QSM.visualize_QSM(base_dim="Zweikampfprozente", dim_before_shift="ps_Laufweite", dataset=dataset, save=False,
+                      class_names=dataset.class_names, shift=0.1)
+
+
 if __name__ == "__main__":
     #main()
-    test()
+    #count_pred_members()
+    test_vis()
+    #test()
     #test_iris_QSM()
     #example_vis()
