@@ -493,7 +493,7 @@ def visualize_model_predictions(dataset: dc.Data, pred_col_name: str) -> str:
     pics_path = os.path.join(dataset.path, "pics")
     if not os.path.isdir(pics_path):
         os.mkdir(pics_path)
-    final_pics_path = os.path.join(pics_path, "Decision_Tree")
+    final_pics_path = os.path.join(pics_path, "Classifier")
     if not os.path.isdir(final_pics_path):
         os.mkdir(final_pics_path)
 
