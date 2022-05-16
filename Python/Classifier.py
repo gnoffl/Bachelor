@@ -22,10 +22,20 @@ import torchvision.transforms as transforms
 class Classifier(ABC):
     @abstractmethod
     def predict(self, dataset: dc.Data):
+        """
+        use the trained model to predict classes from a set of inputs given in a dataset.
+        :param dataset: contains the input data
+        :return: predictions in form of a list
+        """
         pass
 
     @staticmethod
-    def load_classifier(dataset: dc.Data):
+    def load_classifier(dataset: dc.Data) -> Classifier:
+        """
+        loads DectisionTrees. Doenst work for NNs yet.
+        :param dataset: dataset, in which the tree is saved
+        :return: Classifier object
+        """
         tree_path = os.path.join(dataset.path, "tree_classifier.pkl")
         if os.path.isfile(tree_path):
             with open(tree_path, "rb") as f:
@@ -41,9 +51,8 @@ class TreeClassifier(Classifier):
     def __init__(self, dataset: dc.Data = None, depth: int = 5, min_samples_leaf: int = 5,
                  trained_tree: tree.DecisionTreeClassifier = None):
         """
-        trains a decision tree on a DataSet, uses the tree to predict the classes and saves
-        the resulting dataset. Also saves the resulting tree at the path of the dataset.
-        :param dataset: the data on which predictions will be made
+        trains a decision tree on a DataSet and saves the resulting tree at the path of the dataset.
+        :param dataset: the data which will be used for training
         :param depth: maximal depth of the decision tree
         :param min_samples_leaf: minimum number of data points per leaf in the decision tree
         """
@@ -55,15 +64,25 @@ class TreeClassifier(Classifier):
                                      "given!")
             self.train_decision_tree(dataset, max_depth=depth, min_samples_leaf=min_samples_leaf)
 
+            #comments for dataset
             dataset.extend_notes_by_one_line(f"Trained DecisionTree!")
             dataset.extend_notes_by_one_line(f"Parameters: max_depth={depth}, min_samples_leaf={min_samples_leaf}")
             dataset.end_paragraph_in_notes()
+
+            #saving model
             tree_path = os.path.join(dataset.path, "tree_classifier.pkl")
             if not os.path.isfile(tree_path):
                 with open(tree_path, "wb") as f:
                     pickle.dump(self.model, f)
 
     def visualize_predictions(self, dataset: dc.Data, pred_col_name: str) -> str:
+        """
+        visualizes predictions for the model on a given dataset. Predictions will be saved in the pred_col_name.
+        Pictures will be saved in the folder of the dataset, under pics/Classifier
+        :param dataset: dataset to do the visualization on
+        :param pred_col_name: name of the generated column with the predictions
+        :return: string of the location of the saved pictures
+        """
         self.predict_classes(dataset=dataset, pred_col_name=pred_col_name)
         dataset.extend_notes_by_one_line(f"Predicted classes using Decision Tree in column \"{pred_col_name}\".")
         dataset.end_paragraph_in_notes()
@@ -104,7 +123,6 @@ class TreeClassifier(Classifier):
     def predict_classes(self, dataset: dc.Data, pred_col_name: str) -> None:
         """
         uses a trained decision tree to predict the classes of the given data
-        :param trained_model: the trained decision tree
         :param dataset: the data
         :param pred_col_name: name for the column, in which the predicted classes will be stored
         """
@@ -120,7 +138,6 @@ class TreeClassifier(Classifier):
         creates a pdf file of the given decision tree in the folder of the dataset
         :param dataset: dataset, for which the decision tree is relevant. Attribute "path" will be used as the location for
         the resulting pdf file
-        :param trained_tree: the decision tree that is to be visualized
         :param tree_pics_path: Path were pictures for the visualization of the tree is supposed to be saved
         """
         df = dataset.data
@@ -144,12 +161,25 @@ class TreeClassifier(Classifier):
             os.remove(gv_path)
 
     def predict(self, dataset: dc.Data):
+        """
+        makes predictions on the given data with the trained DecisionTreeClassifier
+        :param dataset: input Data
+        :return: predicted classes
+        """
         return self.model.predict(dataset.data)
 
 
 class NNClassifier(nn.Module, Classifier):
     def __init__(self, dataset: dc.Data, lr: float = 0.001, num_epochs: int = 3, batch_size: int = 64,
                  shuffle: bool = True):
+        """
+        trains a Neural Network on the given DataSet
+        :param dataset: input Data
+        :param lr: learning rate of the Neural Network training process
+        :param num_epochs: number of epochs
+        :param batch_size: Batch Size
+        :param shuffle: determines whether the content of the batches will be shuffled after the first epoch
+        """
         super().__init__()
         input_size = len(dataset.data_columns)
         nr_classes = len(dataset.class_names)
@@ -163,7 +193,12 @@ class NNClassifier(nn.Module, Classifier):
                                          f"shuffle={shuffle}")
         dataset.end_paragraph_in_notes()
 
-    def forward(self, x):
+    def forward(self, x: torch.Tensor) -> torch.Tensor:
+        """
+        forward pass through the network
+        :param x: input data
+        :return: network output
+        """
         input1 = self.fc1(x)
         hidden = F.relu(input1)
         output = self.fc2(hidden)
@@ -171,12 +206,23 @@ class NNClassifier(nn.Module, Classifier):
 
     @staticmethod
     def get_data_loaders(dataset: dc.Data, batch_size: int = 64, shuffle: bool = True) -> Tuple[DataLoader, DataLoader]:
+        """
+        creates a dataloader object for the training dataset as well as the test dataset
+        :param dataset: source Dataset, that will be split into test and training dataset
+        :param batch_size: size of the batches that will be used to train the Neural Network
+        :param shuffle: determines whether the content of the batches will be shuffled after the first epoch
+        :return: Tuple of the dataloaders (Training, Test)
+        """
         training, testing = dataset.get_test_training_split()
         training_loader = DataLoader(dataset=training, batch_size=batch_size, shuffle=shuffle)
         test_loader = DataLoader(dataset=testing, batch_size=batch_size, shuffle=shuffle)
         return training_loader, test_loader
 
-    def check_accuracy(self, loader: DataLoader):
+    def check_accuracy(self, loader: DataLoader) -> None:
+        """
+        calculates the accuracy of the Neural Net on the data given by the Dataloader and prints it.
+        :param loader: input data
+        """
         num_correct = num_samples = 0
         self.eval()
 
@@ -192,8 +238,17 @@ class NNClassifier(nn.Module, Classifier):
             print(f"Got {num_correct} / {num_samples} with accuracy {float(num_correct/num_samples) * 100:.2f}")
 
     def train_the_net(self, dataset: dc.Data, lr: float = 0.001, num_epochs: int = 3, batch_size: int = 64,
-                      shuffle: bool = True, verbose: bool = False):
-        #model = Network(input_size=len(dataset.data_columns), nr_classes=len(dataset.class_names))
+                      shuffle: bool = True, verbose: bool = False) -> None:
+        """
+        trains the Neural Net on the given Dataset
+        :param dataset: input Data
+        :param lr: learning rate of the Neural Network training process
+        :param num_epochs: number of epochs
+        :param batch_size: Batch Size
+        :param shuffle: determines whether the content of the batches will be shuffled after the first epoch
+        :param verbose: determines, whether the accuracy of the network will be printed after every epoch or only at the
+        end of the training process
+        """
         criterion = nn.CrossEntropyLoss()
         optimizer = optim.Adam(self.parameters(), lr=lr)
         train_loader, test_loader = self.get_data_loaders(dataset=dataset, batch_size=batch_size, shuffle=shuffle)
@@ -223,7 +278,14 @@ class NNClassifier(nn.Module, Classifier):
             print("testing test data")
             self.check_accuracy(loader=test_loader)
 
-    def predict(self, dataset: dc.Data, batch_size: int = 64):
+    def predict(self, dataset: dc.Data, batch_size: int = 64) -> List:
+        """
+        uses the trained Net to make predictions on a given Dataset
+        :param dataset: input Data
+        :param batch_size: batch_size to feed the network with
+        :return: List of the predictions
+        """
+        #dont shuffle, so the predicions match up in their order with the order of the input data
         loader = DataLoader(dataset=dataset, batch_size=batch_size, shuffle=False)
         result = []
         with torch.no_grad():
@@ -237,6 +299,12 @@ class NNClassifier(nn.Module, Classifier):
         return result
 
     def visualize_predictions(self, dataset: dc.Data, pred_col_name: str) -> None:
+        """
+        visualizes predictions for the model on a given dataset. Predictions will be saved in the pred_col_name.
+        Pictures will be saved in the folder of the dataset, under pics/Classifier
+        :param dataset: dataset to do the visualization on
+        :param pred_col_name: name of the generated column with the predictions
+        """
         dataset.data[pred_col_name] = self.predict(dataset=dataset)
         dataset.extend_notes_by_one_line(f"Predicted classes using NN in column \"{pred_col_name}\".")
         vs.visualize_model_predictions(dataset=dataset, pred_col_name=pred_col_name)
