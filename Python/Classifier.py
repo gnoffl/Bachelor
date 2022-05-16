@@ -1,4 +1,5 @@
-from typing import List
+from __future__ import annotations
+from typing import List, Tuple
 
 import sklearn.tree as tree
 import graphviz
@@ -6,8 +7,16 @@ import os
 import pickle
 from abc import ABC, abstractmethod
 
-import dataCreation as dc
 import visualization as vs
+import dataCreation as dc
+
+import torch
+import torch.nn as nn
+import torch.optim as optim
+import torch.nn.functional as F
+import torchvision.datasets as datasets
+from torch.utils.data import DataLoader
+import torchvision.transforms as transforms
 
 
 class Classifier(ABC):
@@ -48,16 +57,16 @@ class TreeClassifier(Classifier):
 
             dataset.extend_notes_by_one_line(f"Trained DecisionTree!")
             dataset.extend_notes_by_one_line(f"Parameters: max_depth={depth}, min_samples_leaf={min_samples_leaf}")
+            dataset.end_paragraph_in_notes()
             tree_path = os.path.join(dataset.path, "tree_classifier.pkl")
             if not os.path.isfile(tree_path):
                 with open(tree_path, "wb") as f:
                     pickle.dump(self.model, f)
 
-            dataset.end_paragraph_in_notes()
-
     def visualize_predictions(self, dataset: dc.Data, pred_col_name: str) -> str:
         self.predict_classes(dataset=dataset, pred_col_name=pred_col_name)
         dataset.extend_notes_by_one_line(f"Predicted classes using Decision Tree in column \"{pred_col_name}\".")
+        dataset.end_paragraph_in_notes()
         tree_pics_path = vs.visualize_model_predictions(dataset=dataset, pred_col_name=pred_col_name)
 
         return tree_pics_path
@@ -138,24 +147,21 @@ class TreeClassifier(Classifier):
         return self.model.predict(dataset.data)
 
 
-from typing import Tuple
-
-import torch
-import torch.nn as nn
-import torch.optim as optim
-import torch.nn.functional as F
-import torchvision.datasets as datasets
-from torch.utils.data import DataLoader
-import torchvision.transforms as transforms
-
-import dataCreation as dc
-
-
-class Network(nn.Module):
-    def __init__(self, input_size: int, nr_classes: int):
+class NNClassifier(nn.Module, Classifier):
+    def __init__(self, dataset: dc.Data, lr: float = 0.001, num_epochs: int = 3, batch_size: int = 64,
+                 shuffle: bool = True):
         super().__init__()
+        input_size = len(dataset.data_columns)
+        nr_classes = len(dataset.class_names)
         self.fc1 = nn.Linear(input_size, 50)
         self.fc2 = nn.Linear(50, nr_classes)
+        self.device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+
+        self.train_the_net(dataset=dataset, lr=lr, num_epochs=num_epochs, batch_size=batch_size, shuffle=shuffle)
+        dataset.extend_notes_by_one_line(f"Trained NeuralNetwork!")
+        dataset.extend_notes_by_one_line(f"Parameters: lr={lr}, num_epochs={num_epochs}, batch_size={batch_size}, "
+                                         f"shuffle={shuffle}")
+        dataset.end_paragraph_in_notes()
 
     def forward(self, x):
         input1 = self.fc1(x)
@@ -163,71 +169,101 @@ class Network(nn.Module):
         output = self.fc2(hidden)
         return output
 
+    @staticmethod
+    def get_data_loaders(dataset: dc.Data, batch_size: int = 64, shuffle: bool = True) -> Tuple[DataLoader, DataLoader]:
+        training, testing = dataset.get_test_training_split()
+        training_loader = DataLoader(dataset=training, batch_size=batch_size, shuffle=shuffle)
+        test_loader = DataLoader(dataset=testing, batch_size=batch_size, shuffle=shuffle)
+        return training_loader, test_loader
 
-def get_data_loaders(dataset: dc.Data, batch_size: int = 64, shuffle: bool = True) -> Tuple[DataLoader, DataLoader]:
-    training, testing = dataset.get_test_training_split()
-    training_loader = DataLoader(dataset=training, batch_size=batch_size, shuffle=shuffle)
-    test_loader = DataLoader(dataset=testing, batch_size=batch_size, shuffle=shuffle)
-    return training_loader, test_loader
+    def check_accuracy(self, loader: DataLoader):
+        num_correct = num_samples = 0
+        self.eval()
 
+        with torch.no_grad():
+            for x, y in loader:
+                x = x.to(device=self.device)
+                y = y.to(device=self.device)
 
-def check_accuracy(loader: DataLoader, model: Network, device: torch.device):
-    num_correct = num_samples = 0
-    model.eval()
+                scores = self(x)
+                _, predictions = scores.max(1)
+                num_correct += (predictions == y).sum()
+                num_samples += predictions.size(0)
+            print(f"Got {num_correct} / {num_samples} with accuracy {float(num_correct/num_samples) * 100:.2f}")
 
-    with torch.no_grad():
-        for x, y in loader:
-            x = x.to(device=device)
-            y = y.to(device=device)
+    def train_the_net(self, dataset: dc.Data, lr: float = 0.001, num_epochs: int = 3, batch_size: int = 64,
+                      shuffle: bool = True, verbose: bool = False):
+        #model = Network(input_size=len(dataset.data_columns), nr_classes=len(dataset.class_names))
+        criterion = nn.CrossEntropyLoss()
+        optimizer = optim.Adam(self.parameters(), lr=lr)
+        train_loader, test_loader = self.get_data_loaders(dataset=dataset, batch_size=batch_size, shuffle=shuffle)
 
-            scores = model(x)
-            _, predictions = scores.max(1)
-            num_correct += (predictions == y).sum()
-            num_samples += predictions.size(0)
-        print(f"Got {num_correct} / {num_samples} with accuracy {float(num_correct/num_samples) * 100:.2f}")
+        for epoch in range(num_epochs):
+            for batch_idx, (data, targets) in enumerate(train_loader):
+                data = data.to(device=self.device)
+                targets = targets.to(device=self.device)
 
+                #forward
+                scores = self(data)
+                loss = criterion(scores, targets.long())
 
-def train(dataset: dc.Data, lr: float = 0.001, num_epochs: int = 3):
-    device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-    model = Network(input_size=len(dataset.data_columns), nr_classes=len(dataset.class_names))
-    criterion = nn.CrossEntropyLoss()
-    optimizer = optim.Adam(model.parameters(), lr=lr)
-    train_loader, test_loader = get_data_loaders(dataset=dataset)
+                #backward
+                optimizer.zero_grad()
+                loss.backward()
 
-    for epoch in range(num_epochs):
-        for batch_idx, (data, targets) in enumerate(train_loader):
-            data = data.to(device=device)
-            targets = targets.to(device=device)
+                optimizer.step()
+            if verbose:
+                print("testing training data")
+                self.check_accuracy(loader=train_loader)
+                print("testing test data")
+                self.check_accuracy(loader=test_loader)
+        if not verbose:
+            print("testing training data")
+            self.check_accuracy(loader=train_loader)
+            print("testing test data")
+            self.check_accuracy(loader=test_loader)
 
-            #forward
-            scores = model(data)
-            loss = criterion(scores, targets.long())
+    def predict(self, dataset: dc.Data, batch_size: int = 64):
+        loader = DataLoader(dataset=dataset, batch_size=batch_size, shuffle=False)
+        result = []
+        with torch.no_grad():
+            for x, y in loader:
+                x = x.to(device=self.device)
 
-            #backward
-            optimizer.zero_grad()
-            loss.backward()
+                scores = self(x)
+                _, predictions = scores.max(1)
+                for tens in predictions:
+                    result.append(dataset.class_names[tens.item()])
+        return result
 
-            optimizer.step()
-        print("testing training data")
-        check_accuracy(loader=train_loader, model=model, device=device)
-        print("testing test data")
-        check_accuracy(loader=test_loader, model=model, device=device)
+    def visualize_predictions(self, dataset: dc.Data, pred_col_name: str) -> None:
+        dataset.data[pred_col_name] = self.predict(dataset=dataset)
+        dataset.extend_notes_by_one_line(f"Predicted classes using NN in column \"{pred_col_name}\".")
+        vs.visualize_model_predictions(dataset=dataset, pred_col_name=pred_col_name)
 
 
 def test_data_generation():
     data = dc.SoccerDataSet(save=False)
-    training_loader, test_loader = get_data_loaders(data)
+    """training_loader, test_loader = get_data_loaders(data)
     for idx, (data, target) in enumerate(training_loader):
         print(idx)
         print(data.shape)
         print(target.shape)
         print(data[1, :])
-        break
+        break"""
 
 
 def test_nn():
-    dataset = dc.SoccerDataSet(save=False)
-    train(dataset=dataset, num_epochs=100)
+    dataset = dc.SoccerDataSet(save=True)
+    model = NNClassifier(dataset)
+    model.train_the_net(dataset=dataset, num_epochs=100)
+    """model.visualize_predictions(dataset, "predicted_classes")
+    matrix = vs.get_change_matrix(dataset.data, ("classes", "predicted_classes"))
+    matrix.to_csv("test.csv")"""
+    dataset.data["NN_pred"] = model.predict(dataset=dataset)
+    num_correct = len(dataset.data.loc[dataset.data["classes"] == dataset.data["NN_pred"]])
+    total_len = len(dataset.data)
+    print(f"{num_correct} / {total_len} predicted correctly ({(num_correct / total_len) * 100} %)")
     #model = Network(784, 10)
     #test_ = torch.randn(64, 784)
     #print(model(test_).shape)
@@ -242,9 +278,16 @@ def test_tree() -> None:
     #dataset = dc.MaybeActualDataSet.load("D:\\Gernot\\Programmieren\\Bachelor\\Python\\Experiments\\Data\\220226_135403_MaybeActualDataSet")
     #dataset = dc.Data.load(r"D:\Gernot\Programmieren\Bachelor\Data\220428_124321_IrisDataSet")
     dataset = dc.SoccerDataSet()
-    classifier = TreeClassifier(dataset)
-    path = classifier.visualize_predictions(dataset=dataset, pred_col_name="test")
-    classifier.visualize_tree(dataset=dataset, tree_pics_path=path)
+    model = TreeClassifier(dataset)
+    """path = classifier.visualize_predictions(dataset=dataset, pred_col_name="test")
+    classifier.visualize_tree(dataset=dataset, tree_pics_path=path)"""
+    input_data = dataset.data[dataset.data_columns]
+    input_dataset = dataset.clone_meta_data()
+    input_dataset.take_new_data(input_data)
+    dataset.data["tree_pred"] = model.predict(dataset=input_dataset)
+    num_correct = len(dataset.data.loc[dataset.data["classes"] == dataset.data["tree_pred"]])
+    total_len = len(dataset.data)
+    print(f"{num_correct} / {total_len} predicted correctly ({(num_correct / total_len) * 100} %)")
     #print(tree_)
     #dataset.run_hics()
     """dataset = dc.MaybeActualDataSet.load("D:\\Gernot\\Programmieren\\Bachelor\\Python\\Experiments\\Data\\220226_135403_MaybeActualDataSet")
@@ -254,6 +297,6 @@ def test_tree() -> None:
 
 
 if __name__ == "__main__":
-    test_nn()
-    #test_tree()
+    #test_nn()
+    test_tree()
     #test_data_generation()
