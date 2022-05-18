@@ -1,31 +1,23 @@
 Classifier:
-	tree=False
+    tree=True
 
 DecisionTree:
-	max_depth=5
-	min_samples_leaf=5
+    max_depth=5
+    min_samples_leaf=5
 
 NeuralNet:
-	lr=0.001
-	num_epochs=100
-	batch_size=64
-	shuffle=True
-	
+    lr=0.001
+    num_epochs=100
+    batch_size=64
+    shuffle=True
 
 CreateDataSplits:
-	nr_processes=4
-	max_split_nr=2
-	p_value=.05
-	goodness_over_length=True
-	threshold_fraction=.7
-	tiebreaker fuer splits
+    nr_processes=4
+    max_split_nr=3
+    p_value=0.05
+    goodness_over_length=False
+    threshold_fraction=0.7
 
 dataCreation:
-	HiCS_parameters=
-	members
+    HiCS_parameters=
 
-main:
-	quantiles
-
-visualization:
-    number_of_bins
