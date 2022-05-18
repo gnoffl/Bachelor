@@ -181,10 +181,12 @@ class NNClassifier(nn.Module, Classifier):
         :param shuffle: determines whether the content of the batches will be shuffled after the first epoch
         """
         super().__init__()
+        torch.manual_seed(42)
         input_size = len(dataset.data_columns)
         nr_classes = len(dataset.class_names)
         self.fc1 = nn.Linear(input_size, 50)
-        self.fc2 = nn.Linear(50, nr_classes)
+        self.fc2 = nn.Linear(50, 50)
+        self.fc3 = nn.Linear(50, nr_classes)
         self.device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
         self.train_the_net(dataset=dataset, lr=lr, num_epochs=num_epochs, batch_size=batch_size, shuffle=shuffle)
@@ -200,8 +202,9 @@ class NNClassifier(nn.Module, Classifier):
         :return: network output
         """
         input1 = self.fc1(x)
-        hidden = F.relu(input1)
-        output = self.fc2(hidden)
+        hidden1 = F.relu(input1)
+        hidden2 = F.relu(self.fc2(hidden1))
+        output = self.fc3(hidden2)
         return output
 
     @staticmethod
@@ -365,6 +368,6 @@ def test_tree() -> None:
 
 
 if __name__ == "__main__":
-    #test_nn()
-    test_tree()
+    test_nn()
+    #test_tree()
     #test_data_generation()
