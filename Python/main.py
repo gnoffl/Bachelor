@@ -81,9 +81,11 @@ def recursion_end(curr_folder: str, dim: str, q: float,
     #visualization with dim_04 is preferred
     pref_dim, secnd_choice = get_pref_dims(dataset)
     if dim != pref_dim:
-        QSM.visualize_QSM(base_dim=pref_dim, dim_before_shift=dim, shift=q, dataset=dataset)
+        QSM.visualize_QSM(base_dim=pref_dim, dim_before_shift=dim, shift=q, dataset=dataset,
+                          class_names=dataset.class_names)
     else:
-        QSM.visualize_QSM(base_dim=secnd_choice, dim_before_shift=dim, shift=q, dataset=dataset)
+        QSM.visualize_QSM(base_dim=secnd_choice, dim_before_shift=dim, shift=q, dataset=dataset,
+                          class_names=dataset.class_names)
     matrix = result[dim]
     return matrix
 
@@ -143,7 +145,7 @@ def load_parameters():
     with open(param_path, "r") as f:
         lines = f.readlines()
         for line in lines:
-            if "	" in line:
+            if line.startswith("    "):
                 line = line.strip()
                 if "=" in line:
                     key, value = line.split("=")
@@ -163,6 +165,8 @@ def load_parameters():
 
 def run_from_file(quantiles: Dict[str, float], dataset: dc.Data):
     params, par_path = load_parameters()
+    if not params:
+        raise dc.CustomError("params were not loaded properly!")
     print("copying parameter file..")
     new_par_path = os.path.join(dataset.path, "Parameters.txt")
     shutil.copy2(par_path, new_par_path)
@@ -255,8 +259,7 @@ def visualize_QSM_on_binned_data(dataset: dc.Data, shifted_dim: str, common_dim:
     folder = os.path.join(dataset.path, "pics", "QSM_Binning")
     #compare how the final data bins lie compared to each other, and how they get shifted individually
     vs.compare_shift_2d(df=dataset.data, common_dim=common_dim, dims_to_compare=(f"{shifted_dim}_org", shifted_dim),
-                        class_columns=("source", "source"), path=os.path.join(folder, "source.png"),
-                        class_names=dataset.class_names)
+                        class_columns=("source", "source"), path=os.path.join(folder, "source.png"))
     #compare the predictions of the classifier on the original data to the predictions of the classifier on the shifted
     # data
     vs.compare_shift_2d(df=dataset.data, common_dim=common_dim, dims_to_compare=(f"{shifted_dim}_org", shifted_dim),
@@ -311,19 +314,7 @@ def compare_vanilla_split(quantiles: Dict[str, float], dataset: dc.Data, max_dep
     QSM_on_binned_data(dataset=dataset, quantiles=quantiles, start_folders=start_folder_dict, trained_model=model)
 
 
-def main() -> None:
-    quantiles = {
-        "dim_04": 0.1,
-        "dim_00": 0.05,
-        "dim_01": -0.2
-    }
-    members = [50 for _ in range(6)]
-    print("initializing dataset..")
-    dataset = dc.MaybeActualDataSet(members)
-    compare_vanilla_split(dataset=dataset, quantiles=quantiles)
-
-
-def test():
+def main():
     """quantiles = {
         "dim_04": 0.1,
         "dim_00": 0.05,
@@ -332,16 +323,15 @@ def test():
     members = [20 for _ in range(6)]
     """
     quantiles = {
-        "ps_Laufweite": 0.1,
+        "ps_Laufweite": 0.05,
         "Passprozente": -0.05
     }
-    """
-    quantiles = {
+    """quantiles = {
         "sepal_length": 0.1,
         "petal_length": 0.05,
         "petal_width": -0.2
     }"""
-    run_from_file(dataset=dc.SoccerDataSet(small=False), quantiles=quantiles)
+    run_from_file(dataset=dc.SoccerDataSet(), quantiles=quantiles)
 
 
 def round_arr(arr: List[float]) -> None:
@@ -410,15 +400,15 @@ def count_pred_members():
 
 
 def test_vis():
-    dataset = dc.Data.load(r"C:\Users\gerno\Programmieren\Bachelor\Data\220515_114937_SoccerDataSet\Splits\ps_Laufweite_01\1\1_1")
-    QSM.visualize_QSM(base_dim="Zweikampfprozente", dim_before_shift="ps_Laufweite", dataset=dataset, save=False,
-                      class_names=dataset.class_names, shift=0.1)
+    dataset = dc.Data.load(r"D:\Gernot\Programmieren\Bachelor\Data\220517_233423_SoccerDataSet\Splits\Passprozente_-005\0\0_0")
+    QSM.visualize_QSM(base_dim="Zweikampfprozente", dim_before_shift="Passprozente", dataset=dataset, save=False,
+                      class_names=dataset.class_names, shift=-0.05)
 
 
 if __name__ == "__main__":
     #main()
     #count_pred_members()
-    test_vis()
-    #test()
+    #test_vis()
+    main()
     #test_iris_QSM()
     #example_vis()
