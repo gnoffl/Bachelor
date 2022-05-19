@@ -1,13 +1,9 @@
 from typing import List, Tuple, Dict
 
-import sklearn.tree as tree
 import pandas as pd
 import matplotlib.pyplot as plt
 from mpl_toolkits.mplot3d import Axes3D
 import numpy as np
-import matplotlib as mpl
-import random
-import glob
 from PIL import Image
 import os
 import dataCreation as dc
@@ -23,6 +19,11 @@ colors = [(0, 0, 1, 0.9),
           (.7, .7, .3, 0.9),
           (.7, .3, .7, 0.9),
           (.3, .7, .7, 0.9),
+          (0, 0, 0, 1),
+          (1, 1, 1, 1),
+          (0, 0.5, 1, 0.9),
+          (1, 0, 0.5, 0.9),
+          (0.5, 1, 0, 0.9)
           ]
 
 
@@ -486,7 +487,6 @@ def visualize_model_predictions(dataset: dc.Data, pred_col_name: str) -> str:
     """
     visualizes data (original vs predicted) as multiple 2d pictures as well as the tree as a diagram
     :param dataset: data to be visualized
-    :param trained_tree: the trained tree
     :param pred_col_name: name, where the predicted classes are stored
     """
     df = dataset.data
