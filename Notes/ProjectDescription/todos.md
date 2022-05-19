@@ -15,9 +15,7 @@
 
 ## Logical progress
 
-* [ ] NN classifier for Soccer                                    5 days  (-15.05.)
 * [ ] optimize parameters                                         3 days  
-* [ ] think about HiCS Parameters (read HiCS paper again)         1 day
 * [ ] check all (optional) todos                                  2 days  (-22.05.)
 * [ ] Experiments                                                 ?
 * [ ] write thesis                                                5,5 - ? weeks (-01.07.)
@@ -59,3 +57,5 @@ class_05 with any other class in dim_04)
     * [x] HiCS doesnt calculate all 2d Subspaces --> calculate them directly
       * [x] direct calculation somehow gives different results from normal calculation in list
   * [x] __optional:__ make colors in visualization consistent
+* [x] NN classifier for Soccer
+* [x] think about HiCS Parameters (read HiCS paper again)

@@ -13,8 +13,8 @@ NeuralNet:
 
 CreateDataSplits:
     nr_processes=4
-    max_split_nr=3
-    p_value=0.05
+    max_split_nr=4
+    p_value=0.01
     goodness_over_length=False
     threshold_fraction=0.7
 

@@ -400,15 +400,16 @@ def count_pred_members():
 
 
 def test_vis():
-    dataset = dc.Data.load(r"D:\Gernot\Programmieren\Bachelor\Data\220517_233423_SoccerDataSet\Splits\Passprozente_-005\0\0_0")
-    QSM.visualize_QSM(base_dim="Zweikampfprozente", dim_before_shift="Passprozente", dataset=dataset, save=False,
-                      class_names=dataset.class_names, shift=-0.05)
+    dataset = dc.Data.load(r"D:\Gernot\Programmieren\Bachelor\Data\Parameters\MaybeActualDataSet\tree\019\Splits\dim_04_005")
+    #QSM.visualize_QSM(base_dim="Zweikampfprozente", dim_before_shift="Passprozente", dataset=dataset, save=False,
+    #                  class_names=dataset.class_names, shift=-0.05)
+    visualize_QSM_on_binned_data(dataset, "dim_04")
 
 
 if __name__ == "__main__":
     #main()
     #count_pred_members()
-    #test_vis()
-    main()
+    test_vis()
+    #main()
     #test_iris_QSM()
     #example_vis()

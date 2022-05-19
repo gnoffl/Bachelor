@@ -158,7 +158,11 @@ def parameter_search():
 
 
 if __name__ == "__main__":
-    #parameter_search()
-    calculate_diff_matrices()
+    try:
+        parameter_search()
+        calculate_diff_matrices()
+    except Exception:
+        pass
+    os.system("shutdown /s /t 1")
     #get_matrix(r"D:\Gernot\Programmieren\Bachelor\Data\Parameters\MaybeActualDataSet\tree\001")
     #create_parameters()
