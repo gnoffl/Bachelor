@@ -15,10 +15,13 @@
 
 ## Logical progress
 
-* [ ] optimize parameters                                         3 days  
+* [x] optimize parameters                                         3 days  
+* [ ] save NN
 * [ ] check all (optional) todos                                  2 days  (-22.05.)
 * [ ] Experiments                                                 ?
 * [ ] write thesis                                                5,5 - ? weeks (-01.07.)
+  * [ ] new time table
+  * [ ] table of contents
 
 
 
