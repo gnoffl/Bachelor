@@ -11,10 +11,10 @@
 * [x] Änderungen hier notieren
 
 ### Optional Todos
-* [ ] Trainingprozess anpassen 
-    * [ ] Prediction alleine ist nicht sinnvoll
-    * [ ] Trainieren sollte im Mittelpunkt stehen
-    * [ ] Notizen müssen entsprechend angepasst werden
+* [x] Trainingprozess anpassen 
+    * [x] Prediction alleine ist nicht sinnvoll
+    * [x] Trainieren sollte im Mittelpunkt stehen
+    * [x] Notizen müssen entsprechend angepasst werden
 * [ ] Parameter für DecisionTree optimieren
 
 ## Notizen

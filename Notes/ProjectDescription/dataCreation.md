@@ -7,7 +7,6 @@
 
 ### Optional Todos
 * [ ] Laden und Speichern mit pickle oder json oder so implementieren
-* [ ] __load_tree__ sollte zu __load_model__ werden
 * [ ] load_tree doesnt work when used on split of a dataset, because tree is saved in "root" dataset
 
 ### Done
@@ -31,6 +30,8 @@ rücken
   * [x] mit NaNs dealen
 * [x] parse_params soll nicht static sein --> sollte warning beheben
 * [x] Dokumentation SoccerDataSet
+* [x] __load_tree__ sollte zu __load_model__ werden --> (load ist jetzt in Classifier implementiert, nicht
+mehr in dataCreation)
 
 
 ## Notizen

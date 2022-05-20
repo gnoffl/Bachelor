@@ -35,11 +35,11 @@ nach linearem wachstum an)
 * [x] Vernünftigen Tie-Breaker für ks-Werte mit gleichem p-Wert (spez. p=0) finden
 * [x] main list should not be split into sublists between same values in dim_to_split
 * [x] don't create splits between same values in dim_to_split
+* [x] Warnung von typing bei KstestResult beheben
 
 ### Optional Todos
 * [ ] Suche nach bestem HiCS optimieren, indem nicht max-funktion auf dem sortierten HiCS-output
 angewandt wird
-* [ ] Warnung von typing bei KstestResult beheben
 
 ## Notizen
 

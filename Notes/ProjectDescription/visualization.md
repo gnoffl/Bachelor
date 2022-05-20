@@ -13,7 +13,7 @@
 * [ ] statt .gif ein richtiges Film format benutzen
 * [ ] Bilder beim erstellen von Bildfolgen nicht zuerst auf Festplatte speichern
 * [ ] Seaborn lib auschecken (kurz erwähnt [hier](https://youtu.be/lnfGvdCqGYs?t=147))
-* [ ] bei einzelnen Funktionen die Möglichkeit zum abspeichern geben
+* [x] bei einzelnen Funktionen die Möglichkeit zum abspeichern geben
 
 
 ## Notizen
