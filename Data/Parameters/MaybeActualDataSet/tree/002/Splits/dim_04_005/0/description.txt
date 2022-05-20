@@ -1,5 +1,5 @@
 CLASS: MaybeActualDataSet
-CREATED: 18.05.2022 20:09:46
+CREATED: 20.05.2022 15:10:29
 ATTRIBUTES: 
     note_buffer: [] 
     notes: this Dataset was created by duplicating metadata from another Dataset.
@@ -25,7 +25,7 @@ ATTRIBUTES:
            visualize = True
            ------------------- 
     members: [152, 153, 151, 9, 52, 200, 0, 0, 0] 
-    now: 2022-05-18 20:09:46.339483 
+    now: 2022-05-20 15:10:29.825049 
     target_tensor: None 
     data_tensor: None 
     path: ..\Data\Parameters\MaybeActualDataSet\tree\002\Splits\dim_04_005\0 

@@ -1,5 +1,5 @@
 CLASS: MaybeActualDataSet
-CREATED: 18.05.2022 20:09:46
+CREATED: 20.05.2022 15:10:29
 ATTRIBUTES: 
     note_buffer: [] 
     notes: this Dataset was created by duplicating metadata from another Dataset.
@@ -20,7 +20,7 @@ ATTRIBUTES:
            prediction on the original data in column "org_pred_classes_QSM"
            shifted column "dim_04" by 0.05. Shifted column is "dim_04_shifted_by_0.05", corresponding predictions are in column "pred_with_dim_04_shifted_by_0.05" 
     members: [128, 17, 15, 8, 46, 24, 0, 0, 0] 
-    now: 2022-05-18 20:09:46 
+    now: 2022-05-20 15:10:29 
     target_tensor: None 
     data_tensor: None 
     path: ..\Data\Parameters\MaybeActualDataSet\tree\002\Splits\dim_04_005\0\0_1\0_1_0 

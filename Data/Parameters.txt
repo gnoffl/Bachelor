@@ -12,7 +12,7 @@ NeuralNet:
     shuffle=True
 
 CreateDataSplits:
-    nr_processes=1
+    nr_processes=4
     max_split_nr=4
     p_value=0.01
     goodness_over_length=False
