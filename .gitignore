@@ -143,6 +143,6 @@ dmypy.json
 
 #ignoring Data in general, but allowing exceptions
 /Data/*
-!/Data/Parameters/*
+!/Data/Parameters
 *.Rhistory
 !/Data/Parameters.txt
