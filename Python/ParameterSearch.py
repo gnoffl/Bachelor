@@ -57,7 +57,7 @@ def get_dataset(dataset_type: str, final_path: str, members: List[int] = None) -
         quantiles = {"petal_length": 0.05}
     elif dataset_type == "SoccerDataSet":
         dataset = dc.SoccerDataSet(path=final_path)
-        quantiles = {"Laufweite": 0.05}
+        quantiles = {"ps_Laufweite": 0.05}
     else:
         raise dc.CustomError(f"unknown dataset type ({dataset_type})!")
     return dataset, quantiles
@@ -158,11 +158,11 @@ def parameter_search():
 
 
 if __name__ == "__main__":
-    try:
-        parameter_search()
-        calculate_diff_matrices()
-    except Exception:
-        pass
-    os.system("shutdown /s /t 1")
+    #try:
+    parameter_search()
+    calculate_diff_matrices()
+    #except Exception:
+     #   pass
+    #os.system("shutdown /s /t 1")
     #get_matrix(r"D:\Gernot\Programmieren\Bachelor\Data\Parameters\MaybeActualDataSet\tree\001")
     #create_parameters()
