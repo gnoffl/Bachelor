@@ -1,0 +1,17 @@
+CLASS: IrisDataSet
+CREATED: 20.05.2022 01:17:27
+ATTRIBUTES: 
+    note_buffer: [] 
+    notes: this Dataset was created by duplicating metadata from another Dataset.
+           -------------------
+           this dataset contains the full data, that was shifted in binned subsets.
+           Dimension petal_length was shifted by 0.05.
+           ------------------- 
+    members: [50, 50, 50] 
+    now: 2022-05-20 01:17:27.295417 
+    target_tensor: None 
+    data_tensor: None 
+    path: ..\Data\Parameters\IrisDataSet\tree\022\Splits\petal_length_005\ 
+    data_columns: ['sepal_length', 'sepal_width', 'petal_length', 'petal_width'] 
+    class_names: ['setosa', 'versicolor', 'virginica'] 
+

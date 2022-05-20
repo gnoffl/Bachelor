@@ -1,0 +1,28 @@
+CLASS: IrisDataSet
+CREATED: 20.05.2022 01:09:57
+ATTRIBUTES: 
+    note_buffer: [] 
+    notes: this Dataset was created by duplicating metadata from another Dataset.
+           -------------------
+           This dataset results from splitting a parent dataset.
+           split criterion: sepal_length < 7.2
+           number of data points: 36
+           -------------------
+           recursive_splitting was called on this dataset with the following parameters:
+           dim_to_shift = petal_length
+           min_split_size = 8
+           remaining_splits = 0
+           visualize = True
+           data set not split further because maximum number of splits was reached!
+           -------------------
+           notes for QSM:
+           prediction on the original data in column "org_pred_classes_QSM"
+           shifted column "petal_length" by 0.05. Shifted column is "petal_length_shifted_by_0.05", corresponding predictions are in column "pred_with_petal_length_shifted_by_0.05" 
+    members: [0, 1, 35] 
+    now: 2022-05-20 01:09:57 
+    target_tensor: None 
+    data_tensor: None 
+    path: ..\Data\Parameters\IrisDataSet\tree\008\Splits\petal_length_005\1\1_1\1_1_0 
+    class_names: ['setosa', 'versicolor', 'virginica'] 
+    data_columns: ['sepal_length', 'sepal_width', 'petal_length', 'petal_width'] 
+

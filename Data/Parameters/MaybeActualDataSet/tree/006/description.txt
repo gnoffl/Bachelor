@@ -1,0 +1,38 @@
+CLASS: MaybeActualDataSet
+CREATED: 19.05.2022 01:59:11
+ATTRIBUTES: 
+    note_buffer: [] 
+    notes: Parameters for running the comparison between methods can be found in "Parameters.txt"
+           -------------------
+           Trained DecisionTree!
+           Parameters: max_depth=5, min_samples_leaf=5
+           -------------------
+           Predicted classes using Decision Tree in column "test".
+           -------------------
+           Notes for HiCS:
+           Parameters:
+           --csvOut ..\Data\Parameters\MaybeActualDataSet\tree\006\HiCS_output.csv
+           --hasHeader true
+           --numCandidates 5000
+           --maxOutputSpaces 5000
+           --csvIn ..\Data\Parameters\MaybeActualDataSet\tree\006\HiCS_Input_Data.csv
+           -s
+           -------------------
+           recursive_splitting was called on this dataset with the following parameters:
+           dim_to_shift = dim_04
+           min_split_size = 60
+           remaining_splits = 3
+           visualize = True
+           -------------------
+           notes for QSM:
+           prediction on the original data in column "org_pred_classes_QSM"
+           shifted column "dim_04" by 0.05. Shifted column is "dim_04_shifted_by_0.05", corresponding predictions are in column "pred_with_dim_04_shifted_by_0.05" 
+    members: [200, 200, 200, 200, 200, 200] 
+    now: 2022-05-19 01:59:11.703209 
+    target_tensor: None 
+    data_tensor: None 
+    path: ..\Data\Parameters\MaybeActualDataSet\tree\006 
+    parameters: {'class_00': {'dim_00': (0, 0.8), 'dim_01': (0, 0.8), 'dim_02': (0, 0.8), 'dim_03': (0, 0.8), 'dim_04': (0, 1, 2)}, 'class_01': {'dim_00': (1.5, 0.8), 'dim_01': (1.5, 0.8), 'dim_02': (0, 0.8), 'dim_03': (0, 0.8), 'dim_04': (1, 2, 3)}, 'class_02': {'dim_00': (1.5, 0.8), 'dim_01': (1.5, 0.8), 'dim_02': (0, 0.8), 'dim_03': (0, 0.8), 'dim_04': (5, 6, 7)}, 'class_03': {'dim_00': (0.5, 0.8), 'dim_01': (0, 0.8), 'dim_02': (2, 0.8), 'dim_03': (0, 0.8), 'dim_04': (5, 6, 7)}, 'class_04': {'dim_00': (-0.5, 0.8), 'dim_01': (1.5, 0.8), 'dim_02': (1, 0.8), 'dim_03': (1.5, 0.8), 'dim_04': (5, 6, 7)}, 'class_05': {'dim_00': (-2, 0.8), 'dim_01': (-2, 0.8), 'dim_02': (-2, 0.8), 'dim_03': (-2, 0.8), 'dim_04': (3, 4, 5)}} 
+    data_columns: ['dim_00', 'dim_01', 'dim_02', 'dim_03', 'dim_04', 'rand_00', 'rand_01', 'rand_02'] 
+    class_names: ['class_00', 'class_01', 'class_02', 'class_03', 'class_04', 'class_05', 'rand_00', 'rand_01', 'rand_02'] 
+

@@ -1,0 +1,33 @@
+CLASS: IrisDataSet
+CREATED: 20.05.2022 01:09:26
+ATTRIBUTES: 
+    note_buffer: [] 
+    notes: this Dataset was created by duplicating metadata from another Dataset.
+           -------------------
+           This dataset results from splitting a parent dataset.
+           split criterion: petal_width < 1.8
+           number of data points: 54
+           -------------------
+           Notes for HiCS:
+           Parameters:
+           --csvOut ..\Data\Parameters\IrisDataSet\tree\007\Splits\petal_length_005\1\1_0\HiCS_output.csv
+           --hasHeader true
+           --numCandidates 5000
+           --maxOutputSpaces 5000
+           --csvIn ..\Data\Parameters\IrisDataSet\tree\007\Splits\petal_length_005\1\1_0\HiCS_Input_Data.csv
+           -s
+           -------------------
+           recursive_splitting was called on this dataset with the following parameters:
+           dim_to_shift = petal_length
+           min_split_size = 8
+           remaining_splits = 1
+           visualize = True
+           ------------------- 
+    members: [0, 49, 5] 
+    now: 2022-05-20 01:09:26.773665 
+    target_tensor: None 
+    data_tensor: None 
+    path: ..\Data\Parameters\IrisDataSet\tree\007\Splits\petal_length_005\1\1_0 
+    data_columns: ['sepal_length', 'sepal_width', 'petal_length', 'petal_width'] 
+    class_names: ['setosa', 'versicolor', 'virginica'] 
+

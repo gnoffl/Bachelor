@@ -1,0 +1,17 @@
+CLASS: SoccerDataSet
+CREATED: 20.05.2022 09:54:08
+ATTRIBUTES: 
+    note_buffer: [] 
+    notes: this Dataset was created by duplicating metadata from another Dataset.
+           -------------------
+           this dataset contains the full data, that was shifted in binned subsets.
+           Dimension ps_Laufweite was shifted by 0.05.
+           ------------------- 
+    members: [130, 313, 270, 204, 134, 71, 141, 195, 241] 
+    now: 2022-05-20 09:54:08.756478 
+    target_tensor: None 
+    data_tensor: None 
+    path: ..\Data\Parameters\SoccerDataSet\tree\004\Splits\ps_Laufweite_005\ 
+    class_names: ['Torwart', 'Innenverteidiger', 'Aussenverteidiger', 'Defensives Mittelfeld', 'Zentrales Mittelfeld', 'Mittelfeld Aussen', 'Offensives Mittelfeld', 'Mittelstuermer', 'Fluegelspieler'] 
+    data_columns: ['ps_Pass', 'Passprozente', 'ps_Zweikampf', 'Zweikampfprozente', 'ps_Fouls', 'ps_Gefoult', 'ps_Laufweite', 'ps_Abseits', 'ps_Assists', 'ps_Fusstore', 'ps_Kopftore'] 
+

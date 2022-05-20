@@ -1,0 +1,37 @@
+CLASS: IrisDataSet
+CREATED: 20.05.2022 01:12:30
+ATTRIBUTES: 
+    note_buffer: [] 
+    notes: Parameters for running the comparison between methods can be found in "Parameters.txt"
+           -------------------
+           Trained DecisionTree!
+           Parameters: max_depth=5, min_samples_leaf=5
+           -------------------
+           Predicted classes using Decision Tree in column "test".
+           -------------------
+           Notes for HiCS:
+           Parameters:
+           --csvOut ..\Data\Parameters\IrisDataSet\tree\015\HiCS_output.csv
+           --hasHeader true
+           --numCandidates 5000
+           --maxOutputSpaces 5000
+           --csvIn ..\Data\Parameters\IrisDataSet\tree\015\HiCS_Input_Data.csv
+           -s
+           -------------------
+           recursive_splitting was called on this dataset with the following parameters:
+           dim_to_shift = petal_length
+           min_split_size = 8
+           remaining_splits = 2
+           visualize = True
+           -------------------
+           notes for QSM:
+           prediction on the original data in column "org_pred_classes_QSM"
+           shifted column "petal_length" by 0.05. Shifted column is "petal_length_shifted_by_0.05", corresponding predictions are in column "pred_with_petal_length_shifted_by_0.05" 
+    members: [50, 50, 50] 
+    now: 2022-05-20 01:12:30.356303 
+    target_tensor: None 
+    data_tensor: None 
+    path: ..\Data\Parameters\IrisDataSet\tree\015 
+    class_names: ['setosa', 'versicolor', 'virginica'] 
+    data_columns: ['sepal_length', 'sepal_width', 'petal_length', 'petal_width'] 
+

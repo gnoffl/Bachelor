@@ -1,0 +1,28 @@
+CLASS: SoccerDataSet
+CREATED: 20.05.2022 09:59:52
+ATTRIBUTES: 
+    note_buffer: [] 
+    notes: this Dataset was created by duplicating metadata from another Dataset.
+           -------------------
+           This dataset results from splitting a parent dataset.
+           split criterion: Zweikampfprozente >= 55.0
+           number of data points: 505
+           -------------------
+           recursive_splitting was called on this dataset with the following parameters:
+           dim_to_shift = ps_Laufweite
+           min_split_size = 85
+           remaining_splits = 0
+           visualize = True
+           data set not split further because maximum number of splits was reached!
+           -------------------
+           notes for QSM:
+           prediction on the original data in column "org_pred_classes_QSM"
+           shifted column "ps_Laufweite" by 0.05. Shifted column is "ps_Laufweite_shifted_by_0.05", corresponding predictions are in column "pred_with_ps_Laufweite_shifted_by_0.05" 
+    members: [26, 277, 122, 51, 11, 9, 2, 0, 7] 
+    now: 2022-05-20 09:59:52 
+    target_tensor: None 
+    data_tensor: None 
+    path: ..\Data\Parameters\SoccerDataSet\tree\010\Splits\ps_Laufweite_005\0\0_1 
+    class_names: ['Torwart', 'Innenverteidiger', 'Aussenverteidiger', 'Defensives Mittelfeld', 'Zentrales Mittelfeld', 'Mittelfeld Aussen', 'Offensives Mittelfeld', 'Mittelstuermer', 'Fluegelspieler'] 
+    data_columns: ['ps_Pass', 'Passprozente', 'ps_Zweikampf', 'Zweikampfprozente', 'ps_Fouls', 'ps_Gefoult', 'ps_Laufweite', 'ps_Abseits', 'ps_Assists', 'ps_Fusstore', 'ps_Kopftore'] 
+

@@ -1,0 +1,30 @@
+CLASS: MaybeActualDataSet
+CREATED: 19.05.2022 02:04:30
+ATTRIBUTES: 
+    note_buffer: [] 
+    notes: this Dataset was created by duplicating metadata from another Dataset.
+           parameters refer to the original Dataset
+           -------------------
+           This dataset results from splitting a parent dataset.
+           split criterion: dim_01 < -1.1799126779345812
+           number of data points: 180
+           -------------------
+           recursive_splitting was called on this dataset with the following parameters:
+           dim_to_shift = dim_04
+           min_split_size = 60
+           remaining_splits = 0
+           visualize = True
+           data set not split further because maximum number of splits was reached!
+           -------------------
+           notes for QSM:
+           prediction on the original data in column "org_pred_classes_QSM"
+           shifted column "dim_04" by 0.05. Shifted column is "dim_04_shifted_by_0.05", corresponding predictions are in column "pred_with_dim_04_shifted_by_0.05" 
+    members: [4, 0, 0, 0, 0, 176, 0, 0, 0] 
+    now: 2022-05-19 02:04:30 
+    target_tensor: None 
+    data_tensor: None 
+    path: ..\Data\Parameters\MaybeActualDataSet\tree\015\Splits\dim_04_005\0\0_0 
+    parameters: {'class_00': {'dim_00': (0.0, 0.8), 'dim_01': (0.0, 0.8), 'dim_02': (0.0, 0.8), 'dim_03': (0.0, 0.8), 'dim_04': (0.0, 1.0, 2.0)}, 'class_01': {'dim_00': (1.5, 0.8), 'dim_01': (1.5, 0.8), 'dim_02': (0.0, 0.8), 'dim_03': (0.0, 0.8), 'dim_04': (1.0, 2.0, 3.0)}, 'class_02': {'dim_00': (1.5, 0.8), 'dim_01': (1.5, 0.8), 'dim_02': (0.0, 0.8), 'dim_03': (0.0, 0.8), 'dim_04': (5.0, 6.0, 7.0)}, 'class_03': {'dim_00': (0.5, 0.8), 'dim_01': (0.0, 0.8), 'dim_02': (2.0, 0.8), 'dim_03': (0.0, 0.8), 'dim_04': (5.0, 6.0, 7.0)}, 'class_04': {'dim_00': (-0.5, 0.8), 'dim_01': (1.5, 0.8), 'dim_02': (1.0, 0.8), 'dim_03': (1.5, 0.8), 'dim_04': (5.0, 6.0, 7.0)}, 'class_05': {'dim_00': (-2.0, 0.8), 'dim_01': (-2.0, 0.8), 'dim_02': (-2.0, 0.8), 'dim_03': (-2.0, 0.8), 'dim_04': (3.0, 4.0, 5.0)}, '': {}} 
+    data_columns: ['dim_00', 'dim_01', 'dim_02', 'dim_03', 'dim_04', 'rand_00', 'rand_01', 'rand_02'] 
+    class_names: ['class_00', 'class_01', 'class_02', 'class_03', 'class_04', 'class_05', 'rand_00', 'rand_01', 'rand_02'] 
+

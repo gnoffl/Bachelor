@@ -1,0 +1,48 @@
+CLASS: SoccerDataSet
+CREATED: 20.05.2022 10:27:42
+ATTRIBUTES: 
+    note_buffer: [] 
+    notes: Parameters for running the comparison between methods can be found in "Parameters.txt"
+           -------------------
+           Trained NeuralNetwork!
+           Parameters: lr=0.001, num_epochs=100, batch_size=64, shuffle=True
+           -------------------
+           Predicted classes using NN in column "test".
+           Notes for HiCS:
+           Parameters:
+           --csvOut ..\Data\Parameters\SoccerDataSet\NN\007\HiCS_output.csv
+           --hasHeader true
+           --numCandidates 5000
+           --maxOutputSpaces 5000
+           --csvIn ..\Data\Parameters\SoccerDataSet\NN\007\HiCS_Input_Data.csv
+           -s
+           -------------------
+           recursive_splitting was called on this dataset with the following parameters:
+           dim_to_shift = ps_Laufweite
+           min_split_size = 85
+           remaining_splits = 3
+           visualize = True
+           -------------------
+           notes for QSM:
+           prediction on the original data in column "org_pred_classes_QSM"
+           shifted column "ps_Laufweite" by 0.05. Shifted column is "ps_Laufweite_shifted_by_0.05", corresponding predictions are in column "pred_with_ps_Laufweite_shifted_by_0.05" 
+    members: [130, 313, 270, 204, 134, 71, 141, 195, 241] 
+    now: 2022-05-20 10:27:42.639865 
+    target_tensor: tensor([5., 6., 6.,  ..., 1., 1., 1.]) 
+    data_tensor: tensor([[4.1677e+01, 7.9000e+01, 1.8529e+01,  ..., 2.2528e-01, 1.1264e-01,
+         0.0000e+00],
+        [4.4156e+01, 8.0000e+01, 2.2634e+01,  ..., 2.3018e-01, 2.3018e-01,
+         0.0000e+00],
+        [3.3708e+01, 7.4000e+01, 2.4365e+01,  ..., 2.3525e-01, 1.6804e-01,
+         0.0000e+00],
+        ...,
+        [4.3949e+01, 7.6000e+01, 1.7006e+01,  ..., 0.0000e+00, 0.0000e+00,
+         6.3694e-02],
+        [5.1398e+01, 8.4000e+01, 1.4722e+01,  ..., 0.0000e+00, 4.2796e-02,
+         0.0000e+00],
+        [7.5623e+01, 9.2000e+01, 1.6113e+01,  ..., 4.4510e-02, 0.0000e+00,
+         0.0000e+00]]) 
+    path: ..\Data\Parameters\SoccerDataSet\NN\007 
+    class_names: ['Torwart', 'Innenverteidiger', 'Aussenverteidiger', 'Defensives Mittelfeld', 'Zentrales Mittelfeld', 'Mittelfeld Aussen', 'Offensives Mittelfeld', 'Mittelstuermer', 'Fluegelspieler'] 
+    data_columns: ['ps_Pass', 'Passprozente', 'ps_Zweikampf', 'Zweikampfprozente', 'ps_Fouls', 'ps_Gefoult', 'ps_Laufweite', 'ps_Abseits', 'ps_Assists', 'ps_Fusstore', 'ps_Kopftore'] 
+

@@ -1,0 +1,23 @@
+Classifier:
+    tree=True
+
+DecisionTree:
+    max_depth=5
+    min_samples_leaf=5
+
+NeuralNet:
+    lr=0.001
+    num_epochs=100
+    batch_size=64
+    shuffle=True
+
+CreateDataSplits:
+    nr_processes=1
+    max_split_nr=4
+    p_value=0.05
+    goodness_over_length=False
+    threshold_fraction=0.7
+
+dataCreation:
+    HiCS_parameters=
+

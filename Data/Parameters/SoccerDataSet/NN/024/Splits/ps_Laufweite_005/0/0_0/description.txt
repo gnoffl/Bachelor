@@ -1,0 +1,33 @@
+CLASS: SoccerDataSet
+CREATED: 20.05.2022 10:46:16
+ATTRIBUTES: 
+    note_buffer: [] 
+    notes: this Dataset was created by duplicating metadata from another Dataset.
+           -------------------
+           This dataset results from splitting a parent dataset.
+           split criterion: Zweikampfprozente < 55.0
+           number of data points: 1108
+           -------------------
+           Notes for HiCS:
+           Parameters:
+           --csvOut ..\Data\Parameters\SoccerDataSet\NN\024\Splits\ps_Laufweite_005\0\0_0\HiCS_output.csv
+           --hasHeader true
+           --numCandidates 5000
+           --maxOutputSpaces 5000
+           --csvIn ..\Data\Parameters\SoccerDataSet\NN\024\Splits\ps_Laufweite_005\0\0_0\HiCS_Input_Data.csv
+           -s
+           -------------------
+           recursive_splitting was called on this dataset with the following parameters:
+           dim_to_shift = ps_Laufweite
+           min_split_size = 85
+           remaining_splits = 2
+           visualize = True
+           ------------------- 
+    members: [18, 36, 148, 153, 123, 62, 139, 195, 234] 
+    now: 2022-05-20 10:46:16.008145 
+    target_tensor: None 
+    data_tensor: None 
+    path: ..\Data\Parameters\SoccerDataSet\NN\024\Splits\ps_Laufweite_005\0\0_0 
+    class_names: ['Torwart', 'Innenverteidiger', 'Aussenverteidiger', 'Defensives Mittelfeld', 'Zentrales Mittelfeld', 'Mittelfeld Aussen', 'Offensives Mittelfeld', 'Mittelstuermer', 'Fluegelspieler'] 
+    data_columns: ['ps_Pass', 'Passprozente', 'ps_Zweikampf', 'Zweikampfprozente', 'ps_Fouls', 'ps_Gefoult', 'ps_Laufweite', 'ps_Abseits', 'ps_Assists', 'ps_Fusstore', 'ps_Kopftore'] 
+
