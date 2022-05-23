@@ -37,12 +37,15 @@ class Classifier(ABC):
         :return: Classifier object
         """
         tree_path = os.path.join(dataset.path, "tree_classifier.pkl")
+        model_path = os.path.join(dataset.path, "model.pkl")
         if os.path.isfile(tree_path):
             with open(tree_path, "rb") as f:
                 decision_tree = pickle.load(f)
             return TreeClassifier(trained_tree=decision_tree)
+        elif os.path.isfile(model_path):
+            return torch.load(model_path)
         else:
-            raise dc.CustomError("No Tree was saved, so no tree can be loaded!")
+            raise dc.CustomError("No Model was saved, so no model can be loaded!")
 
 
 class TreeClassifier(Classifier):
@@ -195,6 +198,10 @@ class NNClassifier(nn.Module, Classifier):
                                          f"shuffle={shuffle}")
         dataset.end_paragraph_in_notes()
 
+        model_path = os.path.join(dataset.path, "model.pkl")
+        if not os.path.isfile(model_path):
+            torch.save(self, model_path)
+
     def forward(self, x: torch.Tensor) -> torch.Tensor:
         """
         forward pass through the network
@@ -325,9 +332,13 @@ def test_data_generation():
 
 
 def test_nn():
-    dataset = dc.SoccerDataSet(save=True)
-    model = NNClassifier(dataset)
-    model.train_the_net(dataset=dataset, num_epochs=100)
+    #dataset = dc.SoccerDataSet(save=True)
+    #model = NNClassifier(dataset)
+    #model.train_the_net(dataset=dataset, num_epochs=100)
+    dataset = dc.Data.load(r"C:\Users\gerno\Programmieren\Bachelor\Data\220523_120707_SoccerDataSet")
+    model_path = os.path.join(dataset.path, "model.pkl")
+    #torch.save(model, model_path)
+    model = Classifier.load_classifier(dataset)
     """model.visualize_predictions(dataset, "predicted_classes")
     matrix = vs.get_change_matrix(dataset.data, ("classes", "predicted_classes"))
     matrix.to_csv("test.csv")"""
