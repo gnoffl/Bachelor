@@ -15,8 +15,6 @@
 
 ## Logical progress
 
-* [x] optimize parameters                                         3 days  
-* [ ] save NN
 * [ ] check all (optional) todos                                  2 days  (-22.05.)
 * [ ] Experiments                                                 ?
 * [ ] write thesis                                                5,5 - ? weeks (-01.07.)
@@ -62,3 +60,5 @@ class_05 with any other class in dim_04)
   * [x] __optional:__ make colors in visualization consistent
 * [x] NN classifier for Soccer
 * [x] think about HiCS Parameters (read HiCS paper again)
+* [x] optimize parameters
+* [x] save NN

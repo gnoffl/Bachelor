@@ -438,11 +438,8 @@ class Data(ABC, Dataset):
         frame = self.data.copy()
         try:
             self.target_tensor = torch.Tensor([self.class_names.index(clas) for clas in frame["classes"]])
-        except (KeyError, ValueError):
-            self.target_tensor = torch.zeros(len(self.data))
-        """for col in frame.columns:
-            if col != "classes":
-                frame[col] = frame[col] / max(frame[col].values)"""
+        except (KeyError, ValueError) as e:
+            self.target_tensor = torch.Tensor([int(clas) for clas in frame["classes"]])
         self.data_tensor = torch.Tensor(frame[self.data_columns].values)
 
     def __len__(self) -> int:

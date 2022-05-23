@@ -305,7 +305,10 @@ class NNClassifier(nn.Module, Classifier):
                 scores = self(x)
                 _, predictions = scores.max(1)
                 for tens in predictions:
-                    result.append(dataset.class_names[tens.item()])
+                    if isinstance(dataset, dc.SoccerDataSet):
+                        result.append(dataset.class_names[tens.item()])
+                    else:
+                        result.append(tens.item())
         return result
 
     def visualize_predictions(self, dataset: dc.Data, pred_col_name: str) -> None:
@@ -333,12 +336,12 @@ def test_data_generation():
 
 def test_nn():
     #dataset = dc.SoccerDataSet(save=True)
-    #model = NNClassifier(dataset)
-    #model.train_the_net(dataset=dataset, num_epochs=100)
-    dataset = dc.Data.load(r"C:\Users\gerno\Programmieren\Bachelor\Data\220523_120707_SoccerDataSet")
-    model_path = os.path.join(dataset.path, "model.pkl")
+    #dataset = dc.MaybeActualDataSet([20 for _ in range(6)])
+    dataset = dc.Data.load(r"C:\Users\gerno\Programmieren\Bachelor\Data\220523_124623_MaybeActualDataSet")
+    model = NNClassifier(dataset=dataset, num_epochs=500)
+    #model_path = os.path.join(dataset.path, "model.pkl")
     #torch.save(model, model_path)
-    model = Classifier.load_classifier(dataset)
+    #model = Classifier.load_classifier(dataset)
     """model.visualize_predictions(dataset, "predicted_classes")
     matrix = vs.get_change_matrix(dataset.data, ("classes", "predicted_classes"))
     matrix.to_csv("test.csv")"""
@@ -355,11 +358,11 @@ def test_tree() -> None:
     """
     runs the training process and visualizes results
     """
-    #members = [1000 for _ in range(6)]
+    #members = [100 for _ in range(6)]
     #dataset = dc.MaybeActualDataSet(members)
-    #dataset = dc.MaybeActualDataSet.load("D:\\Gernot\\Programmieren\\Bachelor\\Python\\Experiments\\Data\\220226_135403_MaybeActualDataSet")
+    dataset = dc.MaybeActualDataSet.load(r"C:\Users\gerno\Programmieren\Bachelor\Data\220523_124623_MaybeActualDataSet")
     #dataset = dc.Data.load(r"D:\Gernot\Programmieren\Bachelor\Data\220428_124321_IrisDataSet")
-    dataset = dc.SoccerDataSet()
+    #dataset = dc.SoccerDataSet()
     model = TreeClassifier(dataset)
     """path = classifier.visualize_predictions(dataset=dataset, pred_col_name="test")
     classifier.visualize_tree(dataset=dataset, tree_pics_path=path)"""
@@ -380,5 +383,5 @@ def test_tree() -> None:
 
 if __name__ == "__main__":
     test_nn()
-    #test_tree()
+    test_tree()
     #test_data_generation()
