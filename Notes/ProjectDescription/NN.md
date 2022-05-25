@@ -7,10 +7,10 @@
 
 ### Optional Todos
 * [ ] Improve Net
-* [ ] Make nets work for other dataset types as well
-* [ ] Speichern
-* [ ] Laden(von Classifier.load_classifier aus)
-* [ ] think about normalization (right now "normalizing" each dataset (training/test) individually) --> removed 
+* [x] Make nets work for other dataset types as well
+* [x] Speichern
+* [x] Laden(von Classifier.load_classifier aus)
+* [x] think about normalization (right now "normalizing" each dataset (training/test) individually) --> removed 
   normalization entirely
 
 ### Done

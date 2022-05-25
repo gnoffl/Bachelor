@@ -15,11 +15,26 @@
 
 ## Logical progress
 
-* [ ] check all (optional) todos                                  2 days  (-22.05.)
-* [ ] Experiments                                                 ?
-* [ ] write thesis                                                5,5 - ? weeks (-01.07.)
+* [ ] write thesis
   * [ ] new time table
-  * [ ] table of contents
+  * [x] table of contents
+  * [ ] Theoretischer Hintergrund                 03.06.
+  * [ ] Methoden                                  15.06.
+  * [ ] Experimente                               19.06.
+  * [ ] Einleitung                                24.06.
+  * [ ] Fazit                                     24.06.
+  * [ ] Abstract                                  24.06.
+  * [ ] Art der Abgabe checken
+  * [ ] Meeting notes und alle todos nochmal lesen
+  * [ ] Korrektur
+    * [ ] Gernot
+    * [ ] Robin
+    * [ ] Michi
+    * [ ] Rasspe
+    * [ ] Tobias
+    * [ ] Klara
+    * [ ] Papa
+    * [ ] Mama
 
 
 
@@ -62,3 +77,5 @@ class_05 with any other class in dim_04)
 * [x] think about HiCS Parameters (read HiCS paper again)
 * [x] optimize parameters
 * [x] save NN
+* [x] check all (optional) todos
+    * [x] make NNs work for SoccerDataSet and IrisDataSet

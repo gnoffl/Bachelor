@@ -10,7 +10,7 @@
 
 # Ergebnisse
 
-1. asd
+1. fine
 2. Parameter search
    1. Auswertung: wertungsmatrix (art maske) für die Übergangsmatrix bestimmen (+1 für erwartete Übergänge,
    -1 für alle anderen)
