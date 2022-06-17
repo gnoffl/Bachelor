@@ -134,7 +134,7 @@ def visualize_2d(df: pd.DataFrame,
     plt.subplots_adjust(right=0.87)
     if path:
         create_save_path(path)
-        plt.savefig(path)
+        plt.savefig(path, bbox_inches='tight')
     else:
         plt.show()
 
