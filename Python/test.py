@@ -15,5 +15,5 @@ def main(test_frame: pd.DataFrame):
 
 
 if __name__ == "__main__":
-    test = [0, 1, 2, 3, 4, 5, 6]
-    print(test[:5])
+    for i in range(5, 7 + 1):
+        print(i)

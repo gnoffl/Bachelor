@@ -409,7 +409,10 @@ def test_vis():
 if __name__ == "__main__":
     #main()
     #count_pred_members()
-    test_vis()
+    iris = dc.IrisDataSet()
+    vs.visualize_2d(iris.data, ("petal_length", "petal_width"), class_column="classes", title="Iris Dataset",
+                    path="../Plots/BA_Grafiken/Iris_Dataset.png", class_names=iris.class_names)
+    #test_vis()
     #main()
     #test_iris_QSM()
     #example_vis()

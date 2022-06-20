@@ -18,7 +18,7 @@
 * [ ] write thesis
   * [ ] new time table
   * [x] table of contents
-  * [ ] Theoretischer Hintergrund                 03.06.
+  * [x] Theoretischer Hintergrund                 03.06.
   * [ ] Methoden                                  15.06.
   * [ ] Experimente                               19.06.
   * [ ] Einleitung                                24.06.
