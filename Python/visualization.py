@@ -70,6 +70,29 @@ def find_common_area(x0_dim: List[float] or np.ndarray,
     return x_axis_min, x_axis_max, y_axis_min, y_axis_max
 
 
+def get_color_index(clas: int or str, class_names: List[str], i: int):
+    """
+    gives a color index for a class
+    :param clas: class a color is needed for
+    :param class_names: names of the classes in that dataset
+    :param i: number of the class
+    :return: index for color selection from colors
+    """
+    try:
+        if isinstance(clas, str) and "_" in clas:
+            raise ValueError
+        color_ind = int(clas)
+    except ValueError:
+        try:
+            if class_names:
+                color_ind = class_names.index(clas)
+            else:
+                raise ValueError
+        except ValueError:
+            color_ind = i
+    return color_ind
+
+
 #first entry of dims will be x-axis, second will be y-axis
 def visualize_2d(df: pd.DataFrame,
                  dims: Tuple[str, str],
@@ -91,7 +114,7 @@ def visualize_2d(df: pd.DataFrame,
     column of df are only numbers coding for the actual class names.
     """
     x_name, y_name = dims
-    plt.figure(0, figsize=(8, 6))
+    plt.figure(0, figsize=(6, 4.5))
     plt.clf()
 
     if visualized_area:
@@ -111,24 +134,13 @@ def visualize_2d(df: pd.DataFrame,
         classes = set(df[class_column].values)
         # plot classes seperately, to include a label, which then can be used to show the different classes in the plot
         for i, clas in enumerate(classes):
-            try:
-                if isinstance(clas, str) and "_" in clas:
-                    raise ValueError
-                color_ind = int(clas)
-            except ValueError:
-                try:
-                    if class_names:
-                        color_ind = class_names.index(clas)
-                    else:
-                        raise ValueError
-                except ValueError:
-                    color_ind = i
+            color_ind = get_color_index(clas, class_names, i)
             plt.scatter(df.loc[df[class_column] == clas, [x_name]],
                         df.loc[df[class_column] == clas, [y_name]],
                         color=colors[color_ind],
                         edgecolor="k",
                         label=get_label(clas=clas, class_names=class_names))
-        plt.legend(bbox_to_anchor=(1.02, 1), loc="upper left", frameon=True)
+        plt.legend(loc="upper left", frameon=True)
     else:
         plt.scatter(df[x_name], df[y_name], cmap=plt.cm.Set1, edgecolor="k")
     plt.subplots_adjust(right=0.87)
@@ -137,6 +149,72 @@ def visualize_2d(df: pd.DataFrame,
         plt.savefig(path, bbox_inches='tight')
     else:
         plt.show()
+
+
+#first entry of dims will be x-axis, second will be y-axis
+def visualize_2d_subplot(df: pd.DataFrame,
+                         dims: Tuple[str, str],
+                         subplot_location: (int, int, int, int, int, int),
+                         class_column: str or None = None,
+                         title: str = None,
+                         visualized_area: Tuple[float, float, float, float] = None,
+                         class_names: List[str] = None,
+                         show_legend: bool = False,
+                         bbox_to_anchor: (float, float) = None,
+                         loc: str = "upper left") -> None:
+    """
+    Creates a 2d Image of the given data, showing the dimensions whose names are given in dims.
+    :param df: Dataframe containing the data
+    :param dims: Tuple of the names of the columns that are to be the axes of the plot
+    :param class_column: Name of the column that contains class names. Will be used for labeling the data
+    :param title: Title of the plot
+    :param visualized_area: sets the limit of the x and y axes. order is x_min, x_max, y_min, y_max. If omitted, fitting
+    values will be calculated based on the data.
+    :param subplot_location: defines structure of the created subplot. first 2 numbers are rows and columns the grid
+    will have. second 2 numbers are the location the subplot starts in rows and columns. third 2 numbers are the height
+    and width of the subplot
+    :param class_names: List containing the names of the different classes. Should be used if the values in the classes
+    column of df are only numbers coding for the actual class names.
+    :param show_legend: determines whether a legend will be shown
+    :param bbox_to_anchor: location for a potential legend
+    :param loc: location for a potential legend, bbox_to_anchor will override this, if both are given
+    """
+    x_name, y_name = dims
+
+    if visualized_area:
+        x_axis_min, x_axis_max, y_axis_min, y_axis_max = visualized_area
+    else:
+        x_axis_min, x_axis_max, y_axis_min, y_axis_max = calculate_visualized_area(df[x_name].values, df[y_name].values)
+
+    rows, columns, row_pos, col_pos, height, width = subplot_location
+
+    plot = plt.subplot2grid((rows, columns), (row_pos, col_pos), rowspan=height, colspan=width)
+
+    plot.axis(xmin=x_axis_min, xmax=x_axis_max, ymin=y_axis_min, ymax=y_axis_max)
+    plot.set_xlabel(x_name)
+    plot.set_ylabel(y_name)
+
+    if title:
+        plot.set_title(title)
+
+    if class_column:
+        classes = set(df[class_column].values)
+        # plot classes seperately, to include a label, which then can be used to show the different classes in the plot
+        for i, clas in enumerate(classes):
+            color_ind = get_color_index(clas, class_names, i)
+            plot.scatter(df.loc[df[class_column] == clas, [x_name]],
+                         df.loc[df[class_column] == clas, [y_name]],
+                         color=colors[color_ind],
+                         edgecolor="k",
+                         label=get_label(clas=clas, class_names=class_names))
+    else:
+        plot.scatter(df[x_name], df[y_name], cmap=plt.cm.Set1, edgecolor="k")
+    if show_legend:
+        if bbox_to_anchor:
+            plot.legend(bbox_to_anchor=bbox_to_anchor, loc=loc, frameon=True)
+        else:
+            plot.legend(loc=loc, frameon=True)
+    #plot.subplots_adjust(right=0.87)
 
 
 def compare_splits_2d(df0: pd.DataFrame,
@@ -688,6 +766,77 @@ def get_change_matrix(data: pd.DataFrame, dims: Tuple[str, str]) -> pd.DataFrame
     return res_matrix
 
 
+def maybeActualDataSet_figure():
+    plt.clf()
+    plt.figure(0, figsize=(8, 8))
+    mads = dc.MaybeActualDataSet([200 for _ in range(6)])
+    subplot_locs = [
+        (100, 100, 0, 0, 43, 43),
+        (100, 100, 0, 57, 43, 43),
+        (100, 100, 57, 0, 43, 43)
+    ]
+    titles = ["A", "B", "C"]
+    dims = [
+        ("dim_00", "dim_04"),
+        ("dim_01", "dim_04"),
+        ("dim_02", "dim_03")
+    ]
+
+    for i, (plot_loc, dim, title) in enumerate(zip(subplot_locs, dims, titles)):
+        if i == 1:
+            visualize_2d_subplot(df=mads.data, dims=dim, subplot_location=plot_loc, class_column="classes",
+                                 class_names=mads.class_names, show_legend=True, bbox_to_anchor=(1.01, 1), title=title)
+        else:
+            visualize_2d_subplot(df=mads.data, dims=dim, subplot_location=plot_loc, class_column="classes",
+                                 class_names=mads.class_names, title=title)
+
+    new_df = mads.data.copy()
+
+    values, cum_frequencies = get_cumulative_values(new_df["dim_04"].values)
+
+    plot = plt.subplot2grid((100, 100), (57, 57), rowspan=43, colspan=43)
+    plot.set_title("D")
+    plot.set_xlabel("dim_04")
+    plot.set_ylabel("Cumulative Frequency")
+    plot.plot(values, cum_frequencies)
+
+    #plt.show()
+    plt.savefig("../Plots/BA_Grafiken/MaybeActual_intro.png", bbox_inches='tight')
+
+
+def soccerDataSet_figure():
+    plt.clf()
+    plt.figure(0, figsize=(8, 12))
+    sds = dc.SoccerDataSet()
+    subplot_locs = [
+        (100, 100, 0, 0, 28, 43),
+        (100, 100, 0, 57, 28, 43),
+        (100, 100, 36, 0, 28, 43),
+        (100, 100, 36, 57, 28, 43),
+        (100, 100, 72, 0, 28, 43),
+        (100, 100, 72, 57, 28, 43)
+    ]
+    titles = ["A", "B", "C", "D", "E", "F"]
+    dims = [
+        ("ps_Pass", "Passprozente"),
+        ("ps_Zweikampf", "Zweikampfprozente"),
+        ("ps_Fouls", "ps_Gefoult"),
+        ("ps_Laufweite", "ps_Abseits"),
+        ("ps_Assists", "ps_Fusstore"),
+        ("ps_Kopftore", "ps_Pass")
+    ]
+
+    for i, (plot_loc, dim, title) in enumerate(zip(subplot_locs, dims, titles)):
+        if i == 1:
+            visualize_2d_subplot(df=sds.data, dims=dim, subplot_location=plot_loc, class_column="classes",
+                                 class_names=sds.class_names, show_legend=True, bbox_to_anchor=(1.01, 1), title=title)
+        else:
+            visualize_2d_subplot(df=sds.data, dims=dim, subplot_location=plot_loc, class_column="classes",
+                                 class_names=sds.class_names, title=title)
+
+    plt.savefig("../Plots/BA_Grafiken/Soccer_intro.png", bbox_inches='tight')
+
+
 def main() -> None:
     """
     just a test function
@@ -709,5 +858,7 @@ def main() -> None:
 
 
 if __name__ == "__main__":
-    create_save_path(r"D:\Gernot\Programmieren\Bachelor\Data\220330_220119_MaybeActualDataSet\pics\QSM\test.csv")
+    #create_save_path(r"D:\Gernot\Programmieren\Bachelor\Data\220330_220119_MaybeActualDataSet\pics\QSM\test.csv")
+    #maybeActualDataSet_figure()
+    soccerDataSet_figure()
     #print("\\".join())
