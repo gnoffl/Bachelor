@@ -93,7 +93,7 @@ def calculate_diff_matrices():
 def create_paths(dataset_types):
     classifiers = ["NN", "tree"]
     for dataset_type in dataset_types:
-        path = os.path.join("..", "Data", "Parameters", dataset_type)
+        path = os.path.join("..", "Data", "Parameters1", dataset_type)
         if not os.path.isdir(path):
             os.mkdir(path)
         for classifier in classifiers:
@@ -130,12 +130,9 @@ def parameter_search():
 
     #loop over all the options
     for dataset_type in dataset_types:
-        path = os.path.join("..", "Data", "Parameters", dataset_type)
+        path = os.path.join("..", "Data", "Parameters1", dataset_type)
         parameter_args = {}
         for tree_arg in tree_args:
-            #NNClassifier only implemented for SoccerDataSet, so unnecessary to test it for other datasets
-            if dataset_type != "SoccerDataSet" and not tree_arg:
-                continue
             tree_path = os.path.join(path, "tree") if tree_arg else os.path.join(path, "NN")
             #counter to distinguish datasets later
             i = 0
@@ -158,11 +155,11 @@ def parameter_search():
 
 
 if __name__ == "__main__":
-    #try:
-    parameter_search()
-    calculate_diff_matrices()
-    #except Exception:
-     #   pass
-    #os.system("shutdown /s /t 1")
+    try:
+        parameter_search()
+        calculate_diff_matrices()
+    except Exception:
+        pass
+    os.system("shutdown /s /t 1")
     #get_matrix(r"D:\Gernot\Programmieren\Bachelor\Data\Parameters\MaybeActualDataSet\tree\001")
     #create_parameters()
