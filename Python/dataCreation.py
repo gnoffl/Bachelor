@@ -72,16 +72,20 @@ def get_date_from_string(created_line: str):
 
 
 class Data(ABC, Dataset):
+    # attributes, that will have to be assigned manually
     data: pd.DataFrame
 
     #names of the columns, that contain data (not classes or predicted classes etc)
     data_columns: List[str]
+    class_names: List[str]
+    #List with the number of datapoints per class. order of the numbers should be the same as in class_names
     members: List[int]
+
+    #attributes, that will be filled automatically
     path: str
     now: datetime.datetime
     notes: str or None
     note_buffer: List[str]
-    class_names: List[str]
     target_tensor: torch.Tensor or None
     data_tensor: torch.Tensor or None
 
@@ -436,11 +440,14 @@ class Data(ABC, Dataset):
         creates tensors, that are necessary for using a neural Network classification
         """
         frame = self.data.copy()
+        self.data_tensor = torch.Tensor(frame[self.data_columns].values)
         try:
             self.target_tensor = torch.Tensor([self.class_names.index(clas) for clas in frame["classes"]])
-        except (KeyError, ValueError) as e:
+        except ValueError:
             self.target_tensor = torch.Tensor([int(clas) for clas in frame["classes"]])
-        self.data_tensor = torch.Tensor(frame[self.data_columns].values)
+        #should only occur during prediction as opposed to training. therefore targets are not relevant here
+        except KeyError:
+            self.target_tensor = torch.zeros(len(self.data_tensor))
 
     def __len__(self) -> int:
         """
@@ -474,7 +481,7 @@ class MaybeActualDataSet(Data):
         {"dim_00": (1.5, 0.8), "dim_01": (1.5, 0.8), "dim_02": (0,  0.8), "dim_03": (0,   0.8), "dim_04": (5, 6, 7)},
         {"dim_00": (.5,  0.8), "dim_01": (0,   0.8), "dim_02": (2,  0.8), "dim_03": (0,   0.8), "dim_04": (5, 6, 7)},
         {"dim_00": (-.5, 0.8), "dim_01": (1.5, 0.8), "dim_02": (1,  0.8), "dim_03": (1.5, 0.8), "dim_04": (5, 6, 7)},
-        {"dim_00": (-2,  0.8), "dim_01": (-2,  0.8), "dim_02": (-2, 0.8), "dim_03": (-2,  0.8), "dim_04": (3, 4, 5)}
+        {"dim_00": (-3,  0.8), "dim_01": (-3,  0.8), "dim_02": (-3, 0.8), "dim_03": (-3,  0.8), "dim_04": (3, 4, 5)}
     ]
 
     parameters: Dict
@@ -844,7 +851,6 @@ def test():
 if __name__ == "__main__":
     #MaybeActualDataSet.load(r"D:\Gernot\Programmieren\Bachelor\Python\
     #Experiments\Data\220131_125348_MaybeActualDataSet")
-    test()
     #members_ = [10 for _ in range(6)]
     #data1 = SoccerDataSet(save=False)
     #data1 = Data.load(r"D:\Gernot\Programmieren\Bachelor\Data\220427_173646_IrisDataSet")
