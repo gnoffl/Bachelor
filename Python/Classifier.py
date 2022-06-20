@@ -21,7 +21,7 @@ import torchvision.transforms as transforms
 
 class Classifier(ABC):
     @abstractmethod
-    def predict(self, dataset: dc.Data):
+    def predict(self, dataset: dc.Data) -> List:
         """
         use the trained model to predict classes from a set of inputs given in a dataset.
         :param dataset: contains the input data
@@ -163,7 +163,7 @@ class TreeClassifier(Classifier):
         if os.path.isfile(gv_path):
             os.remove(gv_path)
 
-    def predict(self, dataset: dc.Data):
+    def predict(self, dataset: dc.Data) -> List:
         """
         makes predictions on the given data with the trained DecisionTreeClassifier
         :param dataset: input Data
