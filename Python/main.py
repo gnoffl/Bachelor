@@ -1,3 +1,4 @@
+import math
 import os
 from typing import Dict, List
 import random
@@ -45,7 +46,7 @@ def get_pref_dims(dataset: dc.Data):
     return pref_dim, secnd_choice
 
 
-def recursion_end(curr_folder: str, dim: str, q: float,
+def recursion_end(curr_folder: str, dim: str, ranks_to_shift: int,
                   subspace_list: List[pd.DataFrame], trained_model: cl.Classifier) -> pd.DataFrame:
     """
     Runs QSM on the dataset in the current folder. Results are visualized. The resulting data as well as the original
@@ -53,13 +54,16 @@ def recursion_end(curr_folder: str, dim: str, q: float,
     the binned data.
     :param curr_folder: folder where the dataset lies
     :param dim: dim to shift
-    :param q: quantile the data is supposed to be shifted
+    :param ranks_to_shift: number of ranks the data is supposed to be shifted
     :param subspace_list: in this list the resulting datasets from QSM on the data splits will be saved as dataframes to
     combine them later
     :param trained_model: model to do the predictions
     :return: the result matrix of the QSM
     """
     dataset = dc.Data.load(curr_folder)
+    #calculate q from ranks_to_shift
+    #todo: adjust calculation of q here!
+    q = ranks_to_shift / (len(dataset.data) + 1)
     result = QSM.run_QSM(dataset=dataset,
                          quantiles={dim: q},
                          save_changes=True,
@@ -90,7 +94,7 @@ def recursion_end(curr_folder: str, dim: str, q: float,
     return matrix
 
 
-def recursive_QSM(curr_folder: str, curr_name: str, dim: str, q: float,
+def recursive_QSM(curr_folder: str, curr_name: str, dim: str, ranks_to_shift: int,
                   subspace_list: List[pd.DataFrame], trained_model: cl.Classifier) -> pd.DataFrame:
     """
     checks if the curr_folder contains data splits. if so, the function is recursively called on the splits. If no
@@ -98,7 +102,7 @@ def recursive_QSM(curr_folder: str, curr_name: str, dim: str, q: float,
     :param curr_folder: path to the folder that is inspected at the moment
     :param curr_name: name of the current folder
     :param dim: dimension to shift in QSM
-    :param q: quantile to shift the data by
+    :param ranks_to_shift: number of ranks the data is supposed to be shifted
     :param subspace_list: list that contains the resulting data frames of the splits that were already shifted in QSM
     :param trained_model: trained decision model, to predict do predictions on the data
     :return: result matrix, that contains the sum of the result matrices from the QSMs executed on the data splits that
@@ -119,16 +123,17 @@ def recursive_QSM(curr_folder: str, curr_name: str, dim: str, q: float,
         if next_name in folders:
             #next layer of recursion
             count += 1
-            curr_res = recursive_QSM(curr_folder=next_folder, curr_name=next_name, dim=dim, q=q,
-                                     subspace_list=subspace_list, trained_model=trained_model)
+            curr_res = recursive_QSM(curr_folder=next_folder, curr_name=next_name, dim=dim,
+                                     ranks_to_shift=ranks_to_shift, subspace_list=subspace_list,
+                                     trained_model=trained_model)
             result_matrix = add_result_matrices(result_matrix, curr_res)
 
     if count == 2:
         pass
     elif count == 0:
         #if no further splits are present, end recursion (do QSM, save resulting dataset and result matrix)
-        result_matrix = recursion_end(curr_folder=curr_folder, dim=dim, q=q, subspace_list=subspace_list,
-                                      trained_model=trained_model)
+        result_matrix = recursion_end(curr_folder=curr_folder, dim=dim, ranks_to_shift=ranks_to_shift,
+                                      subspace_list=subspace_list, trained_model=trained_model)
     else:
         raise dc.CustomError(f"{count} number of splits detected! Should be either 0 or 2!")
 
@@ -194,8 +199,11 @@ def QSM_on_binned_data(dataset: dc.Data, quantiles: Dict[str, float],
         #subspace_list will contain a dataframe for each dataset that is not split further. Combining these Dataframes
         # will yield a dataframe containing all the original data points, after shifting them separately in their splits
         subspace_list = []
+        #get number of ranks the data is supposed to be shifted
+        #todo: adjust k here!
+        ranks_to_shift = math.ceil(q * (len(dataset.data) + 1))
         #start recursion
-        recursive_QSM(curr_folder=start_folder, curr_name="", dim=dim, q=q,
+        recursive_QSM(curr_folder=start_folder, curr_name="", dim=dim, ranks_to_shift=ranks_to_shift,
                       subspace_list=subspace_list, trained_model=trained_model)
         #create new dataset from the results of QSM on the splits
         full_data = pd.concat(subspace_list)
