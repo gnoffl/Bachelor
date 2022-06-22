@@ -1,5 +1,6 @@
 from typing import List, Tuple, Dict
 
+from scipy.stats import sem
 import pandas as pd
 import matplotlib.pyplot as plt
 from mpl_toolkits.mplot3d import Axes3D
@@ -79,15 +80,15 @@ def get_color_index(clas: int or str, class_names: List[str], i: int):
     :return: index for color selection from colors
     """
     try:
-        if isinstance(clas, str) and "_" in clas:
+        if class_names:
+            color_ind = class_names.index(clas)
+        else:
             raise ValueError
-        color_ind = int(clas)
     except ValueError:
         try:
-            if class_names:
-                color_ind = class_names.index(clas)
-            else:
+            if isinstance(clas, str) and "_" in clas:
                 raise ValueError
+            color_ind = int(clas)
         except ValueError:
             color_ind = i
     return color_ind
@@ -161,7 +162,8 @@ def visualize_2d_subplot(df: pd.DataFrame,
                          class_names: List[str] = None,
                          show_legend: bool = False,
                          bbox_to_anchor: (float, float) = None,
-                         loc: str = "upper left") -> None:
+                         loc: str = "upper left",
+                         map_color: bool = True) -> None:
     """
     Creates a 2d Image of the given data, showing the dimensions whose names are given in dims.
     :param df: Dataframe containing the data
@@ -178,6 +180,8 @@ def visualize_2d_subplot(df: pd.DataFrame,
     :param show_legend: determines whether a legend will be shown
     :param bbox_to_anchor: location for a potential legend
     :param loc: location for a potential legend, bbox_to_anchor will override this, if both are given
+    :param map_color: determines whether the classes will will be tried to be mapped to colors by their name or
+    class_names, or if the colors will just be chosen by the order the classes apper in
     """
     x_name, y_name = dims
 
@@ -201,7 +205,10 @@ def visualize_2d_subplot(df: pd.DataFrame,
         classes = set(df[class_column].values)
         # plot classes seperately, to include a label, which then can be used to show the different classes in the plot
         for i, clas in enumerate(classes):
-            color_ind = get_color_index(clas, class_names, i)
+            if map_color:
+                color_ind = get_color_index(clas, class_names, i)
+            else:
+                color_ind = i
             plot.scatter(df.loc[df[class_column] == clas, [x_name]],
                          df.loc[df[class_column] == clas, [y_name]],
                          color=colors[color_ind],
@@ -303,6 +310,8 @@ def get_label(clas: int or str, class_names: List[str]):
         return clas
     else:
         try:
+            if isinstance(clas, str) and "_" in clas:
+                raise ValueError
             index = int(clas)
             return class_names[index]
         except (ValueError, IndexError):
@@ -837,6 +846,159 @@ def soccerDataSet_figure():
     plt.savefig("../Plots/BA_Grafiken/Soccer_intro.png", bbox_inches='tight')
 
 
+def Iris_max_split_figure():
+    plt.clf()
+    plt.figure(0, figsize=(8, 8))
+
+    set_09 = dc.Data.load(
+        r"D:\Gernot\Programmieren\Bachelor\Data\Parameters2\IrisDataSet\tree\009\Splits\petal_length_005")
+    set_17 = dc.Data.load(
+        r"D:\Gernot\Programmieren\Bachelor\Data\Parameters2\IrisDataSet\tree\017\Splits\petal_length_005")
+    visualized_area = find_common_area(set_09.data["petal_width"].values, set_09.data["petal_length_org"].values,
+                                       set_09.data["petal_width"].values, set_09.data["petal_length"].values)
+
+    subplot_locs = [
+        (100, 100, 0, 0, 43, 43),
+        (100, 100, 57, 0, 43, 43)
+    ]
+    titles = ["A", "C"]
+    dims = [
+        ("petal_width", "petal_length_org"),
+        ("petal_width", "petal_length")
+    ]
+
+    class_names = set(set_17.data["source"].unique())
+    class_names.update(set(set_09.data["source"].unique()))
+    class_names = list(class_names)
+
+    for i, (plot_loc, dim, title) in enumerate(zip(subplot_locs, dims, titles)):
+        visualize_2d_subplot(df=set_09.data, dims=dim, subplot_location=plot_loc, class_column="source",
+                             show_legend=True, loc="upper left", title=title, visualized_area=visualized_area,
+                             class_names=class_names)
+
+    visualized_area = find_common_area(set_17.data["petal_width"].values, set_17.data["petal_length_org"].values,
+                                       set_17.data["petal_width"].values, set_17.data["petal_length"].values)
+
+    subplot_locs = [
+        (100, 100, 0, 57, 43, 43),
+        (100, 100, 57, 57, 43, 43)
+    ]
+    titles = ["B", "D"]
+    dims = [
+        ("petal_width", "petal_length_org"),
+        ("petal_width", "petal_length")
+    ]
+
+    for i, (plot_loc, dim, title) in enumerate(zip(subplot_locs, dims, titles)):
+        visualize_2d_subplot(df=set_17.data, dims=dim, subplot_location=plot_loc, class_column="source",
+                             show_legend=True, bbox_to_anchor=(1.01, 1), title=title, visualized_area=visualized_area,
+                             class_names=class_names)
+
+    #plt.show()
+    plt.savefig("../Plots/BA_Grafiken/Iris_max_split.png", bbox_inches='tight')
+
+
+def Iris_p_val_figure():
+    plt.clf()
+    plt.figure(0, figsize=(4, 8))
+
+    set_17 = dc.Data.load(
+        r"D:\Gernot\Programmieren\Bachelor\Data\Parameters2\IrisDataSet\tree\017\Splits\petal_length_005")
+    visualized_area = find_common_area(set_17.data["petal_width"].values, set_17.data["petal_length_org"].values,
+                                       set_17.data["petal_width"].values, set_17.data["petal_length"].values)
+
+    set_21 = dc.Data.load(
+        r"D:\Gernot\Programmieren\Bachelor\Data\Parameters2\IrisDataSet\tree\021\Splits\petal_length_005")
+
+    class_names = set(set_17.data["source"].unique())
+    class_names.update(set(set_21.data["source"].unique()))
+    class_names = list(class_names)
+    subplot_locs = [
+        (100, 100, 0, 0, 43, 100)
+    ]
+    titles = ["A"]
+    dims = [
+        ("petal_width", "petal_length_org")
+    ]
+
+    for i, (plot_loc, dim, title) in enumerate(zip(subplot_locs, dims, titles)):
+        visualize_2d_subplot(df=set_17.data, dims=dim, subplot_location=plot_loc, class_column="source",
+                             show_legend=True, bbox_to_anchor=(1.01, 1), title=title, visualized_area=visualized_area,
+                             class_names=class_names)
+
+    visualized_area = find_common_area(set_21.data["petal_width"].values, set_21.data["petal_length_org"].values,
+                                       set_21.data["petal_width"].values, set_21.data["petal_length"].values)
+
+    subplot_locs = [
+        (100, 100, 57, 0, 43, 100)
+    ]
+    titles = ["B"]
+    dims = [
+        ("petal_width", "petal_length_org")
+    ]
+
+    for i, (plot_loc, dim, title) in enumerate(zip(subplot_locs, dims, titles)):
+        visualize_2d_subplot(df=set_21.data, dims=dim, subplot_location=plot_loc, class_column="source",
+                             show_legend=True, bbox_to_anchor=(1.01, 1), title=title, visualized_area=visualized_area,
+                             class_names=class_names)
+
+    #plt.show()
+    plt.savefig("../Plots/BA_Grafiken/Iris_p_val.png", bbox_inches='tight')
+
+
+def parallelization_figure():
+    plt.figure(0, figsize=(5, 4))
+    plt.clf()
+
+    plt.xlabel("Anzahl Datenpunkte")
+    plt.ylabel("Laufzeit / s")
+
+    number_of_points_per_class = [50, 100, 150, 200, 250, 500, 1000]
+    non_parallel_data = {
+        50: [1.0041487, 0.7653119999999998, 0.7623885999999995, 0.7916483000000003, 0.7480089000000012],
+        100: [3.1073082, 2.779576399999999, 3.0132773000000004, 2.8404352, 2.6871526999999986],
+        150: [6.7146821, 6.0561393, 6.0204731, 6.0338478, 6.162561499999999],
+        200: [11.729178, 10.826789, 10.8760227, 10.795521, 10.823170300000001],
+        250: [19.626736200000003, 17.8267194, 18.0243379, 17.785090900000007, 17.43169499999999],
+        500: [81.05624279999999, 78.87529980000001, 74.7995133, 74.74279660000002, 74.65827630000001],
+        1000: [379.0309271, 372.42410409999997, 373.5247737000001, 373.2645138999999, 372.95511520000014]
+    }
+
+    parallel_data = {
+        50: [4.5908374, 4.9390367, 4.226475199999999, 3.8868492000000003, 3.778698000000002],
+        100: [4.7841138, 4.7933691000000005, 4.7221858, 5.409774599999999, 4.869699100000002],
+        150: [5.920484700000001, 5.5034621, 5.528682, 5.463392300000002, 5.4891383000000005],
+        200: [7.605921, 6.955283999999999, 6.941353499999998, 6.839835600000001, 6.9377566],
+        250: [9.731842199999999, 9.723643800000001, 8.6968392, 8.689061899999999, 9.970855100000001],
+        500: [27.0167894, 25.674273200000002, 25.3907757, 25.461330200000006, 25.4961957],
+        1000: [105.231246, 111.80721190000001, 118.46165230000003, 119.85438250000004, 121.58854930000007]
+    }
+
+    sems_non_parallel = [sem(non_parallel_data[points]) for points in number_of_points_per_class]
+    sems_parallel = [sem(parallel_data[points]) for points in number_of_points_per_class]
+
+    means_non_parallel = [sum(non_parallel_data[points])/len(non_parallel_data[points]) for points in number_of_points_per_class]
+    means_parallel = [sum(parallel_data[points])/len(parallel_data[points]) for points in number_of_points_per_class]
+
+    number_of_points_per_class = [6 * points for points in number_of_points_per_class]
+    print("means non:", means_non_parallel)
+    print("sem nicht parallel:", sems_non_parallel)
+
+    print("means parallel:", means_parallel)
+    print("sem parallel:", sems_parallel)
+
+    plt.errorbar(x=number_of_points_per_class, y=means_non_parallel, yerr=sems_non_parallel,
+                 label="nicht parallelisiert", fmt="o")
+    plt.errorbar(x=number_of_points_per_class, y=means_parallel, yerr=sems_parallel, label="parallelisiert",
+                 fmt="o")
+
+    plt.yscale('log')
+
+    plt.legend(loc="upper left", frameon=True)
+    plt.savefig("../Plots/BA_Grafiken/Parallelisierung.png", bbox_inches='tight')
+    #plt.show()
+
+
 def main() -> None:
     """
     just a test function
@@ -860,5 +1022,8 @@ def main() -> None:
 if __name__ == "__main__":
     #create_save_path(r"D:\Gernot\Programmieren\Bachelor\Data\220330_220119_MaybeActualDataSet\pics\QSM\test.csv")
     #maybeActualDataSet_figure()
-    soccerDataSet_figure()
+    #soccerDataSet_figure()
+    #Iris_p_val_figure()
+    Iris_max_split_figure()
+    #parallelization_figure()
     #print("\\".join())
