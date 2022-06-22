@@ -92,8 +92,12 @@ def calculate_diff_matrices():
 
 def create_paths(dataset_types):
     classifiers = ["NN", "tree"]
+    top_folder = "Parameters2"
+    top_path = os.path.join("..", "Data", top_folder)
+    if not os.path.isdir(top_path):
+        os.mkdir(top_path)
     for dataset_type in dataset_types:
-        path = os.path.join("..", "Data", "Parameters1", dataset_type)
+        path = os.path.join(top_path, dataset_type)
         if not os.path.isdir(path):
             os.mkdir(path)
         for classifier in classifiers:
@@ -107,11 +111,12 @@ def loop_core(dataset_type: str, parameter_set_nr: int, members: List[int], para
     final_path = os.path.join(tree_path, str(parameter_set_nr).zfill(3))
     # don't recalculate a set of parameters, that was already calculated
     if os.path.isdir(final_path):
-        print(f"{final_path} already exists!\n----------------------\n")
+        pass
+        #print(f"{final_path} already exists!\n----------------------\n")
     else:
         dataset, quantiles = get_dataset(dataset_type, final_path, members)
         main.run_from_file(dataset=dataset, quantiles=quantiles)
-        print(f"finished {str(parameter_set_nr).zfill(3)}!\n----------------------\n")
+        #print(f"finished {str(parameter_set_nr).zfill(3)}!\n----------------------\n")
 
 
 def parameter_search():
@@ -130,7 +135,7 @@ def parameter_search():
 
     #loop over all the options
     for dataset_type in dataset_types:
-        path = os.path.join("..", "Data", "Parameters1", dataset_type)
+        path = os.path.join("..", "Data", "Parameters2", dataset_type)
         parameter_args = {}
         for tree_arg in tree_args:
             tree_path = os.path.join(path, "tree") if tree_arg else os.path.join(path, "NN")
@@ -146,6 +151,8 @@ def parameter_search():
                         for threshold_arg in threshold_args:
                             parameter_args["threshold_fraction"] = threshold_arg
                             i += 1
+                            print(f"{i}: max_split_arg={max_split_arg}, p_val_arg={p_val_arg}, "
+                                  f"goodness_arg={goodness_arg}, threshold_arg={threshold_arg}")
                             loop_core(dataset_type=dataset_type, parameter_set_nr=i, members=members,
                                       parameter_args=parameter_args, tree_path=tree_path)
                             #threshold is only relevant, when goodness_over_length = False --> dont calculate
@@ -154,12 +161,48 @@ def parameter_search():
                                 break
 
 
+def get_eval_matrix(dataset_type: str):
+    if dataset_type == "IrisDataSet":
+        matrix_values = {
+            0: [0, -1, -1],
+            1: [-1, 0, -1],
+            2: [-1, 1, 0]
+         }
+        return pd.DataFrame(matrix_values)
+
+
+def matrix_evaluation(df1: pd.DataFrame, df2: pd.DataFrame) -> pd.DataFrame:
+    return (df1.values*df2.values).sum()
+
+
+def evaluate_results():
+    path_to_data = "../Data/Parameters2/IrisDataSet"
+    classifiers = ["tree", "NN"]
+    eval_matrix = get_eval_matrix("IrisDataSet")
+    for classifier in classifiers:
+        new_path = os.path.join(path_to_data, classifier)
+        with open(os.path.join(new_path, "results.csv"), "w") as f:
+            for folder in os.listdir(new_path):
+                folder_path = os.path.join(new_path, folder)
+                if os.path.isdir(folder_path):
+                    splits_path = os.path.join(folder_path, "Splits")
+                    shifts = os.listdir(splits_path)
+                    if len(shifts) != 1:
+                        raise dc.CustomError("more than one shift detected!")
+                    shifted_path = os.path.join(splits_path, shifts[0])
+                    result_matrix = pd.read_csv(os.path.join(shifted_path, "binning_result_matrix.csv"), index_col=0)
+                    eval_res = matrix_evaluation(eval_matrix, result_matrix)
+                    f.write(f"{folder}: {eval_res}\n")
+
+
 if __name__ == "__main__":
-    try:
+    parameter_search()
+    #evaluate_results()
+    """try:
         parameter_search()
         calculate_diff_matrices()
     except Exception:
         pass
-    os.system("shutdown /s /t 1")
+    os.system("shutdown /s /t 1")"""
     #get_matrix(r"D:\Gernot\Programmieren\Bachelor\Data\Parameters\MaybeActualDataSet\tree\001")
     #create_parameters()
