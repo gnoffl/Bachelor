@@ -5,6 +5,7 @@ import pandas as pd
 
 import main
 import dataCreation as dc
+import visualization as vs
 
 
 def create_parameters(tree: bool = True, max_depth: int = 5, min_samples_leaf: int = 5, lr: float = 0.001,
@@ -92,7 +93,7 @@ def calculate_diff_matrices():
 
 def create_paths(dataset_types):
     classifiers = ["NN", "tree"]
-    top_folder = "Parameters2"
+    top_folder = "Parameters3"
     top_path = os.path.join("..", "Data", top_folder)
     if not os.path.isdir(top_path):
         os.mkdir(top_path)
@@ -122,7 +123,7 @@ def loop_core(dataset_type: str, parameter_set_nr: int, members: List[int], para
 def parameter_search():
     members = [200 for _ in range(6)]
     #lists of options to iterate over
-    dataset_types = ["MaybeActualDataSet", "IrisDataSet", "SoccerDataSet"]
+    dataset_types = ["MaybeActualDataSet"]#, "IrisDataSet", "SoccerDataSet"]
     tree_args = [True, False]
     max_split_args = [3, 2, 4]
     p_val_args = [0.05, 0.01]
@@ -135,7 +136,7 @@ def parameter_search():
 
     #loop over all the options
     for dataset_type in dataset_types:
-        path = os.path.join("..", "Data", "Parameters2", dataset_type)
+        path = os.path.join("..", "Data", "Parameters3", dataset_type)
         parameter_args = {}
         for tree_arg in tree_args:
             tree_path = os.path.join(path, "tree") if tree_arg else os.path.join(path, "NN")
@@ -161,24 +162,72 @@ def parameter_search():
                                 break
 
 
+def recalc_improved_qsm_matrices(dataset_type):
+    path_to_data = "../Data/Parameters2"
+    path_to_data = os.path.join(path_to_data, dataset_type)
+    classifiers = ["tree", "NN"]
+    for classifier in classifiers:
+        new_path = os.path.join(path_to_data, classifier)
+        for folder in os.listdir(new_path):
+            folder_path = os.path.join(new_path, folder)
+            if os.path.isdir(folder_path):
+                splits_path = os.path.join(folder_path, "Splits")
+                shifts = os.listdir(splits_path)
+                if len(shifts) != 1:
+                    raise dc.CustomError("more than one shift detected!")
+                shifted_path = os.path.join(splits_path, shifts[0])
+                set_ = dc.Data.load(shifted_path)
+                result_matrix = vs.get_change_matrix(set_.data, ("org_pred", "pred_classes"), class_names=set_.class_names)
+                result_matrix.to_csv(os.path.join(shifted_path, "binning_result_matrix.csv"))
+
+
 def get_eval_matrix(dataset_type: str):
     if dataset_type == "IrisDataSet":
         matrix_values = {
             0: [0, -1, -1],
             1: [-1, 0, -1],
-            2: [-1, 1, 0]
+            2: [-1, 0, 0]
          }
-        return pd.DataFrame(matrix_values)
+        index = [0, 1, 2]
+    elif dataset_type == "MaybeActualDataSet":
+        matrix_values = {
+            0: [0, -1, -1, -1, -1, -1],
+            1: [0,  0, -1, -1, -1, -1],
+            2: [0,  0,  0,  0,  0,  0],
+            3: [0,  0,  0,  0,  0,  0],
+            4: [0,  0,  0,  0,  0,  0],
+            5: [-1, -1, -1, -1, -1,  0]
+        }
+        index = [0, 1, 2, 3, 4, 5]
+    elif dataset_type == "SoccerDataSet":
+        matrix_values = {
+            "Torwart": [0, 0, 0, 0, 0, 0, 0, 0, 0],
+            "Innenverteidiger": [-1, 0, 0, 0, 0, 0, 0, 0, 0],
+            "Aussenverteidiger": [-1, 0, 0, 0, 0, 0, 0, 0, 0],
+            "Defensives Mittelfeld": [-1, 0, 0, 0, 0, 0, 0, 0, 0],
+            "Zentrales Mittelfeld": [-1, 0, 0, 0, 0, 0, 0, 0, 0],
+            "Mittelfeld Aussen": [-1, 0, 0, 0, 0, 0, 0, 0, 0],
+            "Offensives Mittelfeld": [-1, 0, 0, 0, 0, 0, 0, 0, 0],
+            "Mittelstuermer": [-1, 0, 0, 0, 0, 0, 0, 0, 0],
+            "Fluegelspieler": [-1, 0, 0, 0, 0, 0, 0, 0, 0]
+        }
+        index = ["Torwart", "Innenverteidiger", "Aussenverteidiger", "Defensives Mittelfeld", "Zentrales Mittelfeld",
+                 "Mittelfeld Aussen", "Offensives Mittelfeld", "Mittelstuermer", "Fluegelspieler"]
+    else:
+        raise dc.CustomError(f"dataset_type {dataset_type} unknown!")
+    return pd.DataFrame(matrix_values, index=index)
 
 
 def matrix_evaluation(df1: pd.DataFrame, df2: pd.DataFrame) -> pd.DataFrame:
     return (df1.values*df2.values).sum()
 
 
-def evaluate_results():
-    path_to_data = "../Data/Parameters2/IrisDataSet"
+def evaluate_results(dataset_type):
+    path_to_data = "../Data/Parameters2"
+    path_to_data = os.path.join(path_to_data, dataset_type)
     classifiers = ["tree", "NN"]
-    eval_matrix = get_eval_matrix("IrisDataSet")
+    eval_matrix = get_eval_matrix(dataset_type)
+    print(eval_matrix)
     for classifier in classifiers:
         new_path = os.path.join(path_to_data, classifier)
         with open(os.path.join(new_path, "results.csv"), "w") as f:
@@ -196,12 +245,21 @@ def evaluate_results():
 
 
 if __name__ == "__main__":
-    parameter_search()
-    #evaluate_results()
-    """try:
-        parameter_search()
-        calculate_diff_matrices()
-    except Exception:
+    #parameter_search()
+    evaluate_results("SoccerDataSet")
+
+    """test = dc.Data.load(r"D:\Gernot\Programmieren\Bachelor\Data\Parameters2\MaybeActualDataSet\tree\005\Splits\dim_04_005")
+    only_class_05 = test.data[test.data["pred_classes"] == 5]
+    only_class_05 = only_class_05[only_class_05["classes"] != 5]
+    print(only_class_05)
+    only_class_05 = only_class_05[["source", "classes"]]
+    print(only_class_05.head(25))
+    print(len(only_class_05))"""
+    #recalc_improved_qsm_matrices("SoccerDataSet")
+
+    #parameter_search()
+    #calculate_diff_matrices()
+    """except Exception:
         pass
     os.system("shutdown /s /t 1")"""
     #get_matrix(r"D:\Gernot\Programmieren\Bachelor\Data\Parameters\MaybeActualDataSet\tree\001")
