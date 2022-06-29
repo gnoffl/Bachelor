@@ -16,25 +16,13 @@
 ## Logical progress
 
 * [ ] write thesis
-  * [ ] new time table
   * [x] table of contents
   * [x] Theoretischer Hintergrund                 03.06.
-  * [ ] Methoden                                  15.06.
-  * [ ] Experimente                               19.06.
-  * [ ] Einleitung                                24.06.
-  * [ ] Fazit                                     24.06.
-  * [ ] Abstract                                  24.06.
-  * [ ] Art der Abgabe checken
+  * [x] Methoden                                  15.06.
+  * [x] Experimente                               19.06.
+  * [x] Einleitung                                24.06.
+  * [x] Fazit                                     24.06.
   * [ ] Meeting notes und alle todos nochmal lesen
-  * [ ] Korrektur
-    * [ ] Gernot
-    * [ ] Robin
-    * [ ] Michi
-    * [ ] Rasspe
-    * [ ] Tobias
-    * [ ] Klara
-    * [ ] Papa
-    * [ ] Mama
 
 
 

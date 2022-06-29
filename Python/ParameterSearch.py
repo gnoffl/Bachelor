@@ -245,8 +245,8 @@ def evaluate_results(dataset_type):
 
 
 if __name__ == "__main__":
-    #parameter_search()
-    evaluate_results("SoccerDataSet")
+    parameter_search()
+    #evaluate_results("SoccerDataSet")
 
     """test = dc.Data.load(r"D:\Gernot\Programmieren\Bachelor\Data\Parameters2\MaybeActualDataSet\tree\005\Splits\dim_04_005")
     only_class_05 = test.data[test.data["pred_classes"] == 5]
