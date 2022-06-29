@@ -271,7 +271,7 @@ def visualize_QSM_on_binned_data(dataset: dc.Data, shifted_dim: str, common_dim:
     #compare the predictions of the classifier on the original data to the predictions of the classifier on the shifted
     # data
     vs.compare_shift_2d(df=dataset.data, common_dim=common_dim, dims_to_compare=(f"{shifted_dim}_org", shifted_dim),
-                        class_columns=("pred_classes", "org_pred"), path=os.path.join(folder, "predictions.png"),
+                        class_columns=("org_pred", "pred_classes"), path=os.path.join(folder, "predictions.png"),
                         class_names=dataset.class_names)
     #see how the data is shifted by comparing the datapoints before and after the shift. displaed classes are the
     # original classes of the data points
