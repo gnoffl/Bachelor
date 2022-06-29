@@ -173,7 +173,7 @@ class TreeClassifier(Classifier):
 
 
 class NNClassifier(nn.Module, Classifier):
-    def __init__(self, dataset: dc.Data, lr: float = 0.001, num_epochs: int = 3, batch_size: int = 64,
+    def __init__(self, dataset: dc.Data, lr: float = 0.001, num_epochs: int = 100, batch_size: int = 64,
                  shuffle: bool = True):
         """
         trains a Neural Network on the given DataSet
@@ -382,6 +382,8 @@ def test_tree() -> None:
 
 
 if __name__ == "__main__":
-    test_nn()
-    test_tree()
+    #test_nn()
+    #test_tree()
+    d1 = dc.MaybeActualDataSet([200 for _ in range(6)])
+    NNClassifier(dataset=d1, num_epochs=100)
     #test_data_generation()
