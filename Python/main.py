@@ -168,7 +168,14 @@ def load_parameters():
     return parameters, param_path
 
 
-def run_from_file(quantiles: Dict[str, float], dataset: dc.Data):
+def run_from_file(quantiles: Dict[str, float], dataset: dc.Data, run_standard_qsm: bool = True):
+    """
+    runs improved qsm on the given dataset with parameters taken from parameters.txt in the Data folder
+    :param dataset: dataset for which the qsm is supposed to be run
+    :param quantiles: dimensions of the dataset, which are supposed to be shifted as keys, values of the dict determine
+    how far the data will be shifted
+    :param run_standard_qsm: determines, whether the standard qsm will also be run
+    """
     params, par_path = load_parameters()
     if not params:
         raise dc.CustomError("params were not loaded properly!")
@@ -178,7 +185,7 @@ def run_from_file(quantiles: Dict[str, float], dataset: dc.Data):
     dataset.extend_notes_by_one_line("Parameters for running the comparison between methods can be found in "
                                      "\"Parameters.txt\"")
     dataset.end_paragraph_in_notes()
-    compare_vanilla_split(quantiles=quantiles, dataset=dataset, **params)
+    compare_vanilla_split(quantiles=quantiles, dataset=dataset, run_standard_qsm=run_standard_qsm, **params)
 
 
 def QSM_on_binned_data(dataset: dc.Data, quantiles: Dict[str, float],
@@ -280,11 +287,67 @@ def visualize_QSM_on_binned_data(dataset: dc.Data, shifted_dim: str, common_dim:
                         class_names=dataset.class_names)
 
 
+def get_model(batch_size: int, dataset: dc.Data, lr: float, max_depth: int, min_samples_leaf: int, num_epochs: int,
+              shuffle: bool, tree: bool):
+    """
+    runs improved QSM on the full dataset. result matrices are saved as well as visualizations of the resulting shifted
+    data
+    :param dataset: dataset to run QSM on
+    :param max_depth: max depth of the decision tree
+    :param min_samples_leaf: minimum samples per leaf in the decision tree
+    :param tree: decides the model to be used for qsm. true --> DecisionTree, false --> neural Network
+    :param lr: learning rate for neural Network
+    :param num_epochs number of epochs for training a neural Network
+    :param batch_size: batch size for the neural Network
+    :param shuffle: Determines whether the data will be shuffled between epochs for the neural net
+    :return:
+    """
+    if tree:
+        print("training decision tree..")
+        model = cl.TreeClassifier(dataset, depth=max_depth, min_samples_leaf=min_samples_leaf)
+        tree_pics_path = model.visualize_predictions(dataset=dataset, pred_col_name="test")
+        model.visualize_tree(dataset=dataset, tree_pics_path=tree_pics_path)
+    else:
+        print("training neural net..")
+        model = cl.NNClassifier(dataset, lr=lr, num_epochs=num_epochs, batch_size=batch_size, shuffle=shuffle)
+        model.visualize_predictions(dataset=dataset, pred_col_name="test")
+    return model
+
+
+def improved_qsm(HiCS_parameters: str, dataset: dc.Data, goodness_over_length: bool, max_split_nr: int,
+                 model: cl.Classifier, nr_processes: int, p_value: float, quantiles: Dict[str, float],
+                 threshold_fraction: float):
+    """
+    runs the improved QSM on the given dataset. Results are visualized and the result matrix is saved.
+    :param quantiles: Dictionary with dimensions as key and a corresponding quantile, by which the data is supposed to
+    be shifted in the key-dimension
+    :param dataset: dataset to run QSM on
+    :param model: model to be used for predicting the data in the improved qsm
+    :param nr_processes: determines the number of processes that are used to calculate the ks statistics
+    :param p_value: if the best split has a p-value higher than this, the dataset will not be split further
+    :param goodness_over_length: determines how the best HiCS is selected. If True, the subspace with the highest
+    contrast will be selected. If False, the number of dimensions will also play a role. (For details see get_HiCS)
+    :param threshold_fraction: determines the cutoff contrast value for "long" subspaces
+    :param max_split_nr: max count of further splits (max count of splits in general when manually calling the
+    function)
+    :param HiCS_parameters: further parameters to be added to HiCS
+    :return:
+    """
+    print("start binning of data..")
+    start_folder_dict = cds.data_binning(dataset=dataset, shifts=quantiles, max_split_nr=max_split_nr, visualize=True,
+                                         nr_processes=nr_processes, max_p_for_split=p_value,
+                                         threshold_fraction=threshold_fraction, HiCS_parameters=HiCS_parameters,
+                                         goodness_over_length=goodness_over_length)
+    print("running QSM on split dataset..")
+    QSM_on_binned_data(dataset=dataset, quantiles=quantiles, start_folders=start_folder_dict, trained_model=model)
+
+
 def compare_vanilla_split(quantiles: Dict[str, float], dataset: dc.Data, max_depth: int = 5,
                           min_samples_leaf: int = 5, nr_processes: int = 4, p_value: float = 0.05,
                           goodness_over_length: bool = True, threshold_fraction: float = 0.7,
                           max_split_nr: int = 3, HiCS_parameters: str = "", tree: bool = True, lr: float = 0.001,
-                          num_epochs: int = 3, batch_size: int = 64, shuffle: bool = True) -> None:
+                          num_epochs: int = 3, batch_size: int = 64, shuffle: bool = True,
+                          run_standard_qsm: bool = True) -> None:
     """
     runs QSM on the full dataset as well as the binned data. result matrices are saved as well as visualizations of the
     resulting shifted data for each approach
@@ -300,26 +363,22 @@ def compare_vanilla_split(quantiles: Dict[str, float], dataset: dc.Data, max_dep
     :param threshold_fraction: determines the cutoff contrast value for "long" subspaces
     :param max_split_nr: max count of further splits (max count of splits in general when manually calling the
     function)
+    :param tree: decides the model to be used for qsm. true --> DecisionTree, false --> neural Network
+    :param lr: learning rate for neural Network
+    :param num_epochs number of epochs for training a neural Network
+    :param batch_size: batch size for the neural Network
+    :param shuffle: Determines whether the data will be shuffled between epochs for the neural net
     :param HiCS_parameters: further parameters to be added to HiCS
+    :param run_standard_qsm: determines whether the standard qsm will be executed
     """
-    if tree:
-        print("training decision tree..")
-        model = cl.TreeClassifier(dataset, depth=max_depth, min_samples_leaf=min_samples_leaf)
-        tree_pics_path = model.visualize_predictions(dataset=dataset, pred_col_name="test")
-        model.visualize_tree(dataset=dataset, tree_pics_path=tree_pics_path)
-    else:
-        print("training neural net..")
-        model = cl.NNClassifier(dataset, lr=lr, num_epochs=num_epochs, batch_size=batch_size, shuffle=shuffle)
-        model.visualize_predictions(dataset=dataset, pred_col_name="test")
-    print("start binning of data..")
-    start_folder_dict = cds.data_binning(dataset=dataset, shifts=quantiles, max_split_nr=max_split_nr, visualize=True,
-                                         nr_processes=nr_processes, max_p_for_split=p_value,
-                                         threshold_fraction=threshold_fraction, HiCS_parameters=HiCS_parameters,
-                                         goodness_over_length=goodness_over_length)
-    print("running QSM on full dataset..")
-    run_vanilla_qsm(dataset=dataset, quantiles=quantiles, model=model)
-    print("running QSM on split dataset..")
-    QSM_on_binned_data(dataset=dataset, quantiles=quantiles, start_folders=start_folder_dict, trained_model=model)
+    model = get_model(batch_size=batch_size, dataset=dataset, lr=lr, max_depth=max_depth,
+                      min_samples_leaf=min_samples_leaf, num_epochs=num_epochs, shuffle=shuffle, tree=tree)
+    improved_qsm(HiCS_parameters=HiCS_parameters, dataset=dataset, goodness_over_length=goodness_over_length,
+                 max_split_nr=max_split_nr, model=model, nr_processes=nr_processes, p_value=p_value, quantiles=quantiles,
+                 threshold_fraction=threshold_fraction)
+    if run_standard_qsm:
+        print("running QSM on full dataset..")
+        run_vanilla_qsm(dataset=dataset, quantiles=quantiles, model=model)
 
 
 def main():
@@ -418,8 +477,9 @@ if __name__ == "__main__":
     #main()
     #count_pred_members()
     iris = dc.IrisDataSet()
-    vs.visualize_2d(iris.data, ("petal_length", "petal_width"), class_column="classes", title="Iris Dataset",
-                    path="../Plots/BA_Grafiken/Iris_Dataset.png", class_names=iris.class_names)
+    run_from_file({"petal_length": 0.01}, iris, run_standard_qsm=False)
+    #vs.visualize_2d(iris.data, ("petal_length", "petal_width"), class_column="classes", title="Iris Dataset",
+    #                path="../Plots/BA_Grafiken/Iris_Dataset.png", class_names=iris.class_names)
     #test_vis()
     #main()
     #test_iris_QSM()
