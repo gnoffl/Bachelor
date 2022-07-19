@@ -20,16 +20,18 @@ def IrisDataSet_figure():
         ("sepal_width", "sepal_length"),
         ("petal_width", "sepal_length")
     ]
-    axis_names = ("petal_width / cm", "petal_length / cm")
+    axis_names = [("petal_width / cm", "petal_length / cm"),
+                  ("sepal_width / cm", "sepal_length / cm"),
+                  ("petal_width / cm", "sepal_length / cm")]
 
-    for i, (plot_loc, dim, title) in enumerate(zip(subplot_locs, dims, titles)):
+    for i, (plot_loc, dim, title, axis_name) in enumerate(zip(subplot_locs, dims, titles, axis_names)):
         if i == 0:
             vs.visualize_2d_subplot(df=ids.data, dims=dim, subplot_location=plot_loc, class_column="classes",
                                     class_names=ids.class_names, show_legend=True, loc="upper left", title=title,
-                                    axis_names=axis_names)
+                                    axis_names=axis_name)
         else:
             vs.visualize_2d_subplot(df=ids.data, dims=dim, subplot_location=plot_loc, class_column="classes",
-                                    class_names=ids.class_names, title=title, axis_names=axis_names)
+                                    class_names=ids.class_names, title=title, axis_names=axis_name)
 
     new_df = ids.data.copy()
 
@@ -442,9 +444,9 @@ def Iris_QSM_comparison_figure():
                              show_legend=legend, loc="upper left", title=title, visualized_area=visualized_area,
                              class_names=class_names, axis_names=axis_names)
     subplot = vs.visualize_2d_subplot(df=qsm_NN_set.data, dims=("petal_width", "petal_length_shifted_by_0.05"),
-                                   subplot_location=(100, 100, 72, 57, 28, 43),
-                                   class_column="pred_with_petal_length_shifted_by_0.05",
-                                   show_legend=False, title="F", visualized_area=visualized_area,
+                                      subplot_location=(100, 100, 72, 57, 28, 43),
+                                      class_column="pred_with_petal_length_shifted_by_0.05",
+                                      show_legend=False, title="F", visualized_area=visualized_area,
                                       class_names=class_names, axis_names=axis_names)
 
     subplot.scatter([0.2],
@@ -455,6 +457,81 @@ def Iris_QSM_comparison_figure():
 
     #plt.show()
     plt.savefig("../Plots/BA_Grafiken/Iris_results/Iris_QSM_comparison.png", bbox_inches='tight')
+
+
+def Iris_QSM_comparison_figure_quer():
+    plt.clf()
+    plt.figure(0, figsize=(12, 8))
+
+    qsm_tree_set = dc.Data.load(r"D:\Gernot\Programmieren\Bachelor\Data\Parameters2\IrisDataSet\tree\004")
+    improved_tree_set = dc.Data.load(
+        r"D:\Gernot\Programmieren\Bachelor\Data\Parameters2\IrisDataSet\tree\004\Splits\petal_length_005")
+    visualized_area = vs.find_common_area(improved_tree_set.data["petal_width"].values, improved_tree_set.data["petal_length_org"].values,
+                                       improved_tree_set.data["petal_width"].values, improved_tree_set.data["petal_length"].values)
+
+    subplot_locs = [
+        (100, 100, 0, 0, 43, 28),
+        (100, 100, 0, 72, 43, 28)
+    ]
+    titles = ["A", "C"]
+    dims = [
+        ("petal_width", "petal_length_org"),
+        ("petal_width", "petal_length")
+    ]
+    class_columns = ["org_pred", "pred_classes"]
+    show_legend = [False, False]
+    axis_names = ("petal_width / cm", "petal_length / cm")
+
+    class_names = improved_tree_set.class_names
+
+    for i, (plot_loc, dim, title, class_column, legend) in enumerate(zip(subplot_locs, dims, titles, class_columns, show_legend)):
+
+        vs.visualize_2d_subplot(df=improved_tree_set.data, dims=dim, subplot_location=plot_loc, class_column=class_column,
+                             show_legend=legend, loc="upper left", title=title, visualized_area=visualized_area,
+                             class_names=class_names, axis_names=axis_names)
+    vs.visualize_2d_subplot(df=qsm_tree_set.data, dims=("petal_width", "petal_length_shifted_by_0.05"),
+                            subplot_location=(100, 100, 0, 36, 43, 28),
+                            class_column="pred_with_petal_length_shifted_by_0.05",
+                            show_legend=False, title="B", visualized_area=visualized_area, class_names=class_names,
+                            axis_names=axis_names)
+
+    qsm_NN_set = dc.Data.load(r"D:\Gernot\Programmieren\Bachelor\Data\Parameters2\IrisDataSet\NN\004")
+    improved_NN_set = dc.Data.load(
+        r"D:\Gernot\Programmieren\Bachelor\Data\Parameters2\IrisDataSet\NN\004\Splits\petal_length_005")
+
+    subplot_locs = [
+        (100, 100, 57, 0, 43, 28),
+        (100, 100, 57, 72, 43, 28)
+    ]
+    titles = ["D", "F"]
+    dims = [
+        ("petal_width", "petal_length_org"),
+        ("petal_width", "petal_length")
+    ]
+    class_columns = ["org_pred", "pred_classes"]
+    show_legend = [False, False]
+
+    class_names = improved_tree_set.class_names
+
+    for i, (plot_loc, dim, title, class_column, legend) in enumerate(
+            zip(subplot_locs, dims, titles, class_columns, show_legend)):
+        vs.visualize_2d_subplot(df=improved_NN_set.data, dims=dim, subplot_location=plot_loc, class_column=class_column,
+                             show_legend=legend, loc="upper left", title=title, visualized_area=visualized_area,
+                             class_names=class_names, axis_names=axis_names)
+    subplot = vs.visualize_2d_subplot(df=qsm_NN_set.data, dims=("petal_width", "petal_length_shifted_by_0.05"),
+                                      subplot_location=(100, 100, 57, 36, 43, 28),
+                                      class_column="pred_with_petal_length_shifted_by_0.05",
+                                      show_legend=False, title="E", visualized_area=visualized_area,
+                                      class_names=class_names, axis_names=axis_names)
+
+    subplot.scatter([0.2],
+                 [3.3],
+                 color=vs.colors[0],
+                 edgecolor="k",
+                 label="setosa")
+
+    #plt.show()
+    plt.savefig(r"C:\Users\gerno\OneDrive\Bachelorarbeit\Abschluss_Vortrag\Iris_QSM_comparison_quer_1.png", bbox_inches='tight')
 
 
 def hole_parameter_figure():
@@ -662,6 +739,58 @@ def hole_QSM_comparison_figure():
 
     #plt.show()
     plt.savefig("../Plots/BA_Grafiken/Hole_results/Hole_QSM_comparison.png", bbox_inches='tight')
+
+
+def hole_QSM_comparison_figure_quer():
+    plt.clf()
+    plt.figure(0, figsize=(12, 8))
+
+    qsm_tree_set = dc.Data.load(r"D:\Gernot\Programmieren\Bachelor\Data\Parameters2\MaybeActualDataSet\tree\020")
+    improved_tree_set = dc.Data.load(
+        r"D:\Gernot\Programmieren\Bachelor\Data\Parameters2\MaybeActualDataSet\tree\012\Splits\dim_04_005")
+    qsm_NN_set = dc.Data.load(r"D:\Gernot\Programmieren\Bachelor\Data\Parameters2\MaybeActualDataSet\NN\020")
+    improved_NN_set = dc.Data.load(
+        r"D:\Gernot\Programmieren\Bachelor\Data\Parameters2\MaybeActualDataSet\NN\012\Splits\dim_04_005")
+
+    visualized_area = vs.find_common_area(improved_tree_set.data["dim_00"].values, improved_tree_set.data["dim_04_org"].values,
+                                       improved_tree_set.data["dim_00"].values, improved_tree_set.data["dim_04"].values)
+
+    subplot_locs = [
+        (100, 100, 0, 0, 43, 28),
+        (100, 100, 0, 72, 43, 28),
+        (100, 100, 0, 36, 43, 28),
+        (100, 100, 57, 0, 43, 28),
+        (100, 100, 57, 72, 43, 28),
+        (100, 100, 57, 36, 43, 28)
+    ]
+    titles = ["A", "C", "B", "D", "F", "E"]
+    dims = [
+        ("dim_00", "dim_04_org"),
+        ("dim_00", "dim_04"),
+        ("dim_00", "dim_04_shifted_by_0.05"),
+        ("dim_00", "dim_04_org"),
+        ("dim_00", "dim_04"),
+        ("dim_00", "dim_04_shifted_by_0.05")
+    ]
+    class_columns = ["org_pred",
+                     "pred_classes",
+                     "pred_with_dim_04_shifted_by_0.05",
+                     "org_pred",
+                     "pred_classes",
+                     "pred_with_dim_04_shifted_by_0.05"]
+    show_legend = [False, True, False, False, False, False]
+    datasets = [improved_tree_set, improved_tree_set, qsm_tree_set, improved_NN_set, improved_NN_set, qsm_NN_set]
+    axis_names = ("dim_00", "dim_04")
+
+    class_names = improved_tree_set.class_names
+
+    for i, (plot_loc, dim, title, class_column, legend, dataset) in enumerate(zip(subplot_locs, dims, titles, class_columns, show_legend, datasets)):
+        vs.visualize_2d_subplot(df=dataset.data, dims=dim, subplot_location=plot_loc, class_column=class_column,
+                             show_legend=legend, bbox_to_anchor=(1.01, 1), title=title, visualized_area=visualized_area,
+                             class_names=class_names, axis_names=axis_names)
+
+    #plt.show()
+    plt.savefig(r"C:\Users\gerno\OneDrive\Bachelorarbeit\Abschluss_Vortrag\Hole_QSM_comparison_quer_1.png", bbox_inches='tight')
 
 
 def soccer_parameter_figure():
@@ -950,4 +1079,4 @@ def main() -> None:
 
 if __name__ == "__main__":
     #main()
-    soccerDataSet_figure()
+    Iris_QSM_comparison_figure_quer()

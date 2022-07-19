@@ -13,9 +13,9 @@ NeuralNet:
 
 CreateDataSplits:
     nr_processes=4
-    max_split_nr=3
-    p_value=0.01
-    goodness_over_length=False
+    max_split_nr=1
+    p_value=0.05
+    goodness_over_length=True
     threshold_fraction=0.55
 
 dataCreation:

@@ -622,6 +622,9 @@ def visualize_model_predictions(dataset: dc.Data, pred_col_name: str) -> str:
         dim0, dim1, dim2 = "ps_Gefoult", "ps_Laufweite", "ps_Pass"
         dim3, dim4, dim5 = "ps_Laufweite", "ps_Pass", "Zweikampfprozente"
         dims = [(dim0, dim1), (dim2, dim3), (dim4, dim5)]
+    elif isinstance(dataset, dc.BinningDataSet):
+        pics = ["test.png", "test_pred.png"]
+        dims = [("X", "Y")]
     else:
         raise dc.CustomError(f"unknown Dataset type: {type(dataset)}")
     for pic in pics:
@@ -812,11 +815,11 @@ def main() -> None:
     """
     just a test function
     """
-    set_09_1 = dc.Data.load(
-        r"D:\Gernot\Programmieren\Bachelor\Data\Parameters2\SoccerDataSet\NN\004")
-    matrix_ = get_change_matrix(set_09_1.data, ("org_pred_classes_QSM", "pred_with_ps_Laufweite_shifted_by_0.05"), class_names=set_09_1.class_names)
-    matrix_.to_csv(r"C:\Users\gerno\OneDrive\Desktop\matrix.csv")
-    print(matrix_)
+    d_set = dc.Data.load(
+        r"D:\Gernot\Programmieren\Bachelor\Data\220715_153628_BinningDataSet")
+    compare_shift_2d(df=d_set.data, common_dim="Y", dims_to_compare=("X", "X_shifted_by_0.1"), class_columns=("classes", "classes"),
+                     path=r"D:\Gernot\Programmieren\Bachelor\Data\220715_153628_BinningDataSet\pics\QSM\vanilla\X\shift_test.png",
+                     class_names=d_set.class_names)
     # visualize_3d(df, ("dim_01", "dim_02", "dim_03"))
     # for i in range(36):
     #    visualize_3d(df, ("dim_01", "dim_02", "dim_03"), class_column="classes", azim=10*i, elev=-150)

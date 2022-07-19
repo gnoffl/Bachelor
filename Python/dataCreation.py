@@ -18,6 +18,7 @@ from abc import ABC, abstractmethod
 import numpy as np
 import os
 import pickle
+import random
 
 
 class CustomError(Exception):
@@ -121,6 +122,8 @@ class Data(ABC, Dataset):
             return IrisDataSet.load(path)
         elif class_type == "SoccerDataSet":
             return SoccerDataSet.load(path)
+        elif class_type == "BinningDataSet":
+            return BinningDataSet.load(path)
         else:
             raise CustomError("No method found for loading this Dataset!")
 
@@ -843,12 +846,118 @@ class SoccerDataSet(Data):
         return result
 
 
+class BinningDataSet(Data):
+
+    def __init__(self, path: str = "", notes: str = "", save: bool = True):
+        """
+        initializes the data class
+        :param members: entries determine the number of data points per class
+        :param path: indicates where the files for this dataset should be saved
+        :param notes: notes to be put in the description.txt file for the class
+        :param save: dataset will be saved after creation, when this argument is True. Won't be saved otherwise.
+        """
+        super().__init__(path=path, members=[100, 100, 100], notes=notes)
+        np.random.seed(46)
+        self.create_data()
+        self.data_columns = [value for value in self.data.columns.values if value != "classes"]
+        self.class_names = ["class_00", "class_01", "class_02"]
+        if save:
+            self.save()
+
+    @staticmethod
+    def load(path: str, ignore_validity_date: bool = False, use_legacy_load: bool = False) -> BinningDataSet:
+        """
+        loads a MaybeActualDataSet object from a saved location
+        :param path: path to the save
+        :param ignore_validity_date: flag to ignore, if the data was created with an older version of the code
+        :param use_legacy_load: indicates, whether the old method for loading should be used
+        :return: a new MaybeActualDataSet object with the attributes set as described in the saved version
+        """
+
+        result = BinningDataSet(save=False)
+        with open(os.path.join(path, "description.txt"), "r+") as f:
+            first_line = f.readline()
+            created_line = f.readline()
+            created_line = created_line.strip("\n")
+            content = f.read()
+
+        paragraphs = content.split("\n\n")
+        if not created_line.startswith("CREATED: ") or not paragraphs[0].startswith("ATTRIBUTES: \n"):
+            raise CustomError("file not in expected format!")
+
+        now = get_date_from_string(created_line)
+        #only checking for the first line after the check for the validity date, because old saves will definitely
+        # not have the correct first line, so the warning would be confusing
+        if first_line != "CLASS: BinningDataSet\n":
+            raise CustomError("Wrong method for loading this dataset!")
+
+        result.now = now
+        result.parse_params(paragraphs=paragraphs, path=path)
+        return result
+
+    def create_data(self) -> None:
+        """
+        creates and fills Dataframe for the data attribute.
+        """
+        data1 = pd.DataFrame()
+        data1["X"] = [random.uniform(0, 0.98) for _ in range(200)]
+        data1["Y"] = [random.uniform(0.02, 2) for _ in range(200)]
+        data1["classes"] = 0
+        data2 = pd.DataFrame()
+        data2["X"] = [random.uniform(1.02, 1.98) for _ in range(200)]
+        data2["Y"] = [random.uniform(-1, -0.02) for _ in range(200)]
+        data2["classes"] = 1
+        data3 = pd.DataFrame()
+        data3["X"] = [random.uniform(2.02, 3) for _ in range(200)]
+        data3["Y"] = [random.uniform(0.02, 2) for _ in range(200)]
+        data3["classes"] = 2
+
+        self.data = pd.concat([data1, data2, data3])
+
+    def clone_meta_data(self, path: str = "") -> BinningDataSet:
+        """
+        creates a new MaybeActualDataSet object with same metadata.
+        :param path: will be the path to create the new data at.
+        :return: new MaybeActualDataSet object without meaningful Data
+        """
+        result = BinningDataSet(save=False, path=path)
+        result.extend_notes_by_one_line("this Dataset was created by duplicating metadata from another Dataset.")
+        result.extend_notes_by_one_line("parameters refer to the original Dataset")
+        result.end_paragraph_in_notes()
+        result.now = self.now
+        result.class_names = self.class_names
+        return result
+
+    def take_new_data(self, data: pd.DataFrame) -> None:
+        """
+        takes new Data for a MaybeActualDataSet object and adjusts members attribute
+        :param data: new Data to take
+        """
+        self.data = data.copy(deep=True)
+        members = []
+        try:
+            class_counts = data["classes"].value_counts()
+        except KeyError:
+            class_counts = None
+        if class_counts is None:
+            members = [0 for _ in self.class_names]
+        else:
+            for i in range(len(self.class_names)):
+                try:
+                    members.append(class_counts.at[i])
+                except KeyError:
+                    members.append(0)
+        self.members = members
+
+
+
 def test():
-    set1 = SoccerDataSet()
+    set1 = BinningDataSet()
     set1.run_hics(further_params=["--maxOutputSpaces", "5000"], silent=False)
 
 
 if __name__ == "__main__":
+    test()
     #MaybeActualDataSet.load(r"D:\Gernot\Programmieren\Bachelor\Python\
     #Experiments\Data\220131_125348_MaybeActualDataSet")
     #members_ = [10 for _ in range(6)]

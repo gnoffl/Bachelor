@@ -11,23 +11,26 @@ def segment_new_plot(iris):
     plt.figure(0, figsize=(5.5, 4))
     plt.clf()
     ax = plt.axes()
-    rect1 = mpl.patches.Rectangle((0, -1), 2.5, 7, linewidth=0, facecolor=(1, 0, 0, 0.2))
+    rect1 = mpl.patches.Rectangle((-1, 0), 4, 2.3, linewidth=0, facecolor=(1, 0, 0, 0.2))
     ax.add_patch(rect1)
-    rect2 = mpl.patches.Rectangle((2.5, -1), 7, 2.75, linewidth=0, facecolor=(1, 1, 0, 0.2))
+    rect2 = mpl.patches.Rectangle((-1, 2.3), 2.75, 2.65, linewidth=0, facecolor=(1, 1, 0, 0.2))
     ax.add_patch(rect2)
-    rect3 = mpl.patches.Rectangle((2.5, 1.75), 7, 7, linewidth=0, facecolor=(0, 0, 0, 0.2))
+    rect3 = mpl.patches.Rectangle((-1, 4.95), 2.75, 3, linewidth=0, facecolor=(0, 0, 0, 0.2))
     ax.add_patch(rect3)
+    rect4 = mpl.patches.Rectangle((1.75, 2.3), 3, 8, linewidth=0, facecolor=(0, 0, 0, 0.2))
+    ax.add_patch(rect4)
     X: pd.DataFrame = iris.data[['petal length (cm)', 'petal width (cm)']]
 
 
-    pad = 0.3
-    length_min, length_max = X["petal length (cm)"].min() - pad, X["petal length (cm)"].max() + pad
-    width_min, width_max = X["petal width (cm)"].min() - pad, X["petal width (cm)"].max() + pad
+    x_pad = 0.2
+    y_pad = 1
+    length_min, length_max = X["petal length (cm)"].min() - 0.5, X["petal length (cm)"].max() + y_pad
+    width_min, width_max = X["petal width (cm)"].min() - x_pad, X["petal width (cm)"].max() + x_pad
 
-    plt.xlim(length_min, length_max)
-    plt.ylim(width_min, width_max)
-    plt.xlabel("Petal length (cm)")
-    plt.ylabel("Petal width (cm)")
+    plt.xlim(width_min, width_max)
+    plt.ylim(length_min, length_max)
+    plt.xlabel("Petal width (cm)")
+    plt.ylabel("Petal length (cm)")
 
 
 def create_binning_data() -> Tuple[pd.DataFrame, pd.DataFrame, pd.DataFrame]:
@@ -133,32 +136,32 @@ def binning_plot_actually_binned():
 
 def org_iris(iris):
     y = iris.target
-    X: pd.DataFrame = iris.data[['petal length (cm)', 'petal width (cm)']]
+    X: pd.DataFrame = iris.data[['petal width (cm)', 'petal length (cm)']]
 
     segment_new_plot(iris)
 
-    plt.scatter(X["petal length (cm)"], X["petal width (cm)"], c=y, cmap=plt.cm.Set1, edgecolor="k")
+    plt.scatter(X["petal width (cm)"], X["petal length (cm)"], c=y, cmap=plt.cm.Set1, edgecolor="k")
     #plt.show()
-    plt.savefig("C:/Users/gerno/OneDrive/Bachelorarbeit/Intro_Vortrag/Grafiken/iris_segmented.png")
+    plt.savefig("C:/Users/gerno/OneDrive/Bachelorarbeit/Abschluss_Vortrag/iris_segmented.png", bbox_inches='tight')
 
 
 def shifted_iris(iris):
     y = iris.target
-    X: pd.DataFrame = iris.data[['petal length (cm)', 'petal width (cm)']]
+    X: pd.DataFrame = iris.data[['petal width (cm)', 'petal length (cm)']]
 
     segment_new_plot(iris)
 
-    X["petal width (cm)"] += 0.17
-    plt.scatter(X["petal length (cm)"], X["petal width (cm)"], c=y, cmap=plt.cm.Set1, edgecolor="k")
+    X["petal length (cm)"] += 0.5
+    plt.scatter(X["petal width (cm)"], X["petal length (cm)"], c=y, cmap=plt.cm.Set1, edgecolor="k")
     #plt.show()
-    plt.savefig("C:/Users/gerno/OneDrive/Bachelorarbeit/Intro_Vortrag/Grafiken/iris_segmented_shifted.png")
+    plt.savefig("C:/Users/gerno/OneDrive/Bachelorarbeit/Abschluss_Vortrag/iris_segmented_shifted.png", bbox_inches='tight')
 
 
 
 
 
 if __name__ == "__main__":
-    #iris = datasets.load_iris(as_frame=True)
-    #org_iris(iris)
-    #shifted_iris(iris)
-    binning_plot_actually_binned()
+    iris = datasets.load_iris(as_frame=True)
+    org_iris(iris)
+    shifted_iris(iris)
+    #binning_plot_actually_binned()

@@ -41,6 +41,9 @@ def get_pref_dims(dataset: dc.Data):
     elif isinstance(dataset, dc.SoccerDataSet):
         pref_dim = "Zweikampfprozente"
         secnd_choice = "ps_Pass"
+    elif isinstance(dataset, dc.BinningDataSet):
+        pref_dim = "Y"
+        secnd_choice = "Y"
     else:
         raise dc.CustomError(f"class {type(dataset)} is unknown!")
     return pref_dim, secnd_choice
@@ -476,8 +479,9 @@ def test_vis():
 if __name__ == "__main__":
     #main()
     #count_pred_members()
-    iris = dc.IrisDataSet()
-    run_from_file({"petal_length": 0.01}, iris, run_standard_qsm=False)
+    d_set = dc.Data.load(r"D:\Gernot\Programmieren\Bachelor\Data\220715_153628_BinningDataSet\Splits\X_01")
+    visualize_QSM_on_binned_data(d_set, shifted_dim="X", common_dim="Y")
+    #run_from_file({"X": 0.1}, dc.BinningDataSet())
     #vs.visualize_2d(iris.data, ("petal_length", "petal_width"), class_column="classes", title="Iris Dataset",
     #                path="../Plots/BA_Grafiken/Iris_Dataset.png", class_names=iris.class_names)
     #test_vis()
