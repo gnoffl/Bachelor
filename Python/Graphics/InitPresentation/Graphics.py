@@ -61,8 +61,8 @@ def binning_plot():
     plt.xlabel("X")
     plt.ylabel("Y")
     plt.scatter(data["X"], data["Y"])
-    #plt.show()
-    plt.savefig("C:/Users/gerno/OneDrive/Bachelorarbeit/Intro_Vortrag/Grafiken/binning.png")
+    plt.show()
+    #plt.savefig("C:/Users/gerno/OneDrive/Bachelorarbeit/Intro_Vortrag/Grafiken/binning.png")
 
 
 def binning_plot_adv():
@@ -130,8 +130,8 @@ def binning_plot_actually_binned():
     plot2.set_ylabel("Dichte")
     plot2.plot([0, 1.01, 1.01, 2.01, 2.01, 3], [1, 1, 0, 0, 1, 1], color=(0, 0, 1, 1))
     plot2.plot([0, 1, 1, 2, 2, 3], [0, 0, 1, 1, 0, 0], color=(1, 0, 0, 1))
-    #plt.show()
-    plt.savefig(r"D:\Gernot\Programmieren\Bachelor\Plots\BA_Grafiken/binning_actually_binned.png")
+    plt.show()
+    #plt.savefig(r"D:\Gernot\Programmieren\Bachelor\Plots\BA_Grafiken/binning_actually_binned.png")
 
 
 def org_iris(iris):
@@ -157,11 +157,71 @@ def shifted_iris(iris):
     plt.savefig("C:/Users/gerno/OneDrive/Bachelorarbeit/Abschluss_Vortrag/iris_segmented_shifted.png", bbox_inches='tight')
 
 
+def create_binning_data_paper_plot() -> Tuple[pd.DataFrame, pd.DataFrame, pd.DataFrame]:
+    random.seed(1)
+    data1 = pd.DataFrame()
+    data1["X"] = [random.uniform(0, 0.96) for i in range(100)]
+    data1["Y"] = [random.uniform(0, 2) for i in range(100)]
+    data2 = pd.DataFrame()
+    data2["X"] = [random.uniform(1.04, 1.96) for i in range(100)]
+    data2["Y"] = [random.uniform(-1, 0) for i in range(100)]
+    data3 = pd.DataFrame()
+    data3["X"] = [random.uniform(2.04, 3) for i in range(100)]
+    data3["Y"] = [random.uniform(0, 2) for i in range(100)]
+    return data1, data2, data3
 
+
+def fill_scatter_subplot(scatter_plot, data_separated):
+    data = pd.concat(data_separated)
+    bin1 = pd.concat([data_separated[0], data_separated[2]])
+    bin2 = data_separated[1]
+    pad = 0.3
+    x_min, x_max = data["X"].min() - pad, data["X"].max() + pad
+    y_min, y_max = data["Y"].min() - pad, data["Y"].max() + pad
+
+    scatter_plot.set_xlim(x_min, x_max)
+    scatter_plot.set_ylim(y_min, y_max)
+    scatter_plot.set_xlabel("X", fontsize=10, labelpad=1)
+    scatter_plot.set_ylabel("Y", fontsize=10, labelpad=1)
+    scatter_plot.set_title("example data set")
+
+    scatter_plot.scatter(bin1["X"], bin1["Y"], s=10)
+    scatter_plot.scatter(bin2["X"], bin2["Y"], s=10)
+
+    x1, y1 = [1, 1], [-2, 4]
+    x2, y2 = [2, 2], [-2, 4]
+    scatter_plot.plot(x1, y1, x2, y2, marker='o', color="black", linewidth=1, linestyle="dashed")
+
+    scatter_plot.arrow(0.5, 0.9, 1, 0, width=0.005, color="red", head_width=0.075, length_includes_head=True)
+    scatter_plot.arrow(0.5, 1.1, 2, 0, width=0.005, color="blue", head_width=0.075, length_includes_head=True)
+    return scatter_plot
+
+
+def fill_ecdf_subplot(ecdf_plot):
+    ecdf_plot.plot([0, 1, 2, 3], [0, 0.5, 0.5, 1])
+    ecdf_plot.plot([0, 1, 2, 3], [0, 0, 1, 1])
+    ecdf_plot.plot([0, 3], [0, 1], color="black")
+
+    ecdf_plot.plot([1.2, 1.8], [.4, .4], color="black", linewidth=1)
+    ecdf_plot.set_title("ecdf")
+
+
+def binning_plot_paper():
+    data_raw = create_binning_data_paper_plot()
+    plt.figure(0, figsize=(4, 2.25))
+    plt.clf()
+
+    scatter_plot = plt.subplot2grid((1, 100), (0, 0), rowspan=1, colspan=60)
+    ecdf_plot = plt.subplot2grid((1, 100), (0, 69), rowspan=1, colspan=30)
+
+    fill_scatter_subplot(scatter_plot, data_raw)
+    fill_ecdf_subplot(ecdf_plot)
+    #plt.show()
+    plt.savefig("../../../Plots/Paper_Grafiken/binning.pdf", bbox_inches='tight')
 
 
 if __name__ == "__main__":
-    iris = datasets.load_iris(as_frame=True)
+    """iris = datasets.load_iris(as_frame=True)
     org_iris(iris)
-    shifted_iris(iris)
-    #binning_plot_actually_binned()
+    shifted_iris(iris)"""
+    binning_plot_paper()
