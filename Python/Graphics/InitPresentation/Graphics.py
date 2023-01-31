@@ -202,7 +202,11 @@ def fill_ecdf_subplot(ecdf_plot):
     ecdf_plot.plot([0, 1, 2, 3], [0, 0, 1, 1])
     ecdf_plot.plot([0, 3], [0, 1], color="black")
 
-    ecdf_plot.plot([1.2, 1.8], [.4, .4], color="black", linewidth=1)
+    ecdf_plot.arrow(1.2, 0.405, 0.58, 0, color="red", width=0.0005, length_includes_head=True, head_width=0.001, head_length=0.015)
+    ecdf_plot.arrow(1.8, 0.405, 0, 0.2, color="red", width=0.0005, length_includes_head=True, head_width=0.015, head_length=0.015)
+
+    ecdf_plot.arrow(0.85, 0.395, 1.38, 0, color="blue", width=0.0005, length_includes_head=True, head_width=0.001, head_length=0.001)
+    ecdf_plot.arrow(2.25, 0.395, 0, 0.2, color="blue", width=0.0005, length_includes_head=True, head_width=0.015, head_length=0.001)
     ecdf_plot.set_title("ecdf")
 
 
