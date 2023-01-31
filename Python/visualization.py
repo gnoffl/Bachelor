@@ -167,7 +167,9 @@ def visualize_2d_subplot(df: pd.DataFrame,
                          loc: str = "upper left",
                          map_color: bool = True,
                          map_label: bool = True,
-                         axis_names: Tuple[str, str] = None):
+                         axis_names: Tuple[str, str] = None,
+                         frame_on=True,
+                         ncol_legend=1):
     """
     Creates a 2d Image of the given data, showing the dimensions whose names are given in dims.
     :param df: Dataframe containing the data
@@ -189,6 +191,8 @@ def visualize_2d_subplot(df: pd.DataFrame,
     :param map_label: determines whether a label for the class name is searched, or if clas will just be returned
     :param axis_names: labels, that will be used for the axes (x-name, y-name). If not given, entries of dims will be
     used
+    :param frame_on: determines whether the legend will have a border
+    :param ncol_legend: Determines number of columns in legend
     :returns: created subplot
     """
     x_name, y_name = dims
@@ -230,9 +234,9 @@ def visualize_2d_subplot(df: pd.DataFrame,
         plot.scatter(df[x_name], df[y_name], cmap=plt.cm.Set1, edgecolor="k")
     if show_legend:
         if bbox_to_anchor:
-            plot.legend(bbox_to_anchor=bbox_to_anchor, loc=loc, frameon=True)
+            plot.legend(bbox_to_anchor=bbox_to_anchor, loc=loc, frameon=frame_on, ncol=ncol_legend)
         else:
-            plot.legend(loc=loc, frameon=True)
+            plot.legend(loc=loc, frameon=frame_on, ncol=ncol_legend)
     return plot
     #plot.subplots_adjust(right=0.87)
 
