@@ -160,14 +160,14 @@ def shifted_iris(iris):
 def create_binning_data_paper_plot() -> Tuple[pd.DataFrame, pd.DataFrame, pd.DataFrame]:
     random.seed(1)
     data1 = pd.DataFrame()
-    data1["X"] = [random.uniform(0, 0.96) for i in range(100)]
-    data1["Y"] = [random.uniform(0, 2) for i in range(100)]
+    data1["X"] = [random.uniform(0, 1) for i in range(100)]
+    data1["Y"] = [random.uniform(0.04, 2) for i in range(100)]
     data2 = pd.DataFrame()
-    data2["X"] = [random.uniform(1.04, 1.96) for i in range(100)]
-    data2["Y"] = [random.uniform(-1, 0) for i in range(100)]
+    data2["X"] = [random.uniform(1, 2) for i in range(100)]
+    data2["Y"] = [random.uniform(-1, -0.04) for i in range(100)]
     data3 = pd.DataFrame()
-    data3["X"] = [random.uniform(2.04, 3) for i in range(100)]
-    data3["Y"] = [random.uniform(0, 2) for i in range(100)]
+    data3["X"] = [random.uniform(2, 3) for i in range(100)]
+    data3["Y"] = [random.uniform(0.04, 2) for i in range(100)]
     return data1, data2, data3
 
 
@@ -181,18 +181,17 @@ def fill_scatter_subplot(scatter_plot, data_separated):
 
     scatter_plot.set_xlim(x_min, x_max)
     scatter_plot.set_ylim(y_min, y_max)
-    scatter_plot.set_xlabel("X", fontsize=10, labelpad=1)
-    scatter_plot.set_ylabel("Y", fontsize=10, labelpad=1)
-    scatter_plot.set_title("example data set")
+    scatter_plot.set_xlabel("X", fontsize=7)#, labelpad=1)
+    scatter_plot.set_ylabel("Y", fontsize=7)#, labelpad=1)
+    scatter_plot.set_title("example data set", fontsize=7)
 
     scatter_plot.scatter(bin1["X"], bin1["Y"], s=10)
     scatter_plot.scatter(bin2["X"], bin2["Y"], s=10)
 
-    x1, y1 = [1, 1], [-2, 4]
-    x2, y2 = [2, 2], [-2, 4]
-    scatter_plot.plot(x1, y1, x2, y2, marker='o', color="black", linewidth=1, linestyle="dashed")
+    x1, y1 = [-5, 5], [0, 0]
+    scatter_plot.plot(x1, y1, marker='o', color="black", linewidth=1, linestyle="dashed")
 
-    scatter_plot.arrow(0.5, 0.9, 1, 0, width=0.005, color="red", head_width=0.075, length_includes_head=True)
+    scatter_plot.arrow(0.5, 0.9, 1, 0, width=0.005, color="gray", head_width=0.075, length_includes_head=True)
     scatter_plot.arrow(0.5, 1.1, 2, 0, width=0.005, color="blue", head_width=0.075, length_includes_head=True)
     return scatter_plot
 
@@ -202,21 +201,27 @@ def fill_ecdf_subplot(ecdf_plot):
     ecdf_plot.plot([0, 1, 2, 3], [0, 0, 1, 1])
     ecdf_plot.plot([0, 3], [0, 1], color="black")
 
-    ecdf_plot.arrow(1.2, 0.405, 0.58, 0, color="red", width=0.0005, length_includes_head=True, head_width=0.001, head_length=0.015)
-    ecdf_plot.arrow(1.8, 0.405, 0, 0.2, color="red", width=0.0005, length_includes_head=True, head_width=0.015, head_length=0.015)
+    ecdf_plot.arrow(1.22, 0.405, 0.58, 0, color="gray", width=0.005, length_includes_head=True, head_width=0.01, head_length=0.1, linewidth=0.001)
+    ecdf_plot.arrow(1.82, 0.405, 0, 0.19, color="gray", width=0.03, length_includes_head=True, head_width=0.05, head_length=0.013, linewidth=0.001)
 
-    ecdf_plot.arrow(0.85, 0.395, 1.38, 0, color="blue", width=0.0005, length_includes_head=True, head_width=0.001, head_length=0.001)
-    ecdf_plot.arrow(2.25, 0.395, 0, 0.2, color="blue", width=0.0005, length_includes_head=True, head_width=0.015, head_length=0.001)
-    ecdf_plot.set_title("ecdf")
+    ecdf_plot.arrow(0.85, 0.395, 1.38, 0, color="blue", width=0.005, length_includes_head=True, head_width=0.01, head_length=0.1, linewidth=0.001)
+    ecdf_plot.arrow(2.25, 0.395, 0, 0.2, color="blue", width=0.03, length_includes_head=True, head_width=0.05, head_length=0.013, linewidth=0.001)
+    ecdf_plot.set_title("ecdf", fontsize=7)
+    ecdf_plot.set_xlabel("X", fontsize=7, labelpad=1)
+    ecdf_plot.set_ylabel("Cumulative Frequency", fontsize=7, labelpad=1)
+    ecdf_plot.set_xticks([0, 1, 2, 3])
 
 
 def binning_plot_paper():
     data_raw = create_binning_data_paper_plot()
-    plt.figure(0, figsize=(4, 2.25))
+    plt.figure(0, figsize=(5, 2.25))
     plt.clf()
 
-    scatter_plot = plt.subplot2grid((1, 100), (0, 0), rowspan=1, colspan=60)
-    ecdf_plot = plt.subplot2grid((1, 100), (0, 69), rowspan=1, colspan=30)
+    mpl.rc('xtick', labelsize=7)
+    mpl.rc('ytick', labelsize=7)
+
+    scatter_plot = plt.subplot2grid((1, 100), (0, 0), rowspan=1, colspan=58)
+    ecdf_plot = plt.subplot2grid((1, 100), (0, 71), rowspan=1, colspan=28)
 
     fill_scatter_subplot(scatter_plot, data_raw)
     fill_ecdf_subplot(ecdf_plot)
