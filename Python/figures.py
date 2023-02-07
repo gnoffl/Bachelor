@@ -1085,9 +1085,8 @@ def parallelization_figure():
 
 
 def big_figure_for_paper():
-    # todo: WRONG DATA, COMPARE TO hole_QSM_comparison_figure()
-    # todo: Using tree instead of NN because NN not "implemented" on laptop
     plt.clf()
+    plt.rcParams["font.family"] = "Times New Roman"
     plt.figure(0, figsize=(8, 15))
 
     qsm_NN_set_hole = dc.Data.load(r"..\Data\Parameters2\MaybeActualDataSet\NN\020")
@@ -1151,7 +1150,7 @@ def big_figure_for_paper():
     class_name_hole = improved_NN_set_hole.class_names
     class_name_iris = improved_NN_set_iris.class_names
 
-    class_names = [class_name_hole, class_name_hole, class_name_hole, class_name_hole, class_name_iris, class_name_iris,
+    class_names = [["C0", "C1", "C2", "C3", "C4", "C5"], class_name_hole, class_name_hole, class_name_hole, class_name_iris, class_name_iris,
                    class_name_iris, class_name_iris]
 
     visualized_areas = [visualized_area_hole, visualized_area_hole, visualized_area_hole, visualized_area_hole,

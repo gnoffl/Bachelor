@@ -233,18 +233,19 @@ def fill_ecdf_subplot(ecdf_plot, colors):
 
 def binning_plot_paper():
     #todo: no decimals, arrows need to be actually precise in scatter plot
+    plt.clf()
+    plt.figure(0, figsize=(5, 2.25))
+
     prop_cycle = plt.rcParams["axes.prop_cycle"]
     colors = prop_cycle.by_key()["color"]
-    data_raw = create_binning_data_paper_plot()
-    plt.figure(0, figsize=(5, 2.25))
-    plt.clf()
-
+    plt.rcParams["font.family"] = "Times New Roman"
     mpl.rc('xtick', labelsize=7)
     mpl.rc('ytick', labelsize=7)
 
     scatter_plot = plt.subplot2grid((1, 100), (0, 0), rowspan=1, colspan=43)
     ecdf_plot = plt.subplot2grid((1, 100), (0, 57), rowspan=1, colspan=43)
 
+    data_raw = create_binning_data_paper_plot()
     fill_scatter_subplot(scatter_plot, data_raw, colors)
     fill_ecdf_subplot(ecdf_plot, colors)
     #plt.show()
