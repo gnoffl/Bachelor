@@ -162,6 +162,7 @@ def visualize_2d_subplot(df: pd.DataFrame,
                          title: str = None,
                          visualized_area: Tuple[float, float, float, float] = None,
                          class_names: List[str] = None,
+                         class_name_map: Dict[str, str] = None,
                          show_legend: bool = False,
                          bbox_to_anchor: (float, float) = None,
                          loc: str = "upper left",
@@ -183,6 +184,7 @@ def visualize_2d_subplot(df: pd.DataFrame,
     and width of the subplot
     :param class_names: List containing the names of the different classes. Should be used if the values in the classes
     column of df are only numbers coding for the actual class names.
+    :param class_name_map: map to connect class_names in the data set to the class names to be displayed
     :param show_legend: determines whether a legend will be shown
     :param bbox_to_anchor: location for a potential legend
     :param loc: location for a potential legend, bbox_to_anchor will override this, if both are given
@@ -229,7 +231,7 @@ def visualize_2d_subplot(df: pd.DataFrame,
                          df.loc[df[class_column] == clas, [y_name]],
                          color=colors[color_ind],
                          edgecolor="k",
-                         label=get_label(clas=clas, class_names=class_names, map_label=map_label))
+                         label=get_label(clas=clas, class_names=class_names, map_label=map_label, class_name_map=class_name_map))
     else:
         plot.scatter(df[x_name], df[y_name], cmap=plt.cm.Set1, edgecolor="k")
     if show_legend:
@@ -313,7 +315,7 @@ def compare_shift_2d(df: pd.DataFrame,
                  path=actual_path_1, visualized_area=visualized_area, class_names=class_names)
 
 
-def get_label(clas: int or str, class_names: List[str], map_label: bool = True):
+def get_label(clas: int or str, class_names: List[str], map_label: bool = True, class_name_map: Dict = None):
     """
     gets the class name for a given entry in a class column. List containing the names of the different classes. The
     value clas is supposed to be an integer, or a string of an integer, that is used to return the class name at its
@@ -322,8 +324,14 @@ def get_label(clas: int or str, class_names: List[str], map_label: bool = True):
     :param clas: value from class column
     :param class_names: array with class names
     :param map_label: determines whether a label for the class name is searched, or if clas will just be returned
+    :param class_name_map: map to connect class_names in the data set to the class names to be displayed
     :return: entry from class names, if conversion worked properly, otherwise clas.
     """
+    if class_name_map:
+        try:
+            return class_name_map[clas]
+        except KeyError:
+            pass
     if map_label:
         if class_names is None:
             return clas

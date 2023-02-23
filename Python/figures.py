@@ -1172,6 +1172,119 @@ def big_figure_for_paper():
     plt.savefig("../Plots/Paper_Grafiken/big_graphic.pdf", bbox_inches='tight')
 
 
+def soccerDataSet_figure_paper():
+    plt.clf()
+    plt.rcParams["font.family"] = "Times New Roman"
+    plt.figure(0, figsize=(7, 8))
+    sds = dc.SoccerDataSet()
+    subplot_locs = [
+        (100, 100, 0, 0, 44, 43),
+        (100, 100, 0, 57, 44, 43),
+        (100, 100, 56, 0, 44, 43),
+        (100, 100, 56, 57, 44, 43)
+    ]
+    titles = ["A", "B", "C", "D"]
+    dims = [
+        ("ps_Pass", "Passprozente"),
+        ("Zweikampfprozente", "ps_Laufweite"),
+        ("ps_Fouls", "ps_Gefoult"),
+        ("ps_Zweikampf", "ps_Abseits")
+    ]
+    axis_namess = [("passes_per_game", "pass_percentage / %"),
+                   ("duel_percentage / %", "distance_run_per_game / km"),
+                   ("fouls_per_game", "fouled_per_game"),
+                   ("duels_per_game", "offside_per_game")]
+
+    class_names = sds.class_names
+
+    class_map = {
+        'Torwart': 'Goalkeeper',
+        'Innenverteidiger': 'Central defender',
+        'Aussenverteidiger': 'Outside defender',
+        'Defensives Mittelfeld': 'Defensive midfield',
+        'Zentrales Mittelfeld': 'Central midfield',
+        'Mittelfeld Aussen': 'Midfield Outside',
+        'Offensives Mittelfeld': 'Offensive midfield',
+        'Mittelstuermer': 'Center forward',
+        'Fluegelspieler': 'Winger'
+    }
+    legend_loc = (-1.25, 1.35)
+    show_legends = [False, True, False, False]
+
+    for i, (plot_loc, dim, title, axis_names, show) in enumerate(zip(subplot_locs, dims, titles, axis_namess,
+                                                                     show_legends)):
+        vs.visualize_2d_subplot(df=sds.data, dims=dim, subplot_location=plot_loc, class_column="classes",
+                                class_names=class_names, title=title, axis_names=axis_names,
+                                class_name_map=class_map, bbox_to_anchor=legend_loc, show_legend=show,
+                                ncol_legend=3)
+
+    #plt.show()
+    plt.savefig("../Plots/Paper_Grafiken/Soccer_intro.pdf", bbox_inches='tight')
+
+
+def soccer_QSM_comparison_figure_paper():
+    plt.clf()
+    plt.rcParams["font.family"] = "Times New Roman"
+    plt.figure(0, figsize=(7, 8))
+    qsm_NN_set = dc.Data.load(r"..\Data\Parameters2\SoccerDataSet\NN\004")
+    improved_NN_set = dc.Data.load(
+        r"..\Data\Parameters2\SoccerDataSet\NN\004\Splits\ps_Laufweite_005")
+
+    visualized_area = vs.find_common_area(improved_NN_set.data["Zweikampfprozente"].values,
+                                          improved_NN_set.data["ps_Laufweite_org"].values,
+                                          improved_NN_set.data["Zweikampfprozente"].values,
+                                          improved_NN_set.data["ps_Laufweite"].values)
+
+    subplot_locs = [
+        (100, 100, 0, 0, 44, 43),
+        (100, 100, 0, 57, 44, 43),
+        (100, 100, 56, 0, 44, 43),
+        (100, 100, 56, 57, 44, 43)
+    ]
+    titles = ["original soccer dataset", "Soccer dataset labelled by NN",
+              "QSM results on Soccer dataset",
+              "Improved QSM results on Soccer dataset"]
+    # titles = ["A", "B", "C", "D"]
+    dims = [
+        ("Zweikampfprozente", "ps_Laufweite_org"),
+        ("Zweikampfprozente", "ps_Laufweite_org"),
+        ("Zweikampfprozente", "ps_Laufweite_shifted_by_0.05"),
+        ("Zweikampfprozente", "ps_Laufweite")
+    ]
+    class_columns = ["classes",
+                     "org_pred",
+                     "pred_with_ps_Laufweite_shifted_by_0.05",
+                     "pred_classes"]
+    show_legend = [False, True, False, False]
+    legend_loc = (-1.25, 1.35)
+    datasets = [improved_NN_set, improved_NN_set, qsm_NN_set, improved_NN_set]
+    axis_names = ("duel_percentage / %", "distance_run_per_game / km")
+
+    class_names = qsm_NN_set.class_names
+
+    class_map = {
+        'Torwart': 'Goalkeeper',
+        'Innenverteidiger': 'Central defender',
+        'Aussenverteidiger': 'Outside defender',
+        'Defensives Mittelfeld': 'Defensive midfield',
+        'Zentrales Mittelfeld': 'Central midfield',
+        'Mittelfeld Aussen': 'Midfield Outside',
+        'Offensives Mittelfeld': 'Offensive midfield',
+        'Mittelstuermer': 'Center forward',
+        'Fluegelspieler': 'Winger'
+    }
+
+    for i, (plot_loc, dim, title, class_column, legend, dataset) in enumerate(
+            zip(subplot_locs, dims, titles, class_columns, show_legend, datasets)):
+        vs.visualize_2d_subplot(df=dataset.data, dims=dim, subplot_location=plot_loc, class_column=class_column,
+                                show_legend=legend, bbox_to_anchor=legend_loc, title=title,
+                                visualized_area=visualized_area, class_name_map=class_map,
+                                class_names=class_names, axis_names=axis_names, ncol_legend=3)
+
+    # plt.show()
+    plt.savefig("../Plots/Paper_Grafiken/Soccer_QSM_comparison.pdf", bbox_inches='tight')
+
+
 def main() -> None:
     """
     just a test function
@@ -1187,89 +1300,8 @@ def main() -> None:
     #    visualize_3d(df, ("dim_01", "dim_02", "dim_03"), class_column="classes", azim=10*i, elev=-150)
 
 
-def soccerDataSet_figure_paper():
-    plt.clf()
-    plt.figure(0, figsize=(8, 9))
-    sds = dc.SoccerDataSet()
-    subplot_locs = [
-        (100, 100, 0, 0, 44, 43),
-        (100, 100, 0, 57, 44, 43),
-        (100, 100, 56, 0, 44, 43),
-        (100, 100, 56, 57, 44, 43)
-    ]
-    titles = ["A", "B", "C", "D"]
-    dims = [
-        ("ps_Pass", "Passprozente"),
-        ("Zweikampfprozente", "ps_Laufweite"),
-        ("ps_Fouls", "ps_Gefoult"),
-        ("ps_Zweikampf", "ps_Abseits")
-    ]
-    axis_namess = [("ps_Pass", "Passprozente / %"),
-                   ("ps_Zweikampf", "Zweikampfprozente / %"),
-                   ("ps_Fouls", "ps_Gefoult"),
-                   ("ps_Laufweite / km", "ps_Abseits")]
-
-    for i, (plot_loc, dim, title, axis_names) in enumerate(zip(subplot_locs, dims, titles, axis_namess)):
-        if i == 1:
-            vs.visualize_2d_subplot(df=sds.data, dims=dim, subplot_location=plot_loc, class_column="classes",
-                                    class_names=sds.class_names, show_legend=True, bbox_to_anchor=(1.01, 1),
-                                    title=title,
-                                    axis_names=axis_names)
-        else:
-            vs.visualize_2d_subplot(df=sds.data, dims=dim, subplot_location=plot_loc, class_column="classes",
-                                    class_names=sds.class_names, title=title, axis_names=axis_names)
-
-    #plt.show()
-    plt.savefig("../Plots/Paper_Grafiken/Soccer_intro.png", bbox_inches='tight')
-
-
-def soccer_QSM_comparison_figure_paper():
-    plt.clf()
-    plt.figure(0, figsize=(8, 9))
-    qsm_NN_set = dc.Data.load(r"..\Data\Parameters2\SoccerDataSet\NN\004")
-    improved_NN_set = dc.Data.load(
-        r"..\Data\Parameters2\SoccerDataSet\NN\004\Splits\ps_Laufweite_005")
-
-    visualized_area = vs.find_common_area(improved_NN_set.data["Zweikampfprozente"].values,
-                                          improved_NN_set.data["ps_Laufweite_org"].values,
-                                          improved_NN_set.data["Zweikampfprozente"].values,
-                                          improved_NN_set.data["ps_Laufweite"].values)
-
-    subplot_locs = [
-        (100, 100, 0, 0, 28, 43),
-        (100, 100, 0, 57, 28, 43),
-        (100, 100, 36, 0, 28, 43),
-        (100, 100, 36, 57, 28, 43)
-    ]
-    titles = ["A", "B", "C", "D", "E", "F"]
-    dims = [
-        ("Zweikampfprozente", "ps_Laufweite_org"),
-        ("Zweikampfprozente", "ps_Laufweite_org"),
-        ("Zweikampfprozente", "ps_Laufweite_shifted_by_0.05"),
-        ("Zweikampfprozente", "ps_Laufweite")
-    ]
-    class_columns = ["classes",
-                     "org_pred",
-                     "pred_with_ps_Laufweite_shifted_by_0.05",
-                     "pred_classes"]
-    show_legend = [False, True, False, False]
-    datasets = [improved_NN_set, improved_NN_set, qsm_NN_set, improved_NN_set]
-    axis_names = ("Zweikampfprozente / %", "ps_Laufweite / km")
-
-    class_names = improved_NN_set.class_names
-
-    for i, (plot_loc, dim, title, class_column, legend, dataset) in enumerate(
-            zip(subplot_locs, dims, titles, class_columns, show_legend, datasets)):
-        vs.visualize_2d_subplot(df=dataset.data, dims=dim, subplot_location=plot_loc, class_column=class_column,
-                                show_legend=legend, bbox_to_anchor=(1.01, 1), title=title,
-                                visualized_area=visualized_area,
-                                class_names=class_names, axis_names=axis_names)
-
-    # plt.show()
-    plt.savefig("../Plots/Paper_Grafiken/Soccer_QSM_comparison.png", bbox_inches='tight')
-
-
 if __name__ == "__main__":
     # main()
     # Iris_QSM_comparison_figure_quer()
     soccer_QSM_comparison_figure_paper()
+    soccerDataSet_figure_paper()
