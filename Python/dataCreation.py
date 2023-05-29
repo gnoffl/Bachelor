@@ -956,8 +956,32 @@ def test():
     set1.run_hics(further_params=["--maxOutputSpaces", "5000"], silent=False)
 
 
+def soccer_visualization_modification():
+    if not os.path.exists(r"..\Data\soccer_qsm_NN_graphics") or not os.path.exists(r"..\Data\soccer_improved_NN_graphics"):
+        qsm_NN_set_soccer = Data.load(r"..\Data\Parameters2\SoccerDataSet\NN\004")
+        improved_NN_set_soccer = Data.load(
+            r"..\Data\Parameters2\SoccerDataSet\NN\004\Splits\ps_Laufweite_005")
+        qsm_NN_set_soccer.save(r"..\Data\soccer_qsm_NN_graphics")
+        improved_NN_set_soccer.save(r"..\Data\soccer_improved_NN_graphics")
+
+    qsm_NN_set_soccer = Data.load(r"..\Data\soccer_qsm_NN_graphics")
+    improved_NN_set_soccer = Data.load(r"..\Data\soccer_improved_NN_graphics")
+    datasets = [improved_NN_set_soccer, improved_NN_set_soccer, qsm_NN_set_soccer, improved_NN_set_soccer]
+    class_columns = ["classes", "org_pred", "pred_with_ps_Laufweite_shifted_by_0.05", "pred_classes"]
+    for dataset_, col in zip(datasets, class_columns):
+        #create new column with the name of col and the postfix "_simple"
+        #content of the new column is "Goalkeeper" if the content of the original column is "Torwart",
+        # "Field player" otherwise
+        dataset_.data[col + "_simple"] = dataset_.data[col].apply(lambda x: "Goalkeeper" if x == "Torwart" else "Field player")
+    qsm_NN_set_soccer.save()
+    improved_NN_set_soccer.save()
+
+
+
+
 if __name__ == "__main__":
-    test()
+    #test()
+    soccer_visualization_modification()
     #MaybeActualDataSet.load(r"D:\Gernot\Programmieren\Bachelor\Python\
     #Experiments\Data\220131_125348_MaybeActualDataSet")
     #members_ = [10 for _ in range(6)]
