@@ -185,15 +185,18 @@ def fill_scatter_subplot(scatter_plot, data_separated, colors):
     scatter_plot.set_ylabel("Y", fontsize=7)#, labelpad=1)
     scatter_plot.set_title("example data set", fontsize=7)
 
-    scatter_plot.scatter(bin1["X"], bin1["Y"], s=10, color=colors[0], label="bin 1")
-    scatter_plot.scatter(bin2["X"], bin2["Y"], s=10, color=colors[1], label="bin 2")
+    scatter_plot.scatter(bin1["X"], bin1["Y"], s=10, color=colors[0], label="bin 1", zorder=1)
+    scatter_plot.scatter(bin2["X"], bin2["Y"], s=10, color=colors[1], label="bin 2", zorder=1)
     #scatter_plot.legend(fontsize=7, bbox_to_anchor=(0.5, 0.8), frameon=True)
 
     x1, y1 = [-5, 5], [1, 1]
     scatter_plot.plot(x1, y1, marker='o', color="black", linewidth=1, linestyle="dashed")
 
-    scatter_plot.arrow(0.8, 2.25, 0.9, 0, width=0.005, color="black", head_width=0.075, length_includes_head=True)
-    scatter_plot.arrow(0.8, 2.15, 1.6, 0, width=0.005, color="blue", head_width=0.075, length_includes_head=True)
+    scatter_plot.arrow(0.8, 2.25, 0.9, 0, width=0.005, color="black", head_width=0.075, length_includes_head=True, zorder=20)
+    scatter_plot.arrow(0.8, 2.15, 1.6, 0, width=0.005, color="blue", head_width=0.075, length_includes_head=True, zorder=20)
+
+    scatter_plot.scatter([1.75], [2.25], s=10, color=colors[3], zorder=10)
+    scatter_plot.scatter([2.45], [2.15], s=10, color=colors[2], zorder=10)
 
     #scatter_plot.arrow(1.2, 2.25, 0.6, 0, width=0.005, color="black", head_width=0.075, length_includes_head=True)
     #scatter_plot.arrow(0.8, 2.15, 1.4, 0, width=0.005, color=colors[0], head_width=0.075, length_includes_head=True)
@@ -210,10 +213,10 @@ def fill_ecdf_subplot(ecdf_plot, colors):
     ecdf_plot.legend(fontsize=7, frameon=False)
 
     ecdf_plot.arrow(0.81, 0.26, 0.9, 0, color="black", width=0.009, length_includes_head=True, head_width=0.02, head_length=0.08, linewidth=0.001, zorder=10)
-    ecdf_plot.arrow(1.71, 0.26, 0, 0.3, color="black", width=0.03, length_includes_head=True, head_width=0.07, head_length=0.013, linewidth=0.001, zorder=10)
+    ecdf_plot.arrow(1.71, 0.26, 0, 0.3, color="black", width=0.03, length_includes_head=True, head_width=0.07, head_length=0.023, linewidth=0.001, zorder=10)
 
     ecdf_plot.arrow(0.81, 0.393, 1.6, 0, color="blue", width=0.009, length_includes_head=True, head_width=0.02, head_length=0.08, linewidth=0.001, zorder=10)
-    ecdf_plot.arrow(2.41, 0.393, 0, 0.3, color="blue", width=0.03, length_includes_head=True, head_width=0.07, head_length=0.013, linewidth=0.001, zorder=10)
+    ecdf_plot.arrow(2.41, 0.393, 0, 0.3, color="blue", width=0.03, length_includes_head=True, head_width=0.07, head_length=0.023, linewidth=0.001, zorder=10)
 
     """ecdf_plot.arrow(1.2, 0.4, 0.6, 0, color="black", width=0.005, length_includes_head=True, head_width=0.01,
                     head_length=0.1, linewidth=0.001, zorder=10)
@@ -232,7 +235,6 @@ def fill_ecdf_subplot(ecdf_plot, colors):
 
 
 def binning_plot_paper():
-    #todo: no decimals, arrows need to be actually precise in scatter plot
     plt.clf()
     plt.figure(0, figsize=(5, 2.25))
 

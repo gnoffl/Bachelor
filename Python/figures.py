@@ -1,5 +1,6 @@
 import dataCreation as dc
 import visualization as vs
+import matplotlib as mpl
 import matplotlib.pyplot as plt
 from scipy.stats import sem
 from matplotlib.lines import Line2D
@@ -1117,11 +1118,14 @@ def big_figure_for_paper():
         (100, 100, 52, 0, 20, 43),
         (100, 100, 78, 0, 20, 43)
     ]
-    titles = ["original hole data set", "Hole data set labelled by NN",
-              "QSM results on Hole data set",
-              "Improved QSM results on Hole data set", "original iris data set",
-              "Iris data set labelled by NN", "QSM results on Iris data set",
-              "Improved QSM results on Iris data set"]
+    titles = ["Original hole data set",
+              "Hole data set labelled by NN",
+              "QSM results on hole data set",
+              "CSM results on hole data set",
+              "Original iris data set",
+              "Iris data set labelled by NN",
+              "QSM results on iris data set",
+              "CSM results on iris data set"]
     dims = [
         ("dim_00", "dim_04_org"),
         ("dim_00", "dim_04_org"),
@@ -1143,7 +1147,7 @@ def big_figure_for_paper():
     show_legend = [True, False, False, False, True, False, False, False]
     datasets = [improved_NN_set_hole, improved_NN_set_hole, qsm_NN_set_hole, improved_NN_set_hole,
                 improved_NN_set_iris, improved_NN_set_iris, qsm_NN_set_iris, improved_NN_set_iris]
-    axis_names = [("dim_00", "dim_04"), ("dim_00", "dim_04"), ("dim_00", "dim_04"), ("dim_00", "dim_04"),
+    axis_names = [("D0", "D4"), ("D0", "D4"), ("D0", "D4"), ("D0", "D4"),
                   ("petal_width / cm", "petal_length / cm"), ("petal_width / cm", "petal_length / cm"),
                   ("petal_width / cm", "petal_length / cm"), ("petal_width / cm", "petal_length / cm")]
 
@@ -1224,7 +1228,7 @@ def soccerDataSet_figure_paper():
 
 def soccer_QSM_comparison_figure_paper():
     plt.clf()
-    plt.rcParams["font.family"] = "Times New Roman"
+    plt.rcParams["font.family"] = "Times New Roman"#
     plt.figure(0, figsize=(7, 8))
     qsm_NN_set = dc.Data.load(r"..\Data\Parameters2\SoccerDataSet\NN\004")
     improved_NN_set = dc.Data.load(
@@ -1241,9 +1245,10 @@ def soccer_QSM_comparison_figure_paper():
         (100, 100, 56, 0, 44, 43),
         (100, 100, 56, 57, 44, 43)
     ]
-    titles = ["original soccer dataset", "Soccer dataset labelled by NN",
-              "QSM results on Soccer dataset",
-              "Improved QSM results on Soccer dataset"]
+    titles = ["Original soccer dataset",
+              "Soccer dataset labelled by NN",
+              "QSM results on soccer dataset",
+              "CSM results on soccer dataset"]
     # titles = ["A", "B", "C", "D"]
     dims = [
         ("Zweikampfprozente", "ps_Laufweite_org"),
@@ -1303,5 +1308,6 @@ def main() -> None:
 if __name__ == "__main__":
     # main()
     # Iris_QSM_comparison_figure_quer()
-    soccer_QSM_comparison_figure_paper()
-    soccerDataSet_figure_paper()
+    #soccerDataSet_figure_paper()
+    #soccer_QSM_comparison_figure_paper()
+    big_figure_for_paper()

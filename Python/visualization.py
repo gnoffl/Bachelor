@@ -210,8 +210,8 @@ def visualize_2d_subplot(df: pd.DataFrame,
 
     plot.axis(xmin=x_axis_min, xmax=x_axis_max, ymin=y_axis_min, ymax=y_axis_max)
     if axis_names:
-        plot.set_xlabel(axis_names[0])
-        plot.set_ylabel(axis_names[1])
+        plot.set_xlabel(axis_names[0], fontsize=12)
+        plot.set_ylabel(axis_names[1], fontsize=12)
     else:
         plot.set_xlabel(x_name)
         plot.set_ylabel(y_name)
