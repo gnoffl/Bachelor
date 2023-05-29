@@ -1293,7 +1293,7 @@ def soccer_QSM_comparison_figure_paper():
 def iris_hole_soccer_QSM_comparison_paper():
     plt.clf()
     plt.rcParams["font.family"] = "Times New Roman"
-    plt.figure(0, figsize=(8, 15))
+    plt.figure(0, figsize=(11.71, 15))
 
     qsm_NN_set_hole = dc.Data.load(r"..\Data\Parameters2\MaybeActualDataSet\NN\020")
     improved_NN_set_hole = dc.Data.load(
@@ -1313,9 +1313,8 @@ def iris_hole_soccer_QSM_comparison_paper():
                                                improved_NN_set_iris.data["petal_width"].values,
                                                improved_NN_set_iris.data["petal_length"].values)
 
-    qsm_NN_set_soccer = dc.Data.load(r"..\Data\Parameters2\SoccerDataSet\NN\004")
-    improved_NN_set_soccer = dc.Data.load(
-        r"..\Data\Parameters2\SoccerDataSet\NN\004\Splits\ps_Laufweite_005")
+    qsm_NN_set_soccer = dc.Data.load(r"..\Data\soccer_qsm_NN_graphics")
+    improved_NN_set_soccer = dc.Data.load(r"..\Data\soccer_improved_NN_graphics")
 
     visualized_area_soccer = vs.find_common_area(improved_NN_set_soccer.data["Zweikampfprozente"].values,
                                                  improved_NN_set_soccer.data["ps_Laufweite_org"].values,
@@ -1323,20 +1322,20 @@ def iris_hole_soccer_QSM_comparison_paper():
                                                  improved_NN_set_soccer.data["ps_Laufweite"].values)
 
     subplot_locs = [
-        (100, 100, 0, 33, 20, 27),
-        (100, 100, 26, 33, 20, 27),
-        (100, 100, 52, 33, 20, 27),
-        (100, 100, 78, 33, 20, 27),
+        (100, 100, 0, 33, 20, 28),
+        (100, 100, 26, 33, 20, 28),
+        (100, 100, 52, 33, 20, 28),
+        (100, 100, 78, 33, 20, 28),
 
-        (100, 100, 0, 0, 20, 27),
-        (100, 100, 26, 0, 20, 27),
-        (100, 100, 52, 0, 20, 27),
-        (100, 100, 78, 0, 20, 27),
+        (100, 100, 0, 0, 20, 28),
+        (100, 100, 26, 0, 20, 28),
+        (100, 100, 52, 0, 20, 28),
+        (100, 100, 78, 0, 20, 28),
 
-        (100, 100, 0, 67, 20, 26),
-        (100, 100, 26, 67, 20, 26),
-        (100, 100, 52, 67, 20, 26),
-        (100, 100, 78, 67, 20, 26),
+        (100, 100, 0, 67, 20, 27),
+        (100, 100, 26, 67, 20, 27),
+        (100, 100, 52, 67, 20, 27),
+        (100, 100, 78, 67, 20, 27),
     ]
     titles = ["Original hole data set",
               "Hole data set labelled by NN",
@@ -1379,10 +1378,10 @@ def iris_hole_soccer_QSM_comparison_paper():
                      "pred_with_petal_length_shifted_by_0.05",
                      "pred_classes",
 
-                     "classes",
-                     "org_pred",
-                     "pred_with_ps_Laufweite_shifted_by_0.05",
-                     "pred_classes"
+                     "classes_simple",
+                     "org_pred_simple",
+                     "pred_with_ps_Laufweite_shifted_by_0.05_simple",
+                     "pred_classes_simple"
                      ]
     show_legend = [True, False, False, False, True, False, False, False, True, False, False, False]
     datasets = [improved_NN_set_hole, improved_NN_set_hole, qsm_NN_set_hole, improved_NN_set_hole,
