@@ -1290,6 +1290,143 @@ def soccer_QSM_comparison_figure_paper():
     plt.savefig("../Plots/Paper_Grafiken/Soccer_QSM_comparison.pdf", bbox_inches='tight')
 
 
+def iris_hole_soccer_QSM_comparison_paper():
+    plt.clf()
+    plt.rcParams["font.family"] = "Times New Roman"
+    plt.figure(0, figsize=(8, 15))
+
+    qsm_NN_set_hole = dc.Data.load(r"..\Data\Parameters2\MaybeActualDataSet\NN\020")
+    improved_NN_set_hole = dc.Data.load(
+        r"..\Data\Parameters2\MaybeActualDataSet\NN\012\Splits\dim_04_005")
+
+    visualized_area_hole = vs.find_common_area(improved_NN_set_hole.data["dim_00"].values,
+                                               improved_NN_set_hole.data["dim_04_org"].values,
+                                               improved_NN_set_hole.data["dim_00"].values,
+                                               improved_NN_set_hole.data["dim_04"].values)
+
+    qsm_NN_set_iris = dc.Data.load(r"..\Data\Parameters2\IrisDataSet\NN\004")
+    improved_NN_set_iris = dc.Data.load(
+        r"..\Data\Parameters2\IrisDataSet\NN\004\Splits\petal_length_005")
+
+    visualized_area_iris = vs.find_common_area(improved_NN_set_iris.data["petal_width"].values,
+                                               improved_NN_set_iris.data["petal_length_org"].values,
+                                               improved_NN_set_iris.data["petal_width"].values,
+                                               improved_NN_set_iris.data["petal_length"].values)
+
+    qsm_NN_set_soccer = dc.Data.load(r"..\Data\Parameters2\SoccerDataSet\NN\004")
+    improved_NN_set_soccer = dc.Data.load(
+        r"..\Data\Parameters2\SoccerDataSet\NN\004\Splits\ps_Laufweite_005")
+
+    visualized_area_soccer = vs.find_common_area(improved_NN_set_soccer.data["Zweikampfprozente"].values,
+                                                 improved_NN_set_soccer.data["ps_Laufweite_org"].values,
+                                                 improved_NN_set_soccer.data["Zweikampfprozente"].values,
+                                                 improved_NN_set_soccer.data["ps_Laufweite"].values)
+
+    subplot_locs = [
+        (100, 100, 0, 33, 20, 27),
+        (100, 100, 26, 33, 20, 27),
+        (100, 100, 52, 33, 20, 27),
+        (100, 100, 78, 33, 20, 27),
+
+        (100, 100, 0, 0, 20, 27),
+        (100, 100, 26, 0, 20, 27),
+        (100, 100, 52, 0, 20, 27),
+        (100, 100, 78, 0, 20, 27),
+
+        (100, 100, 0, 67, 20, 26),
+        (100, 100, 26, 67, 20, 26),
+        (100, 100, 52, 67, 20, 26),
+        (100, 100, 78, 67, 20, 26),
+    ]
+    titles = ["Original hole data set",
+              "Hole data set labelled by NN",
+              "QSM results on hole data set",
+              "CSM results on hole data set",
+
+              "Original iris data set",
+              "Iris data set labelled by NN",
+              "QSM results on iris data set",
+              "CSM results on iris data set",
+
+              "Original soccer data set",
+              "Soccer data set labelled by NN",
+              "QSM results on soccer data set",
+              "CSM results on soccer data set",
+              ]
+    dims = [
+        ("dim_00", "dim_04_org"),
+        ("dim_00", "dim_04_org"),
+        ("dim_00", "dim_04_shifted_by_0.05"),
+        ("dim_00", "dim_04"),
+
+        ("petal_width", "petal_length_org"),
+        ("petal_width", "petal_length_org"),
+        ("petal_width", "petal_length_shifted_by_0.05"),
+        ("petal_width", "petal_length"),
+
+        ("Zweikampfprozente", "ps_Laufweite_org"),
+        ("Zweikampfprozente", "ps_Laufweite_org"),
+        ("Zweikampfprozente", "ps_Laufweite_shifted_by_0.05"),
+        ("Zweikampfprozente", "ps_Laufweite")
+    ]
+    class_columns = ["classes",
+                     "org_pred",
+                     "pred_with_dim_04_shifted_by_0.05",
+                     "pred_classes",
+
+                     "classes",
+                     "org_pred",
+                     "pred_with_petal_length_shifted_by_0.05",
+                     "pred_classes",
+
+                     "classes",
+                     "org_pred",
+                     "pred_with_ps_Laufweite_shifted_by_0.05",
+                     "pred_classes"
+                     ]
+    show_legend = [True, False, False, False, True, False, False, False, True, False, False, False]
+    datasets = [improved_NN_set_hole, improved_NN_set_hole, qsm_NN_set_hole, improved_NN_set_hole,
+                improved_NN_set_iris, improved_NN_set_iris, qsm_NN_set_iris, improved_NN_set_iris,
+                improved_NN_set_soccer, improved_NN_set_soccer, qsm_NN_set_soccer, improved_NN_set_soccer]
+    axis_names = [("D0", "D4"), ("D0", "D4"), ("D0", "D4"), ("D0", "D4"),
+
+                  ("petal_width / cm", "petal_length / cm"), ("petal_width / cm", "petal_length / cm"),
+                  ("petal_width / cm", "petal_length / cm"), ("petal_width / cm", "petal_length / cm"),
+
+                  ("duel_percentage / %", "distance_run_per_game / km"),
+                  ("duel_percentage / %", "distance_run_per_game / km"),
+                  ("duel_percentage / %", "distance_run_per_game / km"),
+                  ("duel_percentage / %", "distance_run_per_game / km")]
+
+    class_name_hole = improved_NN_set_hole.class_names
+    class_name_iris = improved_NN_set_iris.class_names
+    class_name_soccer = improved_NN_set_soccer.class_names
+
+    class_names = [["C0", "C1", "C2", "C3", "C4", "C5"], class_name_hole, class_name_hole, class_name_hole,
+                   class_name_iris, class_name_iris, class_name_iris, class_name_iris,
+                   class_name_soccer, class_name_soccer, class_name_soccer, class_name_soccer]
+
+    visualized_areas = [visualized_area_hole, visualized_area_hole, visualized_area_hole, visualized_area_hole,
+                        visualized_area_iris, visualized_area_iris, visualized_area_iris, visualized_area_iris,
+                        visualized_area_soccer, visualized_area_soccer, visualized_area_soccer, visualized_area_soccer]
+
+    legend_locs = [(-0.03, 1.45), (1.01, 1), (1.01, 1), (1.01, 1),
+                   (-0.03, 1.45), (1.01, 1), (1.01, 1), (1.01, 1),
+                   (-0.03, 1.45), (1.01, 1), (1.01, 1), (1.01, 1)]
+
+    legend_columns = [2, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1]
+
+    for i, (plot_loc, dim, title, class_column, legend, dataset, axis_name, class_name, visualized_area_soccer, legend_loc, legend_ncol) in enumerate(
+            zip(subplot_locs, dims, titles, class_columns, show_legend, datasets, axis_names, class_names, visualized_areas, legend_locs, legend_columns)):
+        vs.visualize_2d_subplot(df=dataset.data, dims=dim, subplot_location=plot_loc, class_column=class_column,
+                                show_legend=legend, bbox_to_anchor=legend_loc, title=title,
+                                visualized_area=visualized_area_soccer, frame_on=True,
+                                class_names=class_name, axis_names=axis_name, ncol_legend=legend_ncol, labelpad=1)
+
+    #plt.show()
+    plt.savefig("../Plots/Paper_Grafiken/real_big_graphic.pdf", bbox_inches='tight')
+
+
 def main() -> None:
     """
     just a test function
@@ -1307,7 +1444,4 @@ def main() -> None:
 
 if __name__ == "__main__":
     # main()
-    # Iris_QSM_comparison_figure_quer()
-    #soccerDataSet_figure_paper()
-    #soccer_QSM_comparison_figure_paper()
-    big_figure_for_paper()
+    iris_hole_soccer_QSM_comparison_paper()
