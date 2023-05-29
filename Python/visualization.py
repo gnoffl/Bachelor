@@ -170,7 +170,8 @@ def visualize_2d_subplot(df: pd.DataFrame,
                          map_label: bool = True,
                          axis_names: Tuple[str, str] = None,
                          frame_on=True,
-                         ncol_legend=1):
+                         ncol_legend=1,
+                         labelpad=-1):
     """
     Creates a 2d Image of the given data, showing the dimensions whose names are given in dims.
     :param df: Dataframe containing the data
@@ -195,6 +196,7 @@ def visualize_2d_subplot(df: pd.DataFrame,
     used
     :param frame_on: determines whether the legend will have a border
     :param ncol_legend: Determines number of columns in legend
+    :param labelpad: Determines padding of axis labels. If -1, default padding will be used
     :returns: created subplot
     """
     x_name, y_name = dims
@@ -210,8 +212,12 @@ def visualize_2d_subplot(df: pd.DataFrame,
 
     plot.axis(xmin=x_axis_min, xmax=x_axis_max, ymin=y_axis_min, ymax=y_axis_max)
     if axis_names:
-        plot.set_xlabel(axis_names[0], fontsize=12)
-        plot.set_ylabel(axis_names[1], fontsize=12)
+        if labelpad == -1:
+            plot.set_xlabel(axis_names[0], fontsize=12)
+            plot.set_ylabel(axis_names[1], fontsize=12)
+        else:
+            plot.set_xlabel(axis_names[0], fontsize=12, labelpad=labelpad)
+            plot.set_ylabel(axis_names[1], fontsize=12, labelpad=labelpad)
     else:
         plot.set_xlabel(x_name)
         plot.set_ylabel(y_name)
