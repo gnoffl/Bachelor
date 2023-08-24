@@ -5,6 +5,7 @@ import pandas as pd
 import matplotlib.pyplot as plt
 import matplotlib as mpl
 import random
+import numpy as np
 
 
 def segment_new_plot(iris):
@@ -254,8 +255,139 @@ def binning_plot_paper():
     plt.savefig("../../../Plots/Paper_Grafiken/binning.pdf", bbox_inches='tight')
 
 
+def get_dataset_split() -> pd.DataFrame:
+    frame = pd.DataFrame()
+    first_dim = [0.01*i for i in range(100)]
+    random.seed(1)
+    first_dim.extend([random.uniform(1, 2) for _ in range(100)])
+    second_dim = [random.uniform(0, 1) for _ in range(100)]
+    second_dim.extend([random.uniform(1, 2) for _ in range(100)])
+    frame["dim_to_split"] = first_dim
+    frame["dim_to_shift"] = second_dim
+    return frame
+
+
+def fill_scatter_plot_splitting_1(colors, dataset, scatter_plot):
+    classes = [0 for _ in range(50)]
+    classes.extend([1 for _ in range(150)])
+    dataset["class"] = classes
+    pad = 0.1
+    x_min, x_max = dataset["dim_to_split"].min() - pad, dataset["dim_to_split"].max() + pad
+    y_min, y_max = dataset["dim_to_shift"].min() - pad, dataset["dim_to_shift"].max() + pad
+    scatter_plot.set_xlim(x_min, x_max)
+    scatter_plot.set_ylim(y_min, y_max)
+    scatter_plot.set_xlabel("dim_to_split", fontsize=10)  # , labelpad=1)
+    scatter_plot.set_ylabel("dim_to_shift", fontsize=10)  # , labelpad=1)
+    scatter_plot.set_title("example data set", fontsize=10)
+    scatter_plot.scatter(dataset["dim_to_split"][0:50], dataset["dim_to_shift"][0:50], s=15, color=colors[0],
+                         label="bin 0", zorder=1)
+    scatter_plot.scatter(dataset["dim_to_split"][50:200], dataset["dim_to_shift"][50:200], s=15, color=colors[1],
+                         label="bin 1", zorder=1)
+    scatter_plot.set_yticks([0, 0.5, 1, 1.5, 2], fontsize=10)
+    scatter_plot.legend(fontsize=10, bbox_to_anchor=(.37, .97), frameon=True)
+
+
+def fill_ecdf_subplot_splitting_1(ecdf_plot, colors):
+    ecdf_plot.plot([0, 1, 2], [0, 1, 1], zorder=5, label="bin 0")
+    ecdf_plot.plot([0, 1, 2], [0, 0.3333, 1], zorder=0, label="bin 1")
+    ecdf_plot.legend(fontsize=10, frameon=True, bbox_to_anchor=(.37, .97))
+
+    """ecdf_plot.arrow(1.2, 0.4, 0.6, 0, color="black", width=0.005, length_includes_head=True, head_width=0.01,
+                    head_length=0.1, linewidth=0.001, zorder=10)
+    ecdf_plot.arrow(1.8, 0.4, 0, 0.2, color="black", width=0.03, length_includes_head=True, head_width=0.07,
+                    head_length=0.013, linewidth=0.001, zorder=10)
+
+    ecdf_plot.arrow(0.8, 0.4, 1.4, 0, color=colors[0], width=0.005, length_includes_head=True, head_width=0.01,
+                    head_length=0.1, linewidth=0.001, zorder=10)
+    ecdf_plot.arrow(2.2, 0.4, 0, 0.2, color=colors[0], width=0.03, length_includes_head=True, head_width=0.07,
+                    head_length=0.013, linewidth=0.001, zorder=10)"""
+    ecdf_plot.set_title("ecdf", fontsize=10)
+    ecdf_plot.set_xlabel("dim_to_shift", fontsize=10, labelpad=1)
+    ecdf_plot.set_ylabel("Cumulative Frequency", fontsize=10, labelpad=3)
+    ecdf_plot.set_xticks([0, 1, 2], fontsize=10)
+    ecdf_plot.set_yticks([0, .2, .4, .6, .8, 1])  # , ["0", ".2", ".4", ".6", ".8", "1"])
+
+
+def example_splitting_presentation_split_1():
+    plt.clf()
+    plt.figure(0, figsize=(8, 3.5))
+
+    prop_cycle = plt.rcParams["axes.prop_cycle"]
+    colors = prop_cycle.by_key()["color"]
+
+    scatter_plot = plt.subplot2grid((1, 100), (0, 0), rowspan=1, colspan=43)
+    ecdf_plot = plt.subplot2grid((1, 100), (0, 57), rowspan=1, colspan=43)
+
+    dataset = get_dataset_split()
+
+    fill_scatter_plot_splitting_1(colors, dataset, scatter_plot)
+    fill_ecdf_subplot_splitting_1(ecdf_plot, colors)
+    #plt.show()
+    plt.savefig("../../../Plots/Paper_Grafiken/splitting_1.png", bbox_inches='tight', dpi=900)
+
+
+def fill_scatter_plot_splitting_2(colors, dataset, scatter_plot):
+    classes = [0 for _ in range(100)]
+    classes.extend([1 for _ in range(100)])
+    dataset["class"] = classes
+    pad = 0.1
+    x_min, x_max = dataset["dim_to_split"].min() - pad, dataset["dim_to_split"].max() + pad
+    y_min, y_max = dataset["dim_to_shift"].min() - pad, dataset["dim_to_shift"].max() + pad
+    scatter_plot.set_xlim(x_min, x_max)
+    scatter_plot.set_ylim(y_min, y_max)
+    scatter_plot.set_xlabel("dim_to_split", fontsize=10)  # , labelpad=1)
+    scatter_plot.set_ylabel("dim_to_shift", fontsize=10)  # , labelpad=1)
+    scatter_plot.set_title("example data set", fontsize=10)
+    scatter_plot.scatter(dataset["dim_to_split"][0:100], dataset["dim_to_shift"][0:100], s=15, color=colors[0],
+                         label="bin 0", zorder=1)
+    scatter_plot.scatter(dataset["dim_to_split"][100:200], dataset["dim_to_shift"][100:200], s=15, color=colors[1],
+                         label="bin 1", zorder=1)
+    scatter_plot.set_yticks([0, 0.5, 1, 1.5, 2], fontsize=10)
+    scatter_plot.legend(fontsize=10, bbox_to_anchor=(.37, .97), frameon=True)
+
+
+def fill_ecdf_subplot_splitting_2(ecdf_plot, colors):
+    ecdf_plot.plot([0, 1, 2], [0, 1, 1], zorder=5, label="bin 0")
+    ecdf_plot.plot([0, 1, 2], [0, 0, 1], zorder=0, label="bin 1")
+    ecdf_plot.legend(fontsize=10, frameon=True, bbox_to_anchor=(.37, .97))
+
+    """ecdf_plot.arrow(1.2, 0.4, 0.6, 0, color="black", width=0.005, length_includes_head=True, head_width=0.01,
+                    head_length=0.1, linewidth=0.001, zorder=10)
+    ecdf_plot.arrow(1.8, 0.4, 0, 0.2, color="black", width=0.03, length_includes_head=True, head_width=0.07,
+                    head_length=0.013, linewidth=0.001, zorder=10)
+
+    ecdf_plot.arrow(0.8, 0.4, 1.4, 0, color=colors[0], width=0.005, length_includes_head=True, head_width=0.01,
+                    head_length=0.1, linewidth=0.001, zorder=10)
+    ecdf_plot.arrow(2.2, 0.4, 0, 0.2, color=colors[0], width=0.03, length_includes_head=True, head_width=0.07,
+                    head_length=0.013, linewidth=0.001, zorder=10)"""
+    ecdf_plot.set_title("ecdf", fontsize=10)
+    ecdf_plot.set_xlabel("dim_to_shift", fontsize=10, labelpad=1)
+    ecdf_plot.set_ylabel("Cumulative Frequency", fontsize=10, labelpad=3)
+    ecdf_plot.set_xticks([0, 1, 2], fontsize=10)
+    ecdf_plot.set_yticks([0, .2, .4, .6, .8, 1])  # , ["0", ".2", ".4", ".6", ".8", "1"])
+
+
+def example_splitting_presentation_split_2():
+    plt.clf()
+    plt.figure(0, figsize=(8, 3.5))
+
+    prop_cycle = plt.rcParams["axes.prop_cycle"]
+    colors = prop_cycle.by_key()["color"]
+
+    scatter_plot = plt.subplot2grid((1, 100), (0, 0), rowspan=1, colspan=43)
+    ecdf_plot = plt.subplot2grid((1, 100), (0, 57), rowspan=1, colspan=43)
+
+    dataset = get_dataset_split()
+
+    fill_scatter_plot_splitting_2(colors, dataset, scatter_plot)
+    fill_ecdf_subplot_splitting_2(ecdf_plot, colors)
+    #plt.show()
+    plt.savefig("../../../Plots/Paper_Grafiken/splitting_2.png", bbox_inches='tight', dpi=900)
+
+
 if __name__ == "__main__":
     """iris = datasets.load_iris(as_frame=True)
     org_iris(iris)
     shifted_iris(iris)"""
-    binning_plot_paper()
+    #binning_plot_paper()
+    example_splitting_presentation_split_1()
